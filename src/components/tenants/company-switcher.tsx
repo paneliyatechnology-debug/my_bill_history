@@ -439,7 +439,7 @@ export function CompanySwitcher() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
                 <span>
-                  {lang === "gu" ? "+ નવી પેઢી / વેપાર ઉમેરો" : "+ Add New Business / Company"}
+                  {lang === "gu" ? " નવી પેઢી / વેપાર ઉમેરો" : " Add New Business / Company"}
                 </span>
               </button>
             ) : (

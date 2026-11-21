@@ -1,9 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../context/auth-context";
 import { INDIAN_STATES } from "@billing/shared-types";
 import { CustomCombobox } from "@/components/ui/dropdown-system";
+import {
+  Building2,
+  X,
+  Check,
+  AlertCircle,
+  Sparkles,
+  ShieldCheck,
+  Loader2,
+  MapPin,
+  Phone,
+  Mail,
+  FileText,
+} from "lucide-react";
 
 interface CreateCompanyModalProps {
   isOpen: boolean;
@@ -17,7 +31,9 @@ export function CreateCompanyModal({
   onSuccess,
 }: CreateCompanyModalProps) {
   const { entitlements, createCompany, lang } = useAuth();
+  const gu = lang === "gu";
 
+  const [mounted, setMounted] = useState(false);
   const [tradeName, setTradeName] = useState("");
   const [legalName, setLegalName] = useState("");
   const [gstin, setGstin] = useState("");
@@ -31,6 +47,11 @@ export function CreateCompanyModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Client-side mount check for createPortal
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Auto-extract PAN and State Code when GSTIN is typed
   const handleGstinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,30 +89,48 @@ export function CreateCompanyModal({
     setError(null);
   };
 
+  // Prevent background scrolling while modal is open & handle Escape key
   useEffect(() => {
     if (!isOpen) {
       resetForm();
+      return;
     }
-  }, [isOpen]);
 
-  if (!isOpen) return null;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isSubmitting) {
+        onClose();
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = "unset";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, isSubmitting]);
+
+  if (!isOpen || !mounted) return null;
 
   const canAdd = entitlements?.canAddCompany ?? true;
+  const currentCount = entitlements?.currentCount ?? 0;
+  const maxLimit = entitlements?.maxCompanies ?? 1;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!tradeName.trim()) {
-      setError(lang === "gu" ? "વેપાર નામ જરૂરી છે." : "Business / Trade Name is required.");
+      setError(gu ? "વેપાર નામ (Business Name) જરૂરી છે." : "Business / Trade Name is required.");
       return;
     }
 
     if (!canAdd) {
       setError(
-        `Subscription plan limit reached (${entitlements?.currentCount || 0}/${
-          entitlements?.maxCompanies || 1
-        } companies). Please upgrade your plan to add more businesses.`,
+        gu
+          ? `પ્લાન મર્યાદા પૂર્ણ (${currentCount}/${maxLimit} કંપનીઓ). વધુ કંપની ઉમેરવા માટે પ્લાન અપગ્રેડ કરો.`
+          : `Subscription plan limit reached (${currentCount}/${maxLimit} companies). Please upgrade your plan to add more businesses.`,
       );
       return;
     }
@@ -120,41 +159,57 @@ export function CreateCompanyModal({
       const msg =
         err?.messageGujarati ||
         err?.message ||
-        "Failed to create business. Please verify details and try again.";
+        (gu ? "કંપની બનાવવામાં નિષ્ફળતા. કૃપા કરીને વિગતો તપાસો." : "Failed to create business. Please verify details and try again.");
       setError(msg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
+  // Indian States Options for CustomCombobox
+  const stateOptions = Object.entries(INDIAN_STATES).map(([code, s]) => ({
+    value: code,
+    label: `${code} - ${gu ? `${s.nameGujarati} (${s.name})` : s.name}`,
+  }));
+
+  // Render via React Portal to document.body so that fixed positioning is never trapped by header backdrop-filter
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200"
+      className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-5 md:p-6 overflow-y-auto animate-in fade-in duration-150"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-title"
-      onKeyDown={(e) => {
-        if (e.key === "Escape" && !isSubmitting) onClose();
-      }}
+      aria-labelledby="create-company-modal-title"
     >
-      <div className="fixed inset-0 bg-transparent" onClick={() => !isSubmitting && onClose()} aria-hidden="true" />
-      <div className="relative z-10 bg-white rounded-xl shadow-2xl max-w-xl w-full overflow-hidden border border-[#D1D5DB] flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
+      {/* Semi-transparent Backdrop Overlay with subtle blur */}
+      <div
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+        onClick={() => !isSubmitting && onClose()}
+        aria-hidden="true"
+      />
+
+      {/* Modal Dialog Card */}
+      <div className="relative z-10 bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-slate-200 flex flex-col max-h-[min(90vh,760px)] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-[#FFFAF5] to-white border-b border-[#BFDBFE]/50 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#FFFAF5] border border-[#BFDBFE] flex items-center justify-center text-[#0F172A]">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
+        <div className="px-5 sm:px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1677E8] border border-blue-100 flex items-center justify-center shrink-0">
+              <Building2 className="w-5 h-5 stroke-[2.2]" />
             </div>
-            <div>
-              <h2 id="modal-title" className="text-[15px] font-semibold text-[#182230]">
-                Create New Business / Company
-              </h2>
-              <p className="text-xs text-[#667085]">
-                {lang === "gu"
-                  ? "નવો વેપાર / પેઢી ઉમેરો • Indian GST & Accounting"
-                  : "Add New Business / Company • Indian GST & Accounting"}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h2 id="create-company-modal-title" className="text-base sm:text-[17px] font-bold text-slate-900 truncate">
+                  {gu ? "નવી પેઢી / વેપાર ઉમેરો" : "Add New Business / Company"}
+                </h2>
+                {maxLimit > 0 && (
+                  <span className="hidden sm:inline-block text-[10px] font-bold bg-blue-50 text-[#1677E8] border border-blue-200/80 px-2 py-0.5 rounded-full shrink-0">
+                    {gu ? `કંપની ${currentCount + 1}/${maxLimit}` : `Company ${currentCount + 1} of ${maxLimit}`}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 truncate mt-0.5">
+                {gu
+                  ? "અલગ બિલિંગ, ખાતાવહી અને GST ફાઇલિંગ માટે નવી પેઢી સેટ કરો"
+                  : "Setup separate books, invoicing, ledgers & GST compliance"}
               </p>
             </div>
           </div>
@@ -162,229 +217,306 @@ export function CreateCompanyModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-xl transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
             aria-label="Close"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Modal Body / Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2">
-              <svg className="w-4 h-4 text-red-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{error}</span>
-            </div>
-          )}
+        {/* Modal Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Scrollable Form Body */}
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 overscroll-contain">
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-start gap-2.5 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <span className="leading-relaxed font-medium">{error}</span>
+              </div>
+            )}
 
-          {!canAdd && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start gap-2">
-              <svg className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p className="font-semibold">Company limit reached on your plan</p>
-                <p className="text-[11px] mt-0.5 text-amber-700">
-                  Your current tier ({entitlements?.name || "Trial"}) allows up to {entitlements?.maxCompanies || 1} company. Contact support or upgrade to Wholesale Pro / Enterprise for additional companies.
-                </p>
+            {/* Plan Limit Warning */}
+            {!canAdd && (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-amber-900">
+                    {gu ? "પ્લાન કંપની લિમિટ પૂર્ણ થયેલ છે" : "Company limit reached on your plan"}
+                  </p>
+                  <p className="text-[11px] mt-0.5 text-amber-700 leading-relaxed">
+                    {gu
+                      ? `તમારા હાલના પ્લાનમાં ${maxLimit} કંપની મંજૂર છે. વધુ કંપનીઓ ઉમેરવા માટે સેટિંગ્સમાંથી Wholesale Pro અથવા Enterprise પ્લાન અપગ્રેડ કરો.`
+                      : `Your current tier allows up to ${maxLimit} companies. Please upgrade to Wholesale Pro or Enterprise to add more companies.`}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Section 1: Business Identity */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider pb-1 border-b border-slate-100">
+                <FileText className="w-3.5 h-3.5 text-[#1677E8]" />
+                <span>{gu ? "૧. વ્યવસાયિક વિગતો" : "1. Business Identity"}</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* Trade Name */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "વેપાર / પેઢીનું નામ (Trade Name)" : "Business / Trade Name"}{" "}
+                    <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    placeholder={gu ? "દા.ત. શ્રી ગણેશ ટ્રેડિંગ કંપની" : "e.g. Shree Ganesh Trading Co."}
+                    value={tradeName}
+                    onChange={(e) => setTradeName(e.target.value)}
+                    disabled={isSubmitting || !canAdd}
+                    className="w-full px-3.5 py-2 text-xs sm:text-[13px] font-semibold text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all disabled:bg-slate-100 h-10 placeholder:font-normal placeholder:text-slate-400"
+                  />
+                </div>
+
+                {/* Legal Name */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "કાનૂની નામ (Legal Entity Name - જો અલગ હોય)" : "Legal Entity Name (Optional)"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={gu ? "દા.ત. શ્રી ગણેશ ટ્રેડિંગ પ્રાઇવેટ લિમિટેડ" : "e.g. Shree Ganesh Trading Pvt Ltd"}
+                    value={legalName}
+                    onChange={(e) => setLegalName(e.target.value)}
+                    disabled={isSubmitting || !canAdd}
+                    className="w-full px-3.5 py-2 text-xs sm:text-[13px] font-medium text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all disabled:bg-slate-100 h-10 placeholder:font-normal placeholder:text-slate-400"
+                  />
+                </div>
               </div>
             </div>
-          )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Trade Name */}
-            <div className="sm:col-span-2">
-              <label className="block text-[12px] font-medium text-[#374151] mb-1">
-                {lang === "gu" ? "વેપાર નામ (Trade Name)" : "Trade / Business Name"} <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Audit Traders Ahmedabad"
-                value={tradeName}
-                onChange={(e) => setTradeName(e.target.value)}
-                disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
-              />
+            {/* Section 2: GST & Tax Identification */}
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider pb-1 border-b border-slate-100">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{gu ? "૨. GSTIN અને ટેક્સ નોંધણી" : "2. GST & Tax Registration"}</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* GSTIN */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-700">
+                      GSTIN (15 Digits)
+                    </label>
+                    {gstin.length === 15 && (
+                      <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                        Valid Length
+                      </span>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={15}
+                    placeholder="24AAAAA0000A1Z5"
+                    value={gstin}
+                    onChange={handleGstinChange}
+                    disabled={isSubmitting || !canAdd}
+                    className="w-full px-3.5 py-2 tabular-nums text-xs sm:text-[13px] font-bold uppercase tracking-wider text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all disabled:bg-slate-100 h-10 placeholder:font-normal placeholder:text-slate-400"
+                  />
+                </div>
+
+                {/* PAN */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-700">
+                      PAN (10 Digits)
+                    </label>
+                    {pan.length === 10 && (
+                      <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                        Valid
+                      </span>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    placeholder="AAAAA0000A"
+                    value={pan}
+                    onChange={handlePanChange}
+                    disabled={isSubmitting || !canAdd}
+                    className="w-full px-3.5 py-2 tabular-nums text-xs sm:text-[13px] font-bold uppercase tracking-wider text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all disabled:bg-slate-100 h-10 placeholder:font-normal placeholder:text-slate-400"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Legal Name */}
-            <div className="sm:col-span-2">
-              <label className="block text-[12px] font-medium text-[#374151] mb-1">
-                {lang === "gu" ? "કાનૂની નામ (Legal Entity Name - Optional)" : "Legal Entity Name (Optional)"}
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Audit Traders Private Limited"
-                value={legalName}
-                onChange={(e) => setLegalName(e.target.value)}
-                disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
-              />
+            {/* Section 3: Location & State */}
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider pb-1 border-b border-slate-100">
+                <MapPin className="w-3.5 h-3.5 text-indigo-600" />
+                <span>{gu ? "૩. સ્થળ અને રાજ્ય વિગતો" : "3. Location & Place of Business"}</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* State Combobox */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "રાજ્ય (GST State Code)" : "GST State"}{" "}
+                    <span className="text-rose-500">*</span>
+                  </label>
+                  <CustomCombobox
+                    value={stateCode}
+                    onChange={(val: any) => setStateCode(val)}
+                    disabled={isSubmitting || !canAdd}
+                    options={stateOptions}
+                    placeholder={gu ? "રાજ્ય પસંદ કરો..." : "Select State..."}
+                    triggerClassName="rounded-xl border-slate-200 bg-slate-50/60 text-xs sm:text-[13px] font-medium h-10"
+                  />
+                </div>
+
+                {/* City */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "શહેર (City / Town)" : "City / Town"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={gu ? "દા.ત. અમદાવાદ" : "e.g. Ahmedabad"}
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    disabled={isSubmitting || !canAdd}
+                    className="w-full px-3.5 py-2 text-xs sm:text-[13px] font-medium text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all disabled:bg-slate-100 h-10 placeholder:font-normal placeholder:text-slate-400"
+                  />
+                </div>
+
+                {/* Address Line */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "સરનામું (Business Address)" : "Business Address"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={gu ? "દુકાન / ઓફિસ નંબર, કોમ્પ્લેક્સ, રોડ" : "Shop No, Complex / Street Address"}
+                    value={addressLine1}
+                    onChange={(e) => setAddressLine1(e.target.value)}
+                    disabled={isSubmitting || !canAdd}
+                    className="w-full px-3.5 py-2 text-xs sm:text-[13px] font-medium text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all disabled:bg-slate-100 h-10 placeholder:font-normal placeholder:text-slate-400"
+                  />
+                </div>
+
+                {/* PIN Code */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    PIN Code
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="380001"
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
+                    disabled={isSubmitting || !canAdd}
+                    className="w-full px-3.5 py-2 tabular-nums text-xs sm:text-[13px] font-medium text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all disabled:bg-slate-100 h-10 placeholder:font-normal placeholder:text-slate-400"
+                  />
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "સંપર્ક નંબર (Phone)" : "Contact Phone"}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      placeholder="9876543210"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                      disabled={isSubmitting || !canAdd}
+                      className="w-full px-3.5 py-2 tabular-nums text-xs sm:text-[13px] font-medium text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all disabled:bg-slate-100 h-10 placeholder:font-normal placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "ઇમેઇલ સરનામું (Email - Optional)" : "Business Email (Optional)"}
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="contact@business.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isSubmitting || !canAdd}
+                    className="w-full px-3.5 py-2 text-xs sm:text-[13px] font-medium text-slate-800 bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all disabled:bg-slate-100 h-10 placeholder:font-normal placeholder:text-slate-400"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* GSTIN */}
-            <div>
-              <label className="block text-[12px] font-medium text-[#374151] mb-1">
-                GSTIN (15 Digits)
-              </label>
-              <input
-                type="text"
-                maxLength={15}
-                placeholder="24ABCDE1234F1Z5"
-                value={gstin}
-                onChange={handleGstinChange}
-                disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 tabular-nums text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] uppercase disabled:bg-gray-50 h-10"
-              />
-            </div>
-
-            {/* PAN */}
-            <div>
-              <label className="block text-[12px] font-medium text-[#374151] mb-1">
-                Permanent Account Number (PAN)
-              </label>
-              <input
-                type="text"
-                maxLength={10}
-                placeholder="ABCDE1234F"
-                value={pan}
-                onChange={handlePanChange}
-                disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 tabular-nums text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] uppercase disabled:bg-gray-50 h-10"
-              />
-            </div>
-
-            {/* State */}
-            <div>
-              <label className="block text-[12px] font-medium text-[#374151] mb-1">
-                {lang === "gu" ? "રાજ્ય (GST State)" : "GST State"} <span className="text-red-500">*</span>
-              </label>
-              <CustomCombobox
-                value={stateCode}
-                onChange={(val: any) => setStateCode(val)}
-                disabled={isSubmitting || !canAdd}
-                options={Object.entries(INDIAN_STATES).map(([code, s]) => ({
-                  value: code,
-                  label: `${code} - ${lang === "gu" ? `${s.nameGujarati} (${s.name})` : s.name}`,
-                }))}
-                placeholder="Select State..."
-                triggerClassName="rounded-lg border-[#D1D5DB] bg-white"
-              />
-            </div>
-
-            {/* City */}
-            <div>
-              <label className="block text-[12px] font-medium text-[#374151] mb-1">
-                {lang === "gu" ? "શહેર (City / Town)" : "City / Town"}
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Ahmedabad"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
-              />
-            </div>
-
-            {/* Address */}
-            <div className="sm:col-span-2">
-              <label className="block text-[12px] font-medium text-[#374151] mb-1">
-                {lang === "gu" ? "સરનામું (Business Address)" : "Business Address"}
-              </label>
-              <input
-                type="text"
-                placeholder="Shop No, Complex / Street Address"
-                value={addressLine1}
-                onChange={(e) => setAddressLine1(e.target.value)}
-                disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
-              />
-            </div>
-
-            {/* Pincode */}
-            <div>
-              <label className="block text-[12px] font-medium text-[#374151] mb-1">
-                PIN Code
-              </label>
-              <input
-                type="text"
-                maxLength={6}
-                placeholder="380001"
-                value={pincode}
-                onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
-                disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 tabular-nums text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
-              />
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-[12px] font-medium text-[#374151] mb-1">
-                {lang === "gu" ? "સંપર્ક નંબર (Contact Phone)" : "Contact Phone"}
-              </label>
-              <input
-                type="tel"
-                maxLength={10}
-                placeholder="9876543210"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 tabular-nums text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
-              />
+            {/* Automatic Setup Included Card */}
+            <div className="p-3.5 bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-xl border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+              <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                <Sparkles className="w-3.5 h-3.5 text-[#1677E8]" />
+                <span>{gu ? "આ કંપની સાથે આપોઆપ સેટઅપ થશે:" : "Automatic Setup Included:"}</span>
+              </div>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-slate-600 pt-0.5">
+                <li className="flex items-center gap-1.5">
+                  <Check className="w-3 h-3 text-emerald-600 shrink-0 stroke-[2.5]" />
+                  <span>{gu ? "મુખ્ય શાખા (BR01 Main Branch)" : "Default Main Branch (BR01)"}</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Check className="w-3 h-3 text-emerald-600 shrink-0 stroke-[2.5]" />
+                  <span>{gu ? "નાણાકીય વર્ષ (FY 2026-27)" : "Current Financial Year (FY 2026-27)"}</span>
+                </li>
+                <li className="flex items-center gap-1.5 sm:col-span-2">
+                  <Check className="w-3 h-3 text-emerald-600 shrink-0 stroke-[2.5]" />
+                  <span>
+                    {gu
+                      ? "ઇન્ડિયન SME સ્ટાન્ડર્ડ ખાતાવહી (Cash, Bank, Sales, GST, Parties)"
+                      : "Standard Indian SME Chart of Accounts (Cash, Bank, Sales, GST)"}
+                  </span>
+                </li>
+              </ul>
             </div>
           </div>
 
-          <div className="p-3 bg-[#F8F9FA] rounded-lg border border-[#E9ECEF] text-[11px] text-[#6C757D] space-y-1">
-            <p className="font-semibold text-[#495057]">Automatic Setup Included:</p>
-            <ul className="list-disc list-inside space-y-0.5">
-              <li>Default Main Branch (BR01)</li>
-              <li>Current Financial Year (FY 2026-27)</li>
-              <li>Standard Indian SME Chart of Accounts (Cash, Bank, Sales, GST, Parties)</li>
-            </ul>
-          </div>
-
-          {/* Modal Footer */}
-          <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-3">
+          {/* Sticky Modal Footer (always visible, never cut off) */}
+          <div className="px-5 sm:px-6 py-3.5 bg-slate-50/90 border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="h-9 px-3 text-[13px] font-medium text-[#4B5563] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] transition-colors disabled:opacity-50"
+              className="h-10 px-4 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
             >
-              Cancel
+              {gu ? "રદ કરો" : "Cancel"}
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !canAdd}
-              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#0F172A] hover:bg-[#E06612] rounded-lg shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-10 px-5 text-xs font-semibold text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                  </svg>
-                  <span>Creating Company...</span>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{gu ? "કંપની બની રહી છે..." : "Creating Company..."}</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span>Create Company</span>
+                  <Building2 className="w-4 h-4" />
+                  <span>{gu ? "કંપની ઉમેરો" : "Create Company"}</span>
                 </>
               )}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

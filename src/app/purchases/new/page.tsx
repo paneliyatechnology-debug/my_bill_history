@@ -113,7 +113,7 @@ interface PurchaseRow {
   discountValue: number | "";
   discountType: "%" | "₹";
   discountPercent?: number | "";
-  taxRate: number;
+  taxRate: number | string;
 }
 
 interface CompanyProfile {
@@ -2117,9 +2117,9 @@ const [notes, setNotes] = useState("");
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          3. MAIN WORKSPACE CONTAINER (3-COLUMN RESPONSIVE LAYOUT)
+          3. MAIN WORKSPACE CONTAINER (2-COLUMN RESPONSIVE LAYOUT)
          ───────────────────────────────────────────────────────────── */}
-      <div className="w-full max-w-[1680px] 2xl:max-w-[1760px] mx-auto px-3 sm:px-4 lg:px-6 pt-2">
+      <div className="w-full max-w-[1680px] 2xl:max-w-[1760px] mx-auto px-3 sm:px-4 lg:px-6 pt-2 pb-24">
         {activeMode === "PREVIEW" ? (
           <div className="space-y-4 animate-fadeIn">
             {/* Preview Top Control Bar */}
@@ -2231,7 +2231,7 @@ const [notes, setNotes] = useState("");
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[270px_minmax(0,1fr)_290px] xl:grid-cols-[280px_minmax(0,1fr)_300px] gap-4 items-start w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)] gap-5 items-start w-full">
             {/* ── 1. LEFT PANEL: AI AUTOFILL (280px) ── */}
             <aside className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex flex-col relative overflow-hidden">
               {/* AI Header */}
@@ -2849,18 +2849,18 @@ const [notes, setNotes] = useState("");
 
                 {/* Items Table */}
                 <div className="border border-slate-200/80 rounded-xl overflow-x-auto scrollbar-thin">
-                  <table className="w-full text-left border-collapse min-w-[760px]">
+                  <table className="w-full text-left border-collapse min-w-[880px]">
                     <thead className="bg-[#FAFBFD] border-b border-slate-200 text-slate-600 typo-table-th uppercase tracking-wider">
                       <tr>
-                        <th className="py-2.5 px-2 text-center w-8">#</th>
-                        <th className="py-2.5 px-3 min-w-[180px]">Item / Description</th>
-                        <th className="py-2.5 px-2 text-center w-20">HSN/SAC</th>
-                        <th className="py-2.5 px-2 text-center w-16">Qty</th>
-                        <th className="py-2.5 px-2 text-right w-24">Rate (₹)</th>
-                        <th className="py-2.5 px-2 text-center w-20">Discount</th>
-                        <th className="py-2.5 px-2 text-center w-20">Tax (%)</th>
-                        <th className="py-2.5 px-3 text-right w-28">Amount (₹)</th>
-                        <th className="py-2.5 px-2 text-center w-10">Action</th>
+                        <th className="py-2.5 px-2 text-center w-10">#</th>
+                        <th className="py-2.5 px-3 min-w-[280px]">Item / Description</th>
+                        <th className="py-2.5 px-2 text-center w-24">HSN/SAC</th>
+                        <th className="py-2.5 px-2 text-center w-24">Qty</th>
+                        <th className="py-2.5 px-2 text-right w-36">Rate (₹)</th>
+                        <th className="py-2.5 px-2 text-center w-24">Discount</th>
+                        <th className="py-2.5 px-2 text-center w-28">Tax (%)</th>
+                        <th className="py-2.5 px-3 text-right w-36">Amount (₹)</th>
+                        <th className="py-2.5 px-2 text-center w-12">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -2877,12 +2877,12 @@ const [notes, setNotes] = useState("");
 
                         return (
                           <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                            <td className="py-2 px-2 text-center text-slate-400 tabular-nums font-medium text-xs">
+                            <td className="py-2.5 px-2 text-center text-slate-400 tabular-nums font-medium text-xs">
                               {idx + 1}
                             </td>
 
                             {/* Item / Description */}
-                            <td className="py-2 px-3 min-w-[180px]">
+                            <td className="py-2.5 px-3 min-w-[280px]">
                               <div className="space-y-1">
                                 <CustomCombobox
                                   value={row.itemId}
@@ -2918,14 +2918,14 @@ const [notes, setNotes] = useState("");
                                     value={row.itemName}
                                     onChange={(e) => handleRowChange(idx, "itemName", e.target.value)}
                                     placeholder="Item name / description"
-                                    className="w-full text-[11px] h-7 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:border-[#1677E8]"
+                                    className="w-full text-xs h-8 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:border-[#1677E8]"
                                   />
                                 )}
                               </div>
                             </td>
 
                             {/* HSN/SAC */}
-                            <td className="py-2 px-2 w-20">
+                            <td className="py-2.5 px-2 w-24">
                               <input
                                 type="text"
                                 value={row.hsnCode}
@@ -2936,32 +2936,35 @@ const [notes, setNotes] = useState("");
                             </td>
 
                             {/* Qty */}
-                            <td className="py-2 px-2 w-16">
+                            <td className="py-2.5 px-2 w-24">
                               <input
                                 type="number"
                                 min="0.001"
                                 step="any"
                                 value={row.quantity}
                                 onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                                className="w-full text-xs h-9 px-2 text-center tabular-nums font-medium text-slate-800 bg-white border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                                className="w-full text-xs h-9 px-2 text-center tabular-nums font-semibold text-slate-800 bg-white border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none shadow-2xs"
                               />
                             </td>
 
                             {/* Rate (₹) */}
-                            <td className="py-2 px-2 w-24">
-                              <input
-                                type="number"
-                                min="0"
-                                step="any"
-                                value={row.unitPrice}
-                                onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                                placeholder="0.00"
-                                className="w-full text-xs h-9 px-2 text-right tabular-nums font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
-                              />
+                            <td className="py-2.5 px-2 w-36">
+                              <div className="relative flex items-center">
+                                <span className="absolute left-2.5 text-xs text-slate-400 font-medium pointer-events-none">₹</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={row.unitPrice}
+                                  onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
+                                  placeholder="0.00"
+                                  className="w-full text-xs h-9 pl-6 pr-2.5 text-right tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                                />
+                              </div>
                             </td>
 
                             {/* Discount */}
-                            <td className="py-2 px-2 w-20">
+                            <td className="py-2.5 px-2 w-24">
                               <div className="relative flex items-center">
                                 <input
                                   type="number"
@@ -2969,36 +2972,41 @@ const [notes, setNotes] = useState("");
                                   value={row.discountValue}
                                   onChange={(e) => handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))}
                                   placeholder="0"
-                                  className="w-full text-xs h-9 pl-2 pr-5 text-center tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                                  className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
                                 />
                                 <span className="absolute right-2 text-[10px] text-slate-400 font-bold pointer-events-none">%</span>
                               </div>
                             </td>
 
                             {/* Tax (%) */}
-                            <td className="py-2 px-2 w-24">
-                              <CustomSelect
-                                size="sm"
-                                value={String(row.taxRate)}
-                                onChange={(val: any) => handleRowChange(idx, "taxRate", Number(val) || 0)}
-                                options={[
-                                  { value: "0", label: "0%" },
-                                  { value: "5", label: "5%" },
-                                  { value: "12", label: "12%" },
-                                  { value: "18", label: "18%" },
-                                  { value: "28", label: "28%" },
-                                ]}
-                                triggerClassName="rounded-xl border-slate-200 text-center font-medium"
-                              />
+                            <td className="py-2.5 px-2 w-28">
+                              <div className="relative flex items-center">
+                                <input
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={row.taxRate !== undefined && row.taxRate !== null ? row.taxRate : ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                                      handleRowChange(idx, "taxRate", val);
+                                    }
+                                  }}
+                                  placeholder="0"
+                                  className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                                />
+                                <span className="absolute right-2 text-[10px] text-slate-400 font-bold pointer-events-none">
+                                  %
+                                </span>
+                              </div>
                             </td>
 
                             {/* Amount (₹) */}
-                            <td className="py-2 px-3 text-right tabular-nums font-bold text-slate-800 text-xs whitespace-nowrap w-28">
+                            <td className="py-2.5 px-3 text-right tabular-nums font-bold text-slate-900 text-xs whitespace-nowrap w-36">
                               ₹ {lineTot.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
 
                             {/* Action */}
-                            <td className="py-2 px-2 text-center w-10">
+                            <td className="py-2.5 px-2 text-center w-12">
                               <button
                                 type="button"
                                 onClick={() => handleRemoveRow(idx)}
@@ -3047,346 +3055,352 @@ const [notes, setNotes] = useState("");
                 </div>
               </div>
 
-              {/* Card C: Additional Details (Tabs) */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 space-y-3">
-                {/* Horizontal Tabs */}
-                <div className="flex items-center gap-6 border-b border-slate-200/80 overflow-x-auto">
-                  <button
-                    type="button"
-                    onClick={() => setActiveDetailsTab("notes")}
-                    className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
-                      activeDetailsTab === "notes"
-                        ? "text-[#1677E8] border-b-2 border-[#1677E8]"
-                        : "text-slate-500 hover:text-slate-700"
-                    }`}
-                  >
-                    <FileText className="w-3.5 h-3.5" strokeWidth={1.75} />
-                    <span>Notes</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveDetailsTab("terms")}
-                    className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
-                      activeDetailsTab === "terms"
-                        ? "text-[#1677E8] border-b-2 border-[#1677E8]"
-                        : "text-slate-500 hover:text-slate-700"
-                    }`}
-                  >
-                    <FileSpreadsheet className="w-3.5 h-3.5" strokeWidth={1.75} />
-                    <span>Terms & Conditions</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveDetailsTab("info")}
-                    className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
-                      activeDetailsTab === "info"
-                        ? "text-[#1677E8] border-b-2 border-[#1677E8]"
-                        : "text-slate-500 hover:text-slate-700"
-                    }`}
-                  >
-                    <HelpCircle className="w-3.5 h-3.5" strokeWidth={1.75} />
-                    <span>Additional Information</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveDetailsTab("attachments")}
-                    className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
-                      activeDetailsTab === "attachments"
-                        ? "text-[#1677E8] border-b-2 border-[#1677E8]"
-                        : "text-slate-500 hover:text-slate-700"
-                    }`}
-                  >
-                    <Paperclip className="w-3.5 h-3.5" strokeWidth={1.75} />
-                    <span>Attachments ({attachments.length})</span>
-                  </button>
+              {/* ── Bottom Section: Additional Details & Purchase Summary / Payment ── */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                {/* Left Column (7 cols): Additional Details (Notes, Terms, Info, Attachments) */}
+                <div className="lg:col-span-7 space-y-4">
+                  {/* Card C: Additional Details (Tabs) */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 space-y-3">
+                    {/* Horizontal Tabs */}
+                    <div className="flex items-center gap-6 border-b border-slate-200/80 overflow-x-auto">
+                      <button
+                        type="button"
+                        onClick={() => setActiveDetailsTab("notes")}
+                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                          activeDetailsTab === "notes"
+                            ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                            : "text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        <FileText className="w-3.5 h-3.5" strokeWidth={1.75} />
+                        <span>Notes</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveDetailsTab("terms")}
+                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                          activeDetailsTab === "terms"
+                            ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                            : "text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5" strokeWidth={1.75} />
+                        <span>Terms & Conditions</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveDetailsTab("info")}
+                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                          activeDetailsTab === "info"
+                            ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                            : "text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        <HelpCircle className="w-3.5 h-3.5" strokeWidth={1.75} />
+                        <span>Additional Information</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveDetailsTab("attachments")}
+                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                          activeDetailsTab === "attachments"
+                            ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                            : "text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        <Paperclip className="w-3.5 h-3.5" strokeWidth={1.75} />
+                        <span>Attachments ({attachments.length})</span>
+                      </button>
+                    </div>
+
+                    {/* Tab Body */}
+                    {activeDetailsTab === "notes" && (
+                      <div className="pt-2">
+                        <textarea
+                          value={notes}
+                          onChange={(e) => {
+                            setIsDirty(true);
+                            setNotes(e.target.value);
+                          }}
+                          placeholder="Enter notes for customer..."
+                          rows={4}
+                          className="w-full p-3 text-xs border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none focus:ring-2 focus:ring-[#1677E8]/10 text-slate-800 placeholder:text-slate-400 resize-y"
+                        />
+                      </div>
+                    )}
+
+                    {activeDetailsTab === "terms" && (
+                      <div className="pt-2">
+                        <textarea
+                          value={terms}
+                          onChange={(e) => {
+                            setIsDirty(true);
+                            setTerms(e.target.value);
+                          }}
+                          placeholder="Enter terms and conditions..."
+                          rows={4}
+                          className="w-full p-3 text-xs border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none focus:ring-2 focus:ring-[#1677E8]/10 text-slate-800 placeholder:text-slate-400 resize-y"
+                        />
+                      </div>
+                    )}
+
+                    {activeDetailsTab === "info" && (
+                      <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                            Transport Mode
+                          </label>
+                          <CustomSelect
+                            size="sm"
+                            value={transportMode}
+                            onChange={(val: any) => setTransportMode(val)}
+                            options={[
+                              { value: "Road", label: "Road" },
+                              { value: "Rail", label: "Rail" },
+                              { value: "Air", label: "Air" },
+                              { value: "Ship", label: "Ship" },
+                            ]}
+                            triggerClassName="rounded-xl border-slate-200"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                            Vehicle Number
+                          </label>
+                          <input
+                            type="text"
+                            value={vehicleNo}
+                            onChange={(e) => setVehicleNo(e.target.value)}
+                            placeholder="GJ-01-AB-1234"
+                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                            E-Way Bill No.
+                          </label>
+                          <input
+                            type="text"
+                            value={ewayBillNo}
+                            onChange={(e) => setEwayBillNo(e.target.value)}
+                            placeholder="e.g. 24109845231"
+                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                            Dispatch Date
+                          </label>
+                          <input
+                            type="date"
+                            value={dispatchDate}
+                            onChange={(e) => setDispatchDate(e.target.value)}
+                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {activeDetailsTab === "attachments" && (
+                      <div className="pt-2 space-y-3">
+                        <div
+                          onClick={() => attachmentInputRef.current?.click()}
+                          className="border-2 border-dashed border-slate-200 hover:border-[#1677E8] rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-blue-50/20"
+                        >
+                          <input
+                            ref={attachmentInputRef}
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files) {
+                                const files = Array.from(e.target.files).map((f) => ({
+                                  id: Math.random().toString(36).substring(2, 9),
+                                  name: f.name,
+                                  size: (f.size / (1024 * 1024)).toFixed(2) + " MB",
+                                  file: f,
+                                }));
+                                setAttachments((prev) => [...prev, ...files]);
+                              }
+                            }}
+                          />
+                          <p className="text-xs text-slate-600">
+                            Click or drop files here to attach supporting documents (PO, Delivery Challan, etc.)
+                          </p>
+                        </div>
+
+                        {attachments.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {attachments.map((att) => (
+                              <div
+                                key={att.id}
+                                className="flex items-center gap-2 py-1.5 px-3 bg-slate-100 border border-slate-200 rounded-lg text-xs"
+                              >
+                                <span className="font-medium text-slate-800">{att.name}</span>
+                                <span className="text-[10px] text-slate-500">({att.size})</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setAttachments((prev) => prev.filter((a) => a.id !== att.id))}
+                                  className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
+                                >
+                                  <X className="w-3.5 h-3.5" strokeWidth={2} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Tab Body */}
-                {activeDetailsTab === "notes" && (
-                  <div className="pt-2">
-                    <textarea
-                      value={notes}
-                      onChange={(e) => {
-                        setIsDirty(true);
-                        setNotes(e.target.value);
-                      }}
-                      placeholder="Enter notes for customer..."
-                      rows={3}
-                      className="w-full p-3 text-xs border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none focus:ring-2 focus:ring-[#1677E8]/10 text-slate-800 placeholder:text-slate-400 resize-y"
-                    />
-                  </div>
-                )}
+                {/* Right Column (5 cols): Purchase Summary & Payment Details */}
+                <div className="lg:col-span-5 space-y-4">
+                  {/* Purchase Summary Card */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 space-y-3.5">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      <h3 className="typo-form-section text-slate-900">Purchase Summary</h3>
+                    </div>
 
-                {activeDetailsTab === "terms" && (
-                  <div className="pt-2">
-                    <textarea
-                      value={terms}
-                      onChange={(e) => {
-                        setIsDirty(true);
-                        setTerms(e.target.value);
-                      }}
-                      placeholder="Enter terms and conditions..."
-                      rows={3}
-                      className="w-full p-3 text-xs border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none focus:ring-2 focus:ring-[#1677E8]/10 text-slate-800 placeholder:text-slate-400 resize-y"
-                    />
-                  </div>
-                )}
+                    <div className="space-y-2.5 text-xs">
+                      <div className="flex items-center justify-between text-slate-600">
+                        <span>Items Subtotal</span>
+                        <span className="font-semibold tabular-nums text-slate-800">
+                          {formatInr(totals.totalTaxable)}
+                        </span>
+                      </div>
 
-                {activeDetailsTab === "info" && (
-                  <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {totals.totalDiscount > 0 && (
+                        <div className="flex items-center justify-between text-emerald-600">
+                          <span>Discount</span>
+                          <span className="font-semibold tabular-nums">
+                            - {formatInr(totals.totalDiscount)}
+                          </span>
+                        </div>
+                      )}
+
+                      {!isInterState ? (
+                        <>
+                          {totals.totalCgst > 0 && (
+                            <div className="flex items-center justify-between text-slate-600">
+                              <span>CGST</span>
+                              <span className="font-semibold tabular-nums text-slate-800">
+                                {formatInr(totals.totalCgst)}
+                              </span>
+                            </div>
+                          )}
+                          {totals.totalSgst > 0 && (
+                            <div className="flex items-center justify-between text-slate-600">
+                              <span>SGST</span>
+                              <span className="font-semibold tabular-nums text-slate-800">
+                                {formatInr(totals.totalSgst)}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        totals.totalIgst > 0 && (
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span>IGST</span>
+                            <span className="font-semibold tabular-nums text-slate-800">
+                              {formatInr(totals.totalIgst)}
+                            </span>
+                          </div>
+                        )
+                      )}
+
+                      {totals.roundOff !== 0 && (
+                        <div className="flex items-center justify-between text-slate-500 text-[11px]">
+                          <span>Round Off</span>
+                          <span className="tabular-nums">
+                            {totals.roundOff > 0 ? `+${totals.roundOff.toFixed(2)}` : totals.roundOff.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                        <span className="typo-card-heading text-slate-900">Grand Total</span>
+                        <span className="text-xl font-bold text-slate-900 tabular-nums">
+                          {formatInr(totals.grandTotal)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Details Card */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 space-y-3.5">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      <h3 className="text-sm font-bold text-slate-900">Payment Details</h3>
+                    </div>
+
                     <div>
-                      <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
-                        Transport Mode
+                      <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                        Amount Received
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1 min-w-0">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs pointer-events-none">
+                            ₹
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={paymentStatus === "PAID_FULL" ? totals.grandTotal : paidAmount}
+                            onChange={(e) => {
+                              setPaymentStatus("PARTIAL_PAID");
+                              setPaidAmount(e.target.value === "" ? 0 : Number(e.target.value));
+                            }}
+                            placeholder="0.00"
+                            className="w-full h-10 pl-7 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs tabular-nums"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentStatus("PAID_FULL");
+                            setPaidAmount(totals.grandTotal);
+                          }}
+                          className="h-10 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-bold shadow-xs whitespace-nowrap transition-colors cursor-pointer shrink-0"
+                        >
+                          Paid In Full
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                        Payment Mode
                       </label>
                       <CustomSelect
-                        size="sm"
-                        value={transportMode}
-                        onChange={(val: any) => setTransportMode(val)}
+                        value={paymentMode}
+                        onChange={(val: any) => setPaymentMode(val)}
                         options={[
-                          { value: "Road", label: "Road" },
-                          { value: "Rail", label: "Rail" },
-                          { value: "Air", label: "Air" },
-                          { value: "Ship", label: "Ship" },
+                          { value: "CASH", label: "Cash" },
+                          { value: "BANK_TRANSFER", label: "Bank Transfer" },
+                          { value: "CHEQUE", label: "Cheque" },
+                          { value: "UPI", label: "UPI" },
                         ]}
                         triggerClassName="rounded-xl border-slate-200"
                       />
                     </div>
-                    <div>
-                      <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
-                        Vehicle Number
-                      </label>
-                      <input
-                        type="text"
-                        value={vehicleNo}
-                        onChange={(e) => setVehicleNo(e.target.value)}
-                        placeholder="GJ-01-AB-1234"
-                        className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
-                      />
+
+                    <div className="py-2.5 px-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[#1677E8] flex items-center justify-center gap-1.5 text-xs font-bold shadow-2xs">
+                      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Balance Due: {formatInr(balanceDue)}</span>
                     </div>
-                    <div>
-                      <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
-                        E-Way Bill No.
-                      </label>
-                      <input
-                        type="text"
-                        value={ewayBillNo}
-                        onChange={(e) => setEwayBillNo(e.target.value)}
-                        placeholder="e.g. 24109845231"
-                        className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
-                        Dispatch Date
-                      </label>
-                      <input
-                        type="date"
-                        value={dispatchDate}
-                        onChange={(e) => setDispatchDate(e.target.value)}
-                        className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {activeDetailsTab === "attachments" && (
-                  <div className="pt-2 space-y-3">
-                    <div
-                      onClick={() => attachmentInputRef.current?.click()}
-                      className="border-2 border-dashed border-slate-200 hover:border-[#1677E8] rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-blue-50/20"
-                    >
-                      <input
-                        ref={attachmentInputRef}
-                        type="file"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => {
-                          if (e.target.files) {
-                            const files = Array.from(e.target.files).map((f) => ({
-                              id: Math.random().toString(36).substring(2, 9),
-                              name: f.name,
-                              size: (f.size / (1024 * 1024)).toFixed(2) + " MB",
-                              file: f,
-                            }));
-                            setAttachments((prev) => [...prev, ...files]);
-                          }
-                        }}
-                      />
-                      <p className="text-xs text-slate-600">
-                        Click or drop files here to attach supporting documents (PO, Delivery Challan, etc.)
-                      </p>
-                    </div>
-
-                    {attachments.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {attachments.map((att) => (
-                          <div
-                            key={att.id}
-                            className="flex items-center gap-2 py-1.5 px-3 bg-slate-100 border border-slate-200 rounded-lg text-xs"
-                          >
-                            <span className="font-medium text-slate-800">{att.name}</span>
-                            <span className="text-[10px] text-slate-500">({att.size})</span>
-                            <button
-                              type="button"
-                              onClick={() => setAttachments((prev) => prev.filter((a) => a.id !== att.id))}
-                              className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
-                            >
-                              <X className="w-3.5 h-3.5" strokeWidth={2} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </main>
-
-            {/* ── 3. RIGHT PANEL: SUMMARY & PAYMENT (300px) ── */}
-            <aside className="w-full space-y-4">
-              {/* Purchase Summary Card */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  <h3 className="typo-form-section text-slate-900">Purchase Summary</h3>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>Items Subtotal</span>
-                    <span className="font-semibold tabular-nums text-slate-800">
-                      {formatInr(totals.totalTaxable)}
-                    </span>
-                  </div>
-
-                  {totals.totalDiscount > 0 && (
-                    <div className="flex items-center justify-between text-emerald-600">
-                      <span>Discount</span>
-                      <span className="font-semibold tabular-nums">
-                        - {formatInr(totals.totalDiscount)}
-                      </span>
-                    </div>
-                  )}
-
-                  {!isInterState ? (
-                    <>
-                      {totals.totalCgst > 0 && (
-                        <div className="flex items-center justify-between text-slate-600">
-                          <span>CGST</span>
-                          <span className="font-semibold tabular-nums text-slate-800">
-                            {formatInr(totals.totalCgst)}
-                          </span>
-                        </div>
-                      )}
-                      {totals.totalSgst > 0 && (
-                        <div className="flex items-center justify-between text-slate-600">
-                          <span>SGST</span>
-                          <span className="font-semibold tabular-nums text-slate-800">
-                            {formatInr(totals.totalSgst)}
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    totals.totalIgst > 0 && (
-                      <div className="flex items-center justify-between text-slate-600">
-                        <span>IGST</span>
-                        <span className="font-semibold tabular-nums text-slate-800">
-                          {formatInr(totals.totalIgst)}
-                        </span>
-                      </div>
-                    )
-                  )}
-
-                  {totals.roundOff !== 0 && (
-                    <div className="flex items-center justify-between text-slate-500 text-[11px]">
-                      <span>Round Off</span>
-                      <span className="tabular-nums">
-                        {totals.roundOff > 0 ? `+${totals.roundOff.toFixed(2)}` : totals.roundOff.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span className="typo-card-heading text-slate-900">Grand Total</span>
-                    <span className="typo-kpi text-slate-900 tabular-nums">
-                      {formatInr(totals.grandTotal)}
-                    </span>
                   </div>
                 </div>
               </div>
-
-              {/* Payment Details Card */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 space-y-3.5">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  <h3 className="text-sm font-bold text-slate-900">Payment Details</h3>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
-                    Amount Received
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1 min-w-0">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs pointer-events-none">
-                        ₹
-                      </span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={paymentStatus === "PAID_FULL" ? totals.grandTotal : paidAmount}
-                        onChange={(e) => {
-                          setPaymentStatus("PARTIAL_PAID");
-                          setPaidAmount(e.target.value === "" ? 0 : Number(e.target.value));
-                        }}
-                        placeholder="0.00"
-                        className="w-full h-10 pl-7 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs tabular-nums"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentStatus("PAID_FULL");
-                        setPaidAmount(totals.grandTotal);
-                      }}
-                      className="h-10 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-bold shadow-xs whitespace-nowrap transition-colors cursor-pointer shrink-0"
-                    >
-                      Paid In Full
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
-                    Payment Mode
-                  </label>
-                  <CustomSelect
-                    value={paymentMode}
-                    onChange={(val: any) => setPaymentMode(val)}
-                    options={[
-                      { value: "CASH", label: "Cash" },
-                      { value: "BANK_TRANSFER", label: "Bank Transfer" },
-                      { value: "CHEQUE", label: "Cheque" },
-                      { value: "UPI", label: "UPI" },
-                    ]}
-                    triggerClassName="rounded-xl border-slate-200"
-                  />
-                </div>
-
-                <div className="py-2.5 px-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[#1677E8] flex items-center justify-center gap-1.5 text-xs font-bold shadow-2xs">
-                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Balance Due: {formatInr(balanceDue)}</span>
-                </div>
-              </div>
-            </aside>
+            </main>
           </div>
         )}
       </div>

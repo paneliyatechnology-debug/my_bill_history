@@ -103,6 +103,8 @@ export interface PlanEntitlementsInfo {
     gstrReconciliation: boolean;
     eInvoiceEWay: boolean;
   };
+  granularEntitlements?: Record<string, boolean>;
+  bypassPlanRestrictions?: boolean;
 }
 
 export interface TenantContextState {
@@ -212,6 +214,7 @@ interface AuthContextType {
   createCompany: (dto: any) => Promise<any>;
   hasPermission: (module: string, action: string) => boolean;
   canAccessModule: (module: string) => boolean;
+  isModuleEntitled: (moduleKey?: string) => boolean;
   can: (action: string, module: string) => boolean;
   refreshUserProfile: () => Promise<void>;
 }
@@ -910,8 +913,118 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return [m];
   };
 
+  const isModuleEntitled = useCallback(
+    (moduleKey?: string): boolean => {
+      // 1. Superadmin bypass switch or SUPER_ADMIN user role has full unrestricted access
+      if (entitlements?.bypassPlanRestrictions) {
+        return true;
+      }
+      if (user?.role === "SUPER_ADMIN") {
+        return true;
+      }
+
+      // 2. If no granular entitlements are defined yet (e.g. initial load), allow access
+      if (
+        !entitlements ||
+        !entitlements.granularEntitlements ||
+        Object.keys(entitlements.granularEntitlements).length === 0
+      ) {
+        return true;
+      }
+
+      const g = entitlements.granularEntitlements;
+
+      // 3. Map module aliases to plan entitlement keys
+      const keyMap: Record<string, string> = {
+        // Sales sub-modules
+        sales_invoices: "salesInvoices",
+        invoices: "salesInvoices",
+        sales: "salesInvoices",
+        einvoice: "eInvoiceEwaybill",
+        einvoices: "eInvoiceEwaybill",
+        e_invoices: "eInvoiceEwaybill",
+        quotations: "quotations",
+        quotation: "quotations",
+        estimates: "quotations",
+        payment_in: "paymentIn",
+        sales_returns: "salesReturns",
+        sales_return: "salesReturns",
+        credit_note: "creditDebitNotes",
+        credit_notes: "creditDebitNotes",
+        debit_note: "creditDebitNotes",
+        debit_notes: "creditDebitNotes",
+        delivery_challan: "deliveryChallan",
+        delivery_challans: "deliveryChallan",
+        proforma: "proformaInvoice",
+        proforma_invoice: "proformaInvoice",
+        proforma_invoices: "proformaInvoice",
+
+        // Purchases sub-modules
+        purchases: "purchaseInvoices",
+        purchase_invoices: "purchaseInvoices",
+        payment_out: "paymentOut",
+        purchase_returns: "purchaseReturns",
+        purchase_return: "purchaseReturns",
+        debit_memo: "creditDebitNotes",
+        purchase_orders: "purchaseOrders",
+        purchase_order: "purchaseOrders",
+
+        // Items & Warehouse
+        inventory: "itemsInventory",
+        items: "itemsInventory",
+        warehouses: "stockTransfers",
+        godown: "stockTransfers",
+        godowns: "stockTransfers",
+        categories: "categoriesUnits",
+        units: "categoriesUnits",
+        hsn: "hsnSac",
+
+        // Accounting
+        accounting: "doubleEntryLedgers",
+        vouchers: "doubleEntryLedgers",
+        ledgers: "doubleEntryLedgers",
+        cash_bank: "cashBank",
+        banking: "cashBank",
+        gst: "gstReports",
+        gst_returns: "gstrReconciliation",
+        gst_tax: "gstReports",
+        automated_bills: "automatedBills",
+        automated_billing: "automatedBills",
+        pos: "posBilling",
+        pos_billing: "posBilling",
+        pos_orders: "posOrders",
+
+        // Business tools
+        data_import: "dataImport",
+        ai_collections: "whatsAppReminders",
+        payment_reminders: "whatsAppReminders",
+        payroll: "payrollStaff",
+        users: "userManagementRbac",
+        user_management: "userManagementRbac",
+        manufacturing: "manufacturingBom",
+        production: "productionOrders",
+      };
+
+      const normalized = (moduleKey || "").toLowerCase().trim();
+      const entitlementKey = keyMap[normalized] || normalized;
+
+      if (entitlementKey in g) {
+        return Boolean(g[entitlementKey]);
+      }
+
+      return true;
+    },
+    [entitlements, user],
+  );
+
   const hasPermission = useCallback(
     (module: string, action: string): boolean => {
+      // 1. Plan-level entitlement check first
+      if (!isModuleEntitled(module)) {
+        return false;
+      }
+
+      // 2. Staff user role & permissions check
       if (!user) return false;
       const r = (user.role || "").toUpperCase();
       if (
@@ -941,11 +1054,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return false;
     },
-    [user],
+    [user, isModuleEntitled],
   );
 
   const canAccessModule = useCallback(
     (module: string): boolean => {
+      // 1. Plan-level entitlement check first
+      if (!isModuleEntitled(module)) {
+        return false;
+      }
+
+      // 2. Staff user role & permissions check
       if (!user) return false;
       const r = (user.role || "").toUpperCase();
       if (
@@ -968,7 +1087,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return false;
     },
-    [user],
+    [user, isModuleEntitled],
   );
 
   const can = useCallback(
@@ -1059,6 +1178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         createCompany,
         hasPermission,
         canAccessModule,
+        isModuleEntitled,
         can,
         refreshUserProfile,
       }}

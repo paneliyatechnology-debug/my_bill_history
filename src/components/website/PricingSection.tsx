@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { Check, ArrowRight, Loader2, ShieldCheck, X, Zap, CreditCard, Sparkles, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
@@ -18,6 +19,10 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
   const router = useRouter();
   const { user, entitlements, login, refreshTenantMetadata } = useAuth();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+
+  // Dynamic Plans from Superadmin Backend
+  const [dynamicPlans, setDynamicPlans] = useState<any[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true);
 
   // Interactive checkout modal state
   const [checkoutPlan, setCheckoutPlan] = useState<any | null>(null);
@@ -47,16 +52,39 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
   const [confirmPassword, setConfirmPassword] = useState("");
   const [gstin, setGstin] = useState("");
 
-  const plans = [
+  // Fetch configured tiers live from Superadmin backend
+  useEffect(() => {
+    let isMounted = true;
+    apiClient
+      .get<any[]>("/subscriptions/plans")
+      .then((res) => {
+        if (isMounted && Array.isArray(res) && res.length > 0) {
+          setDynamicPlans(res);
+        }
+      })
+      .catch((err) => {
+        console.warn("Falling back to default plans:", err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingPlans(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const defaultPlans = [
     {
       id: "starter",
       tier: "RETAIL_BASIC",
       name: gu ? "સ્ટાર્ટર પ્લાન (Starter)" : "Starter Plan",
       subtitle: gu ? "નાની દુકાનો અને સિંગલ કાઉન્ટર માટે" : "For single retail counters & independent shops",
       monthlyPrice: 499,
-      yearlyPrice: 399, // ₹399/mo billed annually = ₹4,788/yr
+      yearlyPrice: 399,
       annualTotal: 4788,
       popular: false,
+      badge: null,
       features: [
         gu ? "૧ કંપની અથવા દુકાન પ્રોફાઇલ" : "1 Business Company Profile",
         gu ? "વર્ષે ૩,૦૦૦ ઇન્વૉઇસ સુધી" : "Up to 3,000 Invoices per year",
@@ -73,9 +101,10 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
       name: gu ? "પ્રોફેશનલ પ્લાન (Professional)" : "Professional Plan",
       subtitle: gu ? "હોલસેલર્સ અને વધતા વ્યવસાયો માટે" : "For growing wholesalers, traders & multi-counter shops",
       monthlyPrice: 999,
-      yearlyPrice: 799, // ₹799/mo billed annually = ₹9,588/yr
+      yearlyPrice: 799,
       annualTotal: 9588,
       popular: true,
+      badge: gu ? "સૌથી લોકપ્રિય" : "Most Popular",
       features: [
         gu ? "૩ કંપનીઓ અથવા બ્રાન્ચ સુધી" : "Up to 3 Business Companies",
         gu ? "અનલિમિટેડ ઇન્વૉઇસ અને e-Way Bills" : "Unlimited Invoices & E-Way Bills",
@@ -93,9 +122,10 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
       name: gu ? "એન્ટરપ્રાઇઝ પ્લાન (Enterprise)" : "Enterprise Plan",
       subtitle: gu ? "મોટા ડિસ્ટ્રિબ્યુટર્સ અને ફેક્ટરીઓ માટે" : "For large distributors, factories & multi-branch enterprises",
       monthlyPrice: 1999,
-      yearlyPrice: 1599, // ₹1,599/mo billed annually = ₹19,188/yr
+      yearlyPrice: 1599,
       annualTotal: 19188,
       popular: false,
+      badge: null,
       features: [
         gu ? "અનલિમિટેડ કંપનીઓ અને ગોડાઉન" : "Unlimited Companies, Warehouses & Branches",
         gu ? "અનલિમિટેડ સ્ટાફ લોગિન & રોલ પરમિશન" : "Unlimited Staff Logins with Role Permissions",
@@ -107,7 +137,65 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
       ],
       ctaText: gu ? "એન્ટરપ્રાઇઝ ડેમો બુક કરો" : "Book Enterprise Demo",
     },
+    {
+      id: "manufacturing",
+      tier: "MANUFACTURING_SUITE",
+      name: gu ? "મેન્યુફેક્ચરિંગ સ્યુટ (Manufacturing)" : "Manufacturing Suite",
+      subtitle: gu ? "ફેક્ટરીઓ, ઉત્પાદકો અને પ્રોડક્શન યુનિટ્સ માટે" : "For manufacturing factories, BoM batches & production units",
+      monthlyPrice: 2499,
+      yearlyPrice: 1999,
+      annualTotal: 23988,
+      popular: false,
+      badge: gu ? "ઇન્ડસ્ટ્રિયલ સ્પેશિયલ" : "Industrial Suite",
+      features: [
+        gu ? "સંપૂર્ણ મેન્યુફેક્ચરિંગ BoM અને બેચ ઉત્પાદન" : "Complete Manufacturing BoM & Batch Production",
+        gu ? "કાચા માલ વપરાશ અને સ્ક્રેપ ટ્રેકિંગ" : "Raw Material Consumption & Scrap Tracking",
+        gu ? "અનલિમિટેડ કંપનીઓ અને મલ્ટી-ગોડાઉન સિન્ક" : "Unlimited Companies & Multi-Godown Logistics",
+        gu ? "જોબ વર્ક ઓર્ડર્સ અને ચલાન સિસ્ટમ" : "Job Work Orders & Production Challan System",
+        gu ? "૨૪/૭ પ્રાયોરિટી સમર્પિત મેનેજર" : "24/7 Dedicated Relationship Manager Support",
+      ],
+      ctaText: gu ? "મેન્યુફેક્ચરિંગ શરૂ કરો" : "Get Manufacturing",
+    },
   ];
+
+  // Map dynamic plans or fallback
+  const plans = useMemo(() => {
+    if (dynamicPlans.length > 0) {
+      return dynamicPlans.map((p) => {
+        const features =
+          gu && Array.isArray(p.featuresGujarati) && p.featuresGujarati.length > 0
+            ? p.featuresGujarati
+            : Array.isArray(p.features)
+            ? p.features
+            : [];
+
+        const isPop = Boolean(p.isPopular ?? p.popular);
+
+        return {
+          id: p.id || p.tier?.toLowerCase(),
+          tier: p.tier,
+          name: gu ? p.nameGujarati || p.name : p.name,
+          subtitle: gu ? p.subtitleGujarati || p.subtitle : p.subtitle,
+          monthlyPrice: Number(p.monthlyPrice) || 0,
+          yearlyPrice: Number(p.yearlyPrice) || 0,
+          annualTotal: Number(p.annualTotal) || (Number(p.yearlyPrice) || 0) * 12,
+          popular: isPop,
+          badge: p.badge || (isPop ? (gu ? "સૌથી લોકપ્રિય" : "Most Popular") : null),
+          features,
+          ctaText:
+            p.ctaText ||
+            (isPop
+              ? gu
+                ? "સૌથી લોકપ્રિય — શરૂ કરો"
+                : "Get Started Free"
+              : gu
+              ? "પ્લાન શરૂ કરો"
+              : "Start Free Trial"),
+        };
+      });
+    }
+    return defaultPlans;
+  }, [dynamicPlans, gu]);
 
   const handlePlanClick = (plan: (typeof plans)[0]) => {
     setErrorMsg(null);
@@ -365,15 +453,15 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
               : "Choose a plan that fits the way you work. All plans include 30-day free access and real customer support."}
           </p>
 
-          {/* Billing Cycle Toggle */}
-          <div className="mt-8 inline-flex items-center p-1.5 bg-white border border-[#E5EAF1] rounded-xl shadow-2xs">
+          {/* Billing Cycle Toggle with Framer Motion Animation */}
+          <div className="mt-8 inline-flex items-center p-1.5 bg-slate-100/90 border border-slate-200/80 rounded-2xl shadow-2xs">
             <button
               type="button"
               onClick={() => setBillingCycle("monthly")}
-              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 billingCycle === "monthly"
-                  ? "bg-[#172033] text-white shadow-2xs"
-                  : "text-[#667085] hover:text-[#172033]"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               {gu ? "માસિક બિલિંગ" : "Monthly Billing"}
@@ -381,83 +469,113 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
             <button
               type="button"
               onClick={() => setBillingCycle("yearly")}
-              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
                 billingCycle === "yearly"
-                  ? "bg-[#2563EB] text-white shadow-2xs"
-                  : "text-[#667085] hover:text-[#172033]"
+                  ? "bg-[#2563EB] text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <span>{gu ? "વાર્ષિક બિલિંગ" : "Yearly Billing"}</span>
               <span
-                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${
-                  billingCycle === "yearly" ? "bg-white text-[#2563EB]" : "bg-[#EFF6FF] text-[#2563EB]"
+                className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                  billingCycle === "yearly"
+                    ? "bg-white/20 text-white"
+                    : "bg-blue-100 text-blue-700"
                 }`}
               >
-                Save 20%
+                {gu ? "૨૦% બચત" : "Save 20%"}
               </span>
             </button>
           </div>
         </div>
 
-        {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
+        {/* Dynamic Compact Animated Pricing Cards Grid */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.08 },
+            },
+          }}
+          className={`grid grid-cols-1 sm:grid-cols-2 ${
+            plans.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"
+          } gap-4 sm:gap-5 items-stretch`}
+        >
           {plans.map((p) => {
             const price = billingCycle === "yearly" ? p.yearlyPrice : p.monthlyPrice;
             const isEnterprise = p.id === "enterprise";
             const isCurrentPlan = user && entitlements?.tier === p.tier;
 
             return (
-              <div
+              <motion.div
                 key={p.id}
-                className={`rounded-2xl border p-7 sm:p-9 flex flex-col justify-between transition-all duration-300 ${
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
+                }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                className={`rounded-2xl border p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 relative ${
                   p.popular
-                    ? "bg-white border-[#2563EB] shadow-xl ring-2 ring-[#2563EB]/20 relative"
-                    : "bg-white border-[#E5EAF1] shadow-xs hover:border-[#172033]/40 hover:shadow-md"
+                    ? "bg-white border-[#2563EB] shadow-lg shadow-blue-500/10 ring-2 ring-[#2563EB]/25"
+                    : "bg-white border-slate-200 shadow-2xs hover:border-slate-300 hover:shadow-md"
                 }`}
               >
                 {p.popular && (
-                  <div className="absolute -top-3 left-8 px-3.5 py-1 rounded-full bg-[#2563EB] text-white text-[11px] font-semibold tracking-wider uppercase shadow-xs flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 fill-white" />
-                    <span>{gu ? "સૌથી લોકપ્રિય" : "Most Popular"}</span>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 sm:left-6 sm:translate-x-0 px-3 py-0.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-bold tracking-wider uppercase shadow-xs flex items-center gap-1.5">
+                    <Sparkles className="w-2.5 h-2.5 fill-white" />
+                    <span>{p.badge || (gu ? "સૌથી લોકપ્રિય" : "Most Popular")}</span>
                   </div>
                 )}
 
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <h3
-                      className="text-xl font-semibold text-[#172033]"
+                      className="text-base sm:text-lg font-bold text-[#172033]"
                       style={{ fontFamily: "var(--font-manrope)" }}
                     >
                       {p.name}
                     </h3>
                     {isCurrentPlan && (
-                      <span className="text-[11px] font-semibold text-white bg-[#172033] px-2.5 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-white bg-slate-900 px-2 py-0.5 rounded-full shrink-0">
                         {gu ? "હાલનો પ્લાન" : "Current Active"}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs sm:text-sm text-[#667085] mt-1.5 mb-6 font-normal">
+                  <p className="text-xs text-[#667085] mt-1.5 mb-4 line-clamp-2 min-h-[32px] leading-relaxed">
                     {p.subtitle}
                   </p>
 
-                  {/* Price Block */}
-                  <div className="pb-6 mb-6 border-b border-[#E5EAF1] flex items-baseline gap-1.5">
-                    <span className="text-4xl sm:text-5xl font-semibold text-[#172033] tabular-nums">
-                      ₹{price}
-                    </span>
-                    <span className="text-xs sm:text-sm text-[#667085] font-normal">
-                      {billingCycle === "yearly"
-                        ? gu ? "/ મહિને (વાર્ષિક બિલ)" : "/ month (billed annually)"
-                        : gu ? "/ મહિને" : "/ month"}
-                    </span>
+                  {/* Compact Price Block */}
+                  <div className="pb-4 mb-4 border-b border-slate-100">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl sm:text-[34px] font-black text-[#172033] tabular-nums tracking-tight">
+                        ₹{price}
+                      </span>
+                      <span className="text-[11px] sm:text-xs text-[#667085] font-medium">
+                        {billingCycle === "yearly"
+                          ? gu ? "/ મહિને (વાર્ષિક)" : "/ month (annual)"
+                          : gu ? "/ મહિને" : "/ month"}
+                      </span>
+                    </div>
+                    {billingCycle === "yearly" && p.annualTotal > 0 && (
+                      <span className="text-[11px] font-medium text-emerald-600 block mt-0.5">
+                        {gu ? `વાર્ષિક બિલ: ₹${p.annualTotal}` : `Billed ₹${p.annualTotal} annually`}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Feature Bullets */}
-                  <div className="space-y-3">
-                    {p.features.map((feat, i) => (
-                      <div key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#172033] font-medium">
-                        <Check className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" strokeWidth={2.5} />
+                  {/* Compact Feature Bullets */}
+                  <div className="space-y-2">
+                    {p.features.map((feat: string, i: number) => (
+                      <div key={i} className="flex items-start gap-2 text-xs text-slate-700 font-medium">
+                        <div className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
+                        </div>
                         <span className="leading-snug">{feat}</span>
                       </div>
                     ))}
@@ -465,35 +583,36 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
                 </div>
 
                 {/* CTA Action */}
-                <div className="pt-8 mt-8 border-t border-[#E5EAF1] space-y-2.5">
-                  <button
+                <div className="pt-5 mt-5 border-t border-slate-100 space-y-2">
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={() => handlePlanClick(p)}
-                    className={`w-full h-12 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer ${
+                    className={`w-full h-10 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer ${
                       p.popular
                         ? "bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-md shadow-[#2563EB]/20"
                         : isCurrentPlan
-                          ? "bg-[#EFF6FF] border border-[#2563EB]/40 text-[#2563EB] hover:bg-[#FFE6DA]"
-                          : "bg-[#172033] hover:bg-[#172033] text-white"
+                          ? "bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
+                          : "bg-slate-900 hover:bg-slate-800 text-white"
                     }`}
                   >
                     <span>{isCurrentPlan ? (gu ? "પ્લાન રિન્યૂ કરો" : "Renew Plan") : p.ctaText}</span>
-                    <ArrowRight className="w-4 h-4" strokeWidth={2} />
-                  </button>
+                    <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  </motion.button>
                   {isEnterprise && onOpenDemo && (
                     <button
                       type="button"
                       onClick={onOpenDemo}
-                      className="w-full text-center text-xs font-semibold text-[#667085] hover:text-[#2563EB] py-1 transition-colors cursor-pointer"
+                      className="w-full text-center text-[11px] font-semibold text-slate-500 hover:text-[#2563EB] py-0.5 transition-colors cursor-pointer"
                     >
-                      {gu ? "અથવા ૧-ઓન-૧ ડેમો કૉલ બુક કરો" : "Or schedule a 1-on-1 personalized demo"}
+                      {gu ? "૧-ઓન-૧ ડેમો કૉલ બુક કરો" : "Book a 1-on-1 personalized demo"}
                     </button>
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
       {/* RAZORPAY PAYMENT FIRST -> THEN REGISTRATION MODAL */}

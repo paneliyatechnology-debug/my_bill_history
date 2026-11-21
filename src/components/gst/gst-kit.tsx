@@ -4,8 +4,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
-import { Calendar } from "lucide-react";
+import { Calendar, AlertCircle, RefreshCw } from "lucide-react";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+export { DataTablePagination } from "@/components/ui/data-table-pagination";
 
 const LINKS = [
   { href: "/gst", label: "GST Dashboard" },
@@ -13,7 +14,8 @@ const LINKS = [
   { href: "/gst/gstr-3b", label: "GSTR-3B" },
   { href: "/gst/gstr-2b", label: "GSTR-2B Reconciliation" },
   { href: "/gst/purchases", label: "Purchase Register" },
-  { href: "/sales/e-invoices", label: "E-Invoices" },
+  { href: "/gst/sales", label: "Sales Register" },
+  { href: "/gst/einvoice", label: "E-Invoice" },
   { href: "/gst/eway", label: "E-Way Bill" },
   { href: "/gst/reports", label: "GST Reports" },
   { href: "/gst/settings", label: "GST Settings" },
@@ -40,24 +42,57 @@ function buildPeriod(month: number, year: number, save: (month: number, year: nu
 
 export function useGstPeriod() {
   const context = React.useContext(GstPeriodContext);
-  if (!context) throw new Error("GST period is available inside the GST workspace.");
-  return context;
+  if (context) return context;
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  const fromDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const toDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  return {
+    month,
+    year,
+    setMonth: () => {},
+    setYear: () => {},
+    fromDate,
+    toDate,
+    returnPeriod: `${String(month).padStart(2, "0")}${year}`,
+  };
 }
 
 function useGstPeriodState() {
-  const [month, setMonthState] = useState(4);
-  const [year, setYearState] = useState(2026);
-  useEffect(() => {
-    const raw = sessionStorage.getItem("gst-period");
-    if (!raw) return;
-    const parsed = JSON.parse(raw) as { month?: number; year?: number };
-    if (parsed.month) setMonthState(parsed.month);
-    if (parsed.year) setYearState(parsed.year);
-  }, []);
+  const [month, setMonthState] = useState(() => {
+    if (typeof window !== "undefined") {
+      const raw = sessionStorage.getItem("gst-period");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.month) return parsed.month;
+        } catch {}
+      }
+    }
+    return new Date().getMonth() + 1;
+  });
+
+  const [year, setYearState] = useState(() => {
+    if (typeof window !== "undefined") {
+      const raw = sessionStorage.getItem("gst-period");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.year) return parsed.year;
+        } catch {}
+      }
+    }
+    return new Date().getFullYear();
+  });
+
   const save = (nextMonth: number, nextYear: number) => {
     setMonthState(nextMonth);
     setYearState(nextYear);
-    sessionStorage.setItem("gst-period", JSON.stringify({ month: nextMonth, year: nextYear }));
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("gst-period", JSON.stringify({ month: nextMonth, year: nextYear }));
+    }
   };
   return buildPeriod(month, year, save);
 }
@@ -82,27 +117,94 @@ export function GstFrame({
   const period = useGstPeriodState();
   return (
     <GstPeriodContext.Provider value={period}>
-    <div className="space-y-4 sm:space-y-6">
-      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="space-y-4">
+      {/* ── UNIFIED GST HEADER (Company, GSTIN, FY & Period Selector) ── */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="typo-page-title text-[#182230] leading-tight">{title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{title}</h1>
+          <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-600 font-medium">
+            <span className="font-semibold text-slate-800">{currentCompany?.tradeName || currentCompany?.legalName || "My Business"}</span>
+            <span>·</span>
+            <span>
+              GSTIN:{" "}
+              {currentCompany?.gstin ? (
+                <span className="font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded text-xs">
+                  {currentCompany.gstin}
+                </span>
+              ) : (
+                <Link
+                  href="/gst/settings"
+                  className="font-semibold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded text-xs hover:bg-amber-100 transition-colors inline-flex items-center gap-1"
+                >
+                  <span>Not configured</span>
+                  <span className="text-[10px]">Configure →</span>
+                </Link>
+              )}
+            </span>
+            <span>·</span>
+            <span className="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded-md border border-slate-200">
+              {currentFY?.name || `FY ${period.year}-${(period.year + 1) % 100}`}
+            </span>
+            {(currentCompany as any)?.gstType && (
+              <span className="bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-md border border-blue-200 text-[11px]">
+                {(currentCompany as any).gstType}
+              </span>
+            )}
+            {(currentCompany as any)?.eInvoiceApplicable && (
+              <span className="bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-md border border-emerald-200 text-[11px]">
+                E-Invoice
+              </span>
+            )}
           </div>
-          <p className="typo-page-subtitle text-[#667085] mt-1 leading-relaxed break-words font-normal">
-            {currentCompany?.tradeName || currentCompany?.legalName || "No company selected"} · GSTIN:{" "}
-            <span className="typo-invoice-no text-[#F47721]">{currentCompany?.gstin || "Not configured"}</span> · {currentFY?.name || "Financial Year"}
-          </p>
+        </div>
+
+        {/* Centralized Period Controls */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+          <div className="w-36">
+            <CustomSelect
+              size="sm"
+              value={String(period.month)}
+              onChange={(val: any) => period.setMonth(Number(val))}
+              options={Array.from({ length: 12 }, (_, index) => ({
+                value: String(index + 1),
+                label: new Date(2026, index, 1).toLocaleString("en", { month: "short" }),
+              }))}
+              triggerClassName="rounded-xl border-slate-300 bg-white text-slate-800 h-9 font-medium"
+            />
+          </div>
+
+          <input
+            className="w-20 border border-slate-300 rounded-xl px-2.5 py-1 text-xs tabular-nums font-semibold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] transition-all h-9"
+            type="number"
+            value={period.year}
+            onChange={(event) => period.setYear(Number(event.target.value))}
+          />
+
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <span className="font-semibold text-slate-800">
+              {new Date(period.year, period.month - 1, 1).toLocaleString("en", { month: "short" })} {period.year}
+            </span>
+            <span className="text-slate-400">({period.fromDate} to {period.toDate})</span>
+            <span className="font-mono font-bold text-[#1677E8] bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded text-[11px] ml-1">
+              Period {period.returnPeriod}
+            </span>
+          </div>
         </div>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+
+      {/* ── ONE CENTRALIZED GST NAVIGATION BAR (10 Tabs Only) ── */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-slate-200/80">
         {LINKS.map((link) => {
           const active = pathname === link.href;
           return (
             <Link
               key={link.href}
               href={link.href}
-              className={`shrink-0 rounded-xl px-3.5 py-2 typo-tab border transition-all ${
-                active ? "bg-[#F47721] text-white border-[#F47721] shadow-saffron" : "bg-white text-[#202124] border-[#E5E7EB] hover:border-[#F47721]/40 hover:bg-[#FFFAF5]"
+              className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-semibold border transition-all ${
+                active
+                  ? "bg-[#1677E8] text-white border-[#1677E8] shadow-xs"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
               }`}
             >
               {link.label}
@@ -110,43 +212,14 @@ export function GstFrame({
           );
         })}
       </div>
-      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-subtle flex flex-wrap gap-4 items-end">
-        <div className="w-48">
-          <label className="typo-label text-[#667085] block mb-1">
-            {lang === "gu" ? "મહિનો (Month)" : "Month"}
-          </label>
-          <CustomSelect
-            size="sm"
-            value={String(period.month)}
-            onChange={(val: any) => period.setMonth(Number(val))}
-            options={Array.from({ length: 12 }, (_, index) => ({
-              value: String(index + 1),
-              label: `Month ${index + 1} (${new Date(2026, index, 1).toLocaleString('en', { month: 'short' })})`,
-            }))}
-            triggerClassName="rounded-xl border-[#E5E7EB] bg-[#F8FAFC] text-[#182230]"
-          />
+
+      {notice ? (
+        <div className="text-xs text-slate-600 bg-blue-50/50 border border-blue-200/60 rounded-xl p-3 flex items-center gap-2">
+          <span className="font-bold text-[#1677E8] shrink-0">Note:</span>
+          <span>{notice}</span>
         </div>
-        <label className="text-[12px] font-medium text-[#667085]">
-          {lang === "gu" ? "વર્ષ (Year)" : "Year"}
-          <input
-            className="mt-1 block w-24 border border-[#E5E7EB] rounded-xl px-3 py-1.5 text-[13px] tabular-nums font-normal text-[#182230] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all h-10"
-            type="number"
-            value={period.year}
-            onChange={(event) => period.setYear(Number(event.target.value))}
-          />
-        </label>
-        <p className="text-xs text-muted flex items-center gap-1.5 pb-1">
-          <Calendar className="w-3.5 h-3.5 text-slate-500" />
-          <span>Period:</span>
-          <span className="tabular-nums font-bold text-slate-800">{period.fromDate}</span>
-          <span>to</span>
-          <span className="tabular-nums font-bold text-slate-800">{period.toDate}</span>
-          <span className="text-[11px] bg-saffron-light text-primary font-bold px-2 py-0.5 rounded-md ml-1">
-            GSTR Period: {period.returnPeriod}
-          </span>
-        </p>
-      </div>
-      {notice ? <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 shadow-subtle">{notice}</p> : null}
+      ) : null}
+
       {children}
     </div>
     </GstPeriodContext.Provider>
@@ -166,19 +239,43 @@ export function Panel({
   empty?: string | null;
   children: React.ReactNode;
 }) {
-  if (loading) return <p className="text-sm text-slate-500">Loading company data…</p>;
+  if (loading) {
+    return (
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-12 text-center shadow-xs space-y-3">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-[#1677E8]" />
+        <p className="text-xs font-semibold text-slate-600">Loading statutory data…</p>
+      </div>
+    );
+  }
   if (error) {
     const denied = /forbidden|403/i.test(error);
     return (
-      <div className="bg-white border border-red-200 rounded-xl p-4 space-y-2">
-        <p className="text-sm text-red-700">{denied ? "You do not have access to this GST screen for the selected company." : error}</p>
-        <button className="text-sm underline" onClick={onRetry} type="button">
-          Retry
+      <div className="bg-white border border-rose-200 rounded-2xl p-6 space-y-3 shadow-xs">
+        <div className="flex items-center gap-2 text-rose-700 font-bold text-sm">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <span>{denied ? "Access Denied" : "Error Loading GST Data"}</span>
+        </div>
+        <p className="text-xs text-slate-600">
+          {denied ? "You do not have required permissions to view this GST compliance screen." : error}
+        </p>
+        <button
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold hover:bg-rose-100 transition-colors"
+          onClick={onRetry}
+          type="button"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>Retry Request</span>
         </button>
       </div>
     );
   }
-  if (empty) return <p className="text-sm text-slate-500 bg-white border border-slate-200 rounded-xl p-4">{empty}</p>;
+  if (empty) {
+    return (
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-8 text-center text-xs text-slate-600 shadow-xs">
+        {empty}
+      </div>
+    );
+  }
   return <>{children}</>;
 }
 

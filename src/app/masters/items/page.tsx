@@ -924,14 +924,6 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setShowPromoBanner(!showPromoBanner)}
-            className="h-9 px-3 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 typo-btn-secondary rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" strokeWidth={1.75} />
-            <span>{lang === "gu" ? "ઑફર્સ મેનેજ કરો" : "Manage Offer"}</span>
-          </button>
-          <button
-            type="button"
             onClick={() => alert("Items Reports: Stock Summary, Item Sales, Low Stock Report")}
             className="h-9 px-3 border border-slate-300 text-slate-700 hover:bg-slate-50 typo-btn-secondary rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
           >
@@ -1295,9 +1287,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             <Package className="w-6 h-6 text-blue-600" strokeWidth={1.75} />
           </div>
           <div>
-            <h4 className="font-bold text-slate-900 text-sm">
-              {lang === "gu" ? "એક સાથે ઘણી વસ્તુઓ ઉમેરો (Bulk Upload)" : "Add Multiple items at once"}
-            </h4>
+          
             <p className="text-xs text-slate-600 mt-0.5">
               {lang === "gu"
                 ? "પ્રોડક્ટ લાયબ્રેરી અથવા વ્યાપાર, ટેલી, માર્ગ અને બીઝી સોફ્ટવેર માંથી સીધો ડેટા ઇમ્પોર્ટ કરો"

@@ -40,6 +40,7 @@ import {
   ChevronLeft,
   X,
   ShieldAlert,
+  Sparkles,
 } from "lucide-react";
 const SIDEBAR_BG = "#FFFFFF";
 const ACTIVE_MENU_BG = "#1677E8";
@@ -53,6 +54,7 @@ interface SubNavItem {
   href: string;
   module?: string;
   action?: string;
+  planKey?: string;
 }
 
 interface NavSection {
@@ -67,6 +69,7 @@ interface NavSection {
   roles?: string[];
   module?: string;
   action?: string;
+  planKey?: string;
 }
 
 // Exact MyBillBook Hierarchical Menu Structure with Standardized Lucide Icon System
@@ -129,6 +132,7 @@ const navigationSections: NavSection[] = [
         href: "/masters/warehouses",
         module: "items",
         action: "stock_transfer",
+        planKey: "stockTransfers",
       },
       {
         name: "Categories",
@@ -136,6 +140,7 @@ const navigationSections: NavSection[] = [
         href: "/masters/categories",
         module: "items",
         action: "view",
+        planKey: "categoriesUnits",
       },
       {
         name: "Units (UOM)",
@@ -143,6 +148,7 @@ const navigationSections: NavSection[] = [
         href: "/masters/units",
         module: "items",
         action: "view",
+        planKey: "categoriesUnits",
       },
       {
         name: "HSN / SAC Codes",
@@ -150,6 +156,7 @@ const navigationSections: NavSection[] = [
         href: "/masters/hsn",
         module: "items",
         action: "view",
+        planKey: "hsnSac",
       },
     ],
   },
@@ -168,6 +175,7 @@ const navigationSections: NavSection[] = [
         href: "/sales/invoices",
         module: "sales_invoices",
         action: "view",
+        planKey: "salesInvoices",
       },
       {
         name: "E-Invoices",
@@ -175,6 +183,7 @@ const navigationSections: NavSection[] = [
         href: "/sales/e-invoices",
         module: "sales_invoices",
         action: "view",
+        planKey: "eInvoiceEwaybill",
       },
       {
         name: "Quotation / Estimate",
@@ -182,6 +191,7 @@ const navigationSections: NavSection[] = [
         href: "/sales/quotations",
         module: "quotations",
         action: "view",
+        planKey: "quotations",
       },
       {
         name: "Payment In",
@@ -189,6 +199,7 @@ const navigationSections: NavSection[] = [
         href: "/sales/payment-in",
         module: "sales_invoices",
         action: "view",
+        planKey: "paymentIn",
       },
       {
         name: "Sales Return",
@@ -196,6 +207,7 @@ const navigationSections: NavSection[] = [
         href: "/sales/returns",
         module: "sales_returns",
         action: "view",
+        planKey: "salesReturns",
       },
       {
         name: "Credit Note",
@@ -203,6 +215,7 @@ const navigationSections: NavSection[] = [
         href: "/sales/credit-note",
         module: "sales_returns",
         action: "view",
+        planKey: "creditDebitNotes",
       },
       {
         name: "Debit Note",
@@ -210,6 +223,7 @@ const navigationSections: NavSection[] = [
         href: "/sales/debit-note",
         module: "sales_returns",
         action: "view",
+        planKey: "creditDebitNotes",
       },
       {
         name: "Delivery Challan",
@@ -217,6 +231,7 @@ const navigationSections: NavSection[] = [
         href: "/sales/delivery-challan",
         module: "delivery_challans",
         action: "view",
+        planKey: "deliveryChallan",
       },
       {
         name: "Proforma Invoice",
@@ -224,6 +239,7 @@ const navigationSections: NavSection[] = [
         href: "/sales/proforma",
         module: "proforma_invoices",
         action: "view",
+        planKey: "proformaInvoice",
       },
     ],
   },
@@ -242,6 +258,7 @@ const navigationSections: NavSection[] = [
         href: "/purchases",
         module: "purchases",
         action: "view",
+        planKey: "purchaseInvoices",
       },
       {
         name: "Payment Out",
@@ -249,6 +266,7 @@ const navigationSections: NavSection[] = [
         href: "/purchases/payment-out",
         module: "purchases",
         action: "view",
+        planKey: "paymentOut",
       },
       {
         name: "Purchase Return",
@@ -256,6 +274,7 @@ const navigationSections: NavSection[] = [
         href: "/purchases/returns",
         module: "purchases",
         action: "view",
+        planKey: "purchaseReturns",
       },
       {
         name: "Debit Memo",
@@ -263,6 +282,7 @@ const navigationSections: NavSection[] = [
         href: "/purchases/debit-memo",
         module: "purchases",
         action: "view",
+        planKey: "creditDebitNotes",
       },
       {
         name: "Purchase Orders",
@@ -270,6 +290,7 @@ const navigationSections: NavSection[] = [
         href: "/purchases/orders",
         module: "purchases",
         action: "view",
+        planKey: "purchaseOrders",
       },
     ],
   },
@@ -281,6 +302,7 @@ const navigationSections: NavSection[] = [
     href: "/finance/expenses",
     module: "expenses",
     action: "view",
+    planKey: "expenses",
     icon: <Receipt className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
   {
@@ -291,6 +313,7 @@ const navigationSections: NavSection[] = [
     href: "/reports",
     module: "reports",
     action: "view",
+    planKey: "gstReports",
     icon: <BarChart3 className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
 
@@ -302,6 +325,7 @@ const navigationSections: NavSection[] = [
     group: "ACCOUNTING",
     module: "accounting",
     action: "view",
+    planKey: "doubleEntryLedgers",
     icon: <FileText className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     items: [
       {
@@ -310,6 +334,7 @@ const navigationSections: NavSection[] = [
         href: "/accounting/vouchers",
         module: "accounting",
         action: "view",
+        planKey: "doubleEntryLedgers",
       },
       {
         name: "Create Voucher",
@@ -317,6 +342,7 @@ const navigationSections: NavSection[] = [
         href: "/accounting/vouchers/new",
         module: "accounting",
         action: "create",
+        planKey: "doubleEntryLedgers",
       },
       {
         name: "All Transactions",
@@ -324,6 +350,7 @@ const navigationSections: NavSection[] = [
         href: "/vouchers/all_transactions",
         module: "accounting",
         action: "view",
+        planKey: "doubleEntryLedgers",
       },
       {
         name: "Account Ledgers",
@@ -331,6 +358,7 @@ const navigationSections: NavSection[] = [
         href: "/accounting/ledgers",
         module: "accounting",
         action: "view_ledger",
+        planKey: "doubleEntryLedgers",
       },
       {
         name: "Chart of Accounts",
@@ -338,6 +366,7 @@ const navigationSections: NavSection[] = [
         href: "/accounting/chart-of-accounts",
         module: "accounting",
         action: "view",
+        planKey: "doubleEntryLedgers",
       },
     ],
   },
@@ -349,6 +378,7 @@ const navigationSections: NavSection[] = [
     href: "/finance/cash-bank",
     module: "cash_bank",
     action: "view",
+    planKey: "cashBank",
     icon: <Landmark className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
   {
@@ -359,6 +389,7 @@ const navigationSections: NavSection[] = [
     href: "/gst",
     module: "gst_tax",
     action: "view",
+    planKey: "gstrReconciliation",
     icon: <FileSpreadsheet className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
   {
@@ -369,6 +400,7 @@ const navigationSections: NavSection[] = [
     href: "/sales/automated-billing",
     module: "sales_invoices",
     action: "view",
+    planKey: "automatedBills",
     icon: <Repeat className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
   {
@@ -379,6 +411,7 @@ const navigationSections: NavSection[] = [
     href: "/sales/pos",
     module: "sales_invoices",
     action: "view",
+    planKey: "posBilling",
     icon: <Calculator className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
   {
@@ -389,6 +422,7 @@ const navigationSections: NavSection[] = [
     href: "/sales/pos/orders",
     module: "sales_invoices",
     action: "view",
+    planKey: "posOrders",
     icon: <Receipt className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
   {
@@ -421,6 +455,7 @@ const navigationSections: NavSection[] = [
         href: "/settings/e-invoice",
         module: "settings",
         action: "view",
+        planKey: "eInvoiceEwaybill",
       },
       {
         name: "User Management",
@@ -428,6 +463,7 @@ const navigationSections: NavSection[] = [
         href: "/settings/user-management",
         module: "settings",
         action: "view",
+        planKey: "userManagementRbac",
       },
       {
         name: "Role & Permissions",
@@ -435,6 +471,7 @@ const navigationSections: NavSection[] = [
         href: "/settings/roles",
         module: "settings",
         action: "view",
+        planKey: "userManagementRbac",
       },
       {
         name: "Activity Logs",
@@ -470,6 +507,7 @@ const navigationSections: NavSection[] = [
     href: "/app/data-import",
     module: "settings",
     action: "view",
+    planKey: "dataImport",
     icon: <UploadCloud className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
   {
@@ -481,6 +519,7 @@ const navigationSections: NavSection[] = [
     href: "/finance/ai-collections",
     module: "parties",
     action: "view",
+    planKey: "whatsAppReminders",
     icon: <BellRing className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
   {
@@ -491,6 +530,7 @@ const navigationSections: NavSection[] = [
     href: "/app/sam",
     module: "settings",
     action: "view",
+    planKey: "payrollStaff",
     icon: <CalendarCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
   {
@@ -501,6 +541,7 @@ const navigationSections: NavSection[] = [
     href: "/settings/user-management",
     module: "settings",
     action: "edit_users",
+    planKey: "userManagementRbac",
     icon: <UserCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
 ];
@@ -529,6 +570,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     logout,
     canAccessModule,
     hasPermission,
+    isModuleEntitled,
   } = useAuth();
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -714,9 +756,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const visibleNavigationSections = useMemo(() => {
     return navigationSections
       .map((section) => {
-        // If this section has sub-menus (Sales, Purchases, Accounting, Items, Parties)
+        // Direct plan key check on top-level section if set
+        if (section.planKey && !isModuleEntitled(section.planKey)) {
+          return null;
+        }
+
+        // If this section has sub-menus (Sales, Purchases, Accounting, Items, Parties, Settings)
         if (section.items && section.items.length > 0) {
           const allowedItems = section.items.filter((item) => {
+            const itemPlanKey = item.planKey || item.module || item.href;
+            if (itemPlanKey && !isModuleEntitled(itemPlanKey)) {
+              return false;
+            }
             const itemMod = item.module || section.module || section.id;
             const itemAct = item.action || "view";
             return hasPermission(itemMod, itemAct);
@@ -734,6 +785,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
 
         // Direct top-level navigation item
+        const secPlanKey = section.planKey || section.id || section.module || section.href || "";
+        if (secPlanKey && !isModuleEntitled(secPlanKey)) {
+          return null;
+        }
+
         const secMod = section.module || section.id;
         const secAct = section.action || "view";
         if (hasPermission(secMod, secAct)) {
@@ -743,7 +799,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         return null;
       })
       .filter(Boolean) as NavSection[];
-  }, [hasPermission, canAccessModule, user]);
+  }, [hasPermission, canAccessModule, isModuleEntitled, user]);
 
   // Route permission protection for authenticated staff
   const routePermissionDenied = useMemo(() => {
@@ -791,6 +847,150 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
     return false;
   }, [pathname, isAuthenticated, user, hasPermission]);
+
+  // Route plan restriction guard (applies to all company admins/staff when bypass is off)
+  const planRestrictionDenied = useMemo(() => {
+    if (!isAuthenticated || !user) return null;
+    if (user.role === "SUPER_ADMIN") return null;
+    if (entitlements?.bypassPlanRestrictions) return null;
+
+    const ROUTE_PLAN_RESTRICTIONS: Array<{
+      prefix: string;
+      planKey: string;
+      title: string;
+      titleGujarati: string;
+      minTier: string;
+    }> = [
+      {
+        prefix: "/sales/quotations",
+        planKey: "quotations",
+        title: "Quotation & Estimates",
+        titleGujarati: "કાચું બિલ અને એસ્ટીમેટ",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/sales/proforma",
+        planKey: "proformaInvoice",
+        title: "Proforma Invoices",
+        titleGujarati: "પ્રોફોર્મા ઇન્વોઇસ",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/sales/delivery-challan",
+        planKey: "deliveryChallan",
+        title: "Delivery Challans",
+        titleGujarati: "ડિલિવરી ચલણ",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/sales/e-invoices",
+        planKey: "eInvoiceEwaybill",
+        title: "E-Invoices & E-Way Bills",
+        titleGujarati: "ઈ-ઇનવોઇસ અને ઈ-વે બિલ",
+        minTier: "Distribution Enterprise",
+      },
+      {
+        prefix: "/sales/credit-note",
+        planKey: "creditDebitNotes",
+        title: "Credit Notes",
+        titleGujarati: "ક્રેડિટ નોટ",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/sales/debit-note",
+        planKey: "creditDebitNotes",
+        title: "Debit Notes",
+        titleGujarati: "ડેબિટ નોટ",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/sales/automated-billing",
+        planKey: "automatedBills",
+        title: "Automated Recurring Billing",
+        titleGujarati: "ઓટોમેટેડ બિલિંગ",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/sales/pos/orders",
+        planKey: "posOrders",
+        title: "POS Counter Orders",
+        titleGujarati: "પીઓએસ કાઉન્ટર ઓર્ડર્સ",
+        minTier: "Retail Basic / Wholesale Pro",
+      },
+      {
+        prefix: "/masters/warehouses",
+        planKey: "stockTransfers",
+        title: "Multi-Godown Warehouses",
+        titleGujarati: "ગોડાઉન અને વેરહાઉસ મેનેજમેન્ટ",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/purchases/orders",
+        planKey: "purchaseOrders",
+        title: "Purchase Orders",
+        titleGujarati: "ખરીદી ઓર્ડર",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/purchases/debit-memo",
+        planKey: "creditDebitNotes",
+        title: "Debit Memos",
+        titleGujarati: "ડેબિટ મેમો",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/accounting",
+        planKey: "doubleEntryLedgers",
+        title: "Double-Entry Accounting & Vouchers",
+        titleGujarati: "ડબલ-એન્ટ્રી ખાતાવહી અને વાઉચર્સ",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/vouchers",
+        planKey: "doubleEntryLedgers",
+        title: "Double-Entry Accounting & Vouchers",
+        titleGujarati: "ડબલ-એન્ટ્રી ખાતાવહી અને વાઉચર્સ",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/finance/ai-collections",
+        planKey: "whatsAppReminders",
+        title: "WhatsApp Payment Reminders",
+        titleGujarati: "WhatsApp ઓટો ઉઘરાણી",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/app/sam",
+        planKey: "payrollStaff",
+        title: "Staff Attendance & Payroll",
+        titleGujarati: "સ્ટાફ હાજરી અને પગાર",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/settings/user-management",
+        planKey: "userManagementRbac",
+        title: "Staff Roles & User Management",
+        titleGujarati: "સ્ટાફ રોલ્સ અને વપરાશકર્તા સંચાલન",
+        minTier: "Wholesale Pro",
+      },
+      {
+        prefix: "/settings/roles",
+        planKey: "userManagementRbac",
+        title: "Role & Permission Configuration",
+        titleGujarati: "રોલ અને પરવાનગી રૂપરેખાંકન",
+        minTier: "Wholesale Pro",
+      },
+    ];
+
+    for (const rule of ROUTE_PLAN_RESTRICTIONS) {
+      if (pathname === rule.prefix || pathname.startsWith(rule.prefix + "/")) {
+        if (!isModuleEntitled(rule.planKey)) {
+          return rule;
+        }
+      }
+    }
+    return null;
+  }, [pathname, isAuthenticated, user, entitlements, isModuleEntitled]);
 
   // If on public pages (login, intro, features, Myownbillbook, unauthenticated home), dedicated superadmin portal, or dedicated fullscreen POS counter, render children cleanly without standard business shell
   if (
@@ -1383,7 +1583,44 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div
             className="w-full min-w-0 max-w-none print:max-w-none print:w-full print:p-0 print:m-0"
           >
-            {routePermissionDenied ? (
+            {planRestrictionDenied ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[55vh]">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-50 to-orange-100 border border-amber-200 flex items-center justify-center text-amber-600 mb-4 shadow-sm ring-4 ring-amber-50">
+                  <Sparkles className="w-8 h-8" />
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 mb-2.5">
+                  <span>{lang === "gu" ? "પ્લાન અપગ્રેડ જરૂરી છે" : "Plan Upgrade Required"}</span>
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 mb-1.5">
+                  {lang === "gu" ? planRestrictionDenied.titleGujarati : planRestrictionDenied.title}
+                </h2>
+                <p className="text-sm text-slate-600 max-w-md mb-2">
+                  {lang === "gu"
+                    ? `આ સુવિધા તમારા હાલના (${entitlements?.nameGujarati || entitlements?.name || "ચાલુ"}) પ્લાનમાં સમાવિષ્ટ નથી.`
+                    : `This feature is not included in your current (${entitlements?.name || "active"}) subscription tier.`}
+                </p>
+                <p className="text-xs text-slate-500 max-w-md mb-6 leading-relaxed">
+                  {lang === "gu"
+                    ? `આ મોડ્યુલ વાપરવા માટે કૃપા કરીને તમારો પ્લાન (${planRestrictionDenied.minTier}) અથવા ઉચ્ચમાં અપગ્રેડ કરો.`
+                    : `Please upgrade your subscription to ${planRestrictionDenied.minTier} or contact your Super Admin to unlock access.`}
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Link
+                    href="/#pricing"
+                    className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>{lang === "gu" ? "પ્લાન અપગ્રેડ કરો" : "Upgrade Subscription Plan"}</span>
+                  </Link>
+                  <Link
+                    href="/"
+                    className="px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
+                  >
+                    {lang === "gu" ? "મુખ્ય ડેશબોર્ડ" : "Back to Dashboard"}
+                  </Link>
+                </div>
+              </div>
+            ) : routePermissionDenied ? (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[50vh]">
                 <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 mb-4 shadow-xs">
                   <ShieldAlert className="w-8 h-8" />
