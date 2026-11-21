@@ -21,6 +21,7 @@ export interface DashboardTransactionsTableProps {
   transactions?: TransactionRow[];
   isLoading?: boolean;
   lang?: "en" | "gu";
+  limit?: number;
 }
 
 function getTypeLabel(type: string, lang: "en" | "gu" = "en") {
@@ -93,9 +94,10 @@ export function DashboardTransactionsTable({
   transactions,
   isLoading = false,
   lang = "en",
+  limit = 10,
 }: DashboardTransactionsTableProps) {
   const router = useRouter();
-  const rows = transactions ?? [];
+  const rows = (transactions ?? []).slice(0, limit);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col justify-between h-full">
@@ -142,7 +144,7 @@ export function DashboardTransactionsTable({
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">
               {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
+                Array.from({ length: limit }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-4 sm:px-5 py-3.5"><div className="h-4 w-20 bg-slate-100 rounded" /></td>
                     <td className="px-3 sm:px-4 py-3.5"><div className="h-5 w-24 bg-slate-100 rounded-md" /></td>
@@ -159,7 +161,7 @@ export function DashboardTransactionsTable({
                   </td>
                 </tr>
               ) : (
-                rows.slice(0, 5).map((row) => {
+                rows.map((row) => {
                   const typeLabel = getTypeLabel(row.type, lang);
                   const statusInfo = getStatusDisplay(row.status, lang);
 

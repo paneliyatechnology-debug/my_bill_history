@@ -116,7 +116,7 @@ function DashboardContent() {
         apiClient
           .get("/dashboard/all-transactions", {
             page: 1,
-            limit: 6,
+            limit: 10,
             sortBy: "date",
             sortOrder: "desc",
             financialYearId: activeFyId,
@@ -181,11 +181,11 @@ function DashboardContent() {
         pendingBills: pendingFromSummary,
       });
 
-      // 2. Process Transactions
+      // 2. Process Transactions (Latest 10)
       const txnList = txnsRes?.items || txnsRes?.transactions || [];
       if (Array.isArray(txnList) && txnList.length > 0) {
         setTransactions(
-          txnList.slice(0, 6).map((t: any, idx: number) => {
+          txnList.slice(0, 10).map((t: any, idx: number) => {
             const d = new Date(t.date || t.rawDate);
             return {
               id: t.id || `txn-${idx}`,
@@ -432,6 +432,7 @@ function DashboardContent() {
             transactions={transactions}
             isLoading={isLoading}
             lang={lang}
+            limit={10}
           />
         </div>
 
