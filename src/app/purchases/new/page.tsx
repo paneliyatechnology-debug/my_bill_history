@@ -21,6 +21,12 @@ import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoic
 import { INDIAN_STATES } from "@billing/shared-types";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import {
+  ItemStepModal,
+  ItemFormData,
+  CategoryOption,
+} from "@/app/masters/items/components/item-step-modal";
+import { setItemPartyPrices } from "@/lib/party-item-pricing";
+import {
   Sparkles,
   Search,
   Check,
@@ -167,6 +173,7 @@ function NewPurchaseInvoiceContent() {
   const [warehouses, setWarehouses] = useState<WarehouseOption[]>([]);
   const [cashBankAccounts, setCashBankAccounts] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [totalBillsRecorded, setTotalBillsRecorded] = useState<number>(0);
 
@@ -442,6 +449,7 @@ const [notes, setNotes] = useState("");
         unitsRes,
         compRes,
         purchasesRes,
+        catsRes,
       ]: any = await Promise.all([
         apiClient.get("/masters/parties", { type: "SUPPLIER", limit: 500 }),
         apiClient.get("/masters/items"),
@@ -450,6 +458,7 @@ const [notes, setNotes] = useState("");
         apiClient.get("/masters/units").catch(() => apiClient.get("/masters/units")).catch(() => []),
         apiClient.get("/tenants/company").catch(() => null),
         apiClient.get("/purchases/invoices", { limit: 100 }).catch(() => null),
+        apiClient.get("/masters/categories").catch(() => []),
       ]);
 
       const rawParties = extractList<SupplierOption>(partiesRes);
@@ -463,12 +472,14 @@ const [notes, setNotes] = useState("");
         /cash|bank/i.test(acc.name || "")
       );
       const unitList = extractList<any>(unitsRes);
+      const catList = extractList<CategoryOption>(catsRes);
 
       setSuppliers(supplierList);
       setItems(itemList);
       setWarehouses(whList);
       setCashBankAccounts(cashBank);
       setUnits(unitList);
+      setCategories(catList);
 
       if (compRes) {
         setCompanyProfile(compRes);
@@ -1476,53 +1487,142 @@ const [notes, setNotes] = useState("");
     }
   };
 
-  // Quick Item Creation
-  const handleSaveNewItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItemName.trim()) {
-      setItemError(
-        lang === "gu" ? "વસ્તુનું નામ જરૂરી છે." : "Item name is required."
-      );
-      return;
+  // Category inline creation for ItemStepModal
+  const handleAddNewCategory = async (name: string): Promise<CategoryOption | null> => {
+    try {
+      const res: any = await apiClient.post("/masters/categories", { name });
+      const newCat = res?.data || res;
+      if (newCat) {
+        setCategories((prev) => [...prev, newCat]);
+        return newCat;
+      }
+    } catch (err) {
+      console.error("Failed to add category", err);
+    }
+    return null;
+  };
+
+  // Full Item Creation Handler (Integrated with ItemStepModal)
+  const handleCreateItemStep = async (data: ItemFormData) => {
+    let uomId = data.primaryUomId;
+    if (!uomId && units.length > 0) {
+      uomId = units[0].id;
     }
 
-    setIsSavingItem(true);
-    setItemError(null);
-    try {
-      const res: any = await apiClient.post("/masters/items", {
-        type: newItemType,
-        name: newItemName.trim(),
-        hsnCode: newItemHsn.trim() || (newItemType === "SERVICE" ? "9983" : "1001"),
-        primaryUomId: newItemUomId || (units[0]?.id ?? undefined),
-        taxRate: Number(newItemTaxRate) || 0,
-        purchaseRate: Number(newItemPurchasePrice) || 0,
-        retailPrice: Number(newItemRetailPrice) || Number(newItemPurchasePrice) || 0,
-      });
+    const createdRes: any = await apiClient.post("/masters/items", {
+      type: data.type,
+      name: data.name.trim(),
+      nameGujarati: data.nameGujarati?.trim() || undefined,
+      sku: data.sku?.trim() || undefined,
+      barcode: data.barcode?.trim() || undefined,
+      hsnCode: data.hsnCode.trim(),
+      primaryUomId: uomId,
+      secondaryUomId: data.secondaryUomId || undefined,
+      conversionFactor: data.conversionFactor ? Number(data.conversionFactor) : undefined,
+      categoryId: data.categoryId || undefined,
+      taxRate: Number(data.taxRate) || 0,
+      retailPrice: Number(data.retailPrice) || 0,
+      mrp: Number(data.mrp) || Number(data.retailPrice) || 0,
+      purchaseRate: Number(data.purchaseRate) || 0,
+      wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
+      minStockLevel: data.enableLowStockWarning ? (Number(data.minStockLevel) || 0) : 0,
+      openingStock: data.type === "PRODUCT" ? Number(data.openingStock) || 0 : 0,
+      openingStockDate: data.asOfDate || undefined,
+      warehouseId: data.warehouseId || undefined,
+      openingBatchNumber: data.openingBatchNumber ? data.openingBatchNumber.trim() : undefined,
+      openingExpiryDate: data.openingExpiryDate || undefined,
+      openingMfgDate: data.openingMfgDate || undefined,
+      trackBatches:
+        data.type === "PRODUCT"
+          ? Boolean(data.trackBatches || data.openingBatchNumber || data.openingMfgDate || data.openingExpiryDate)
+          : false,
+      trackSerialNo: Boolean(data.trackSerialNo),
+    });
 
-      if (res?.id) {
-        setItems((prev) => [res, ...prev]);
-        if (activeItemRowIdx !== null && activeItemRowIdx < rows.length) {
-          const updated = [...rows];
+    const createdItem = createdRes?.data || createdRes;
+    if (createdItem?.id) {
+      if (data.partyWisePrices && data.partyWisePrices.length > 0) {
+        setItemPartyPrices(createdItem.id, data.partyWisePrices, data.name);
+      }
+
+      const matchedUom = units.find((u) => u.id === (createdItem.primaryUomId || uomId));
+      const itemForState: ItemOption = {
+        id: createdItem.id,
+        name: createdItem.name,
+        hsnCode: createdItem.hsnCode,
+        taxRate: Number(createdItem.taxRate) || Number(data.taxRate) || 0,
+        purchasePrice: Number(createdItem.purchaseRate ?? createdItem.purchasePrice ?? data.purchaseRate) || 0,
+        retailPrice: Number(createdItem.retailPrice ?? data.retailPrice) || 0,
+        stockQuantity: Number(createdItem.stockQuantity ?? (createdItem.type === "PRODUCT" ? data.openingStock : 0)) || 0,
+        primaryUom: createdItem.primaryUom || (matchedUom ? { id: matchedUom.id, symbol: matchedUom.symbol || matchedUom.name, name: matchedUom.name } : undefined),
+      };
+
+      setItems((prev) => [itemForState, ...prev]);
+
+      const unitSymbol = itemForState.primaryUom?.symbol || itemForState.primaryUom?.name || "PCS";
+      const rate = itemForState.purchasePrice || itemForState.retailPrice || 0;
+
+      setIsDirty(true);
+      setRows((prev) => {
+        if (activeItemRowIdx !== null && activeItemRowIdx >= 0 && activeItemRowIdx < prev.length) {
+          const updated = [...prev];
           updated[activeItemRowIdx] = {
             ...updated[activeItemRowIdx],
-            itemId: res.id,
-            itemName: res.name,
-            hsnCode: res.hsnCode || "1001",
-            unit: res.primaryUom?.symbol || "PCS",
-            unitPrice: res.purchasePrice ?? res.retailPrice ?? 0,
-            taxRate: res.taxRate ?? 18,
+            itemId: itemForState.id,
+            itemName: itemForState.name,
+            hsnCode: itemForState.hsnCode || "1001",
+            unit: unitSymbol,
+            unitPrice: rate,
+            taxRate: itemForState.taxRate ?? 18,
+            quantity: updated[activeItemRowIdx].quantity || 1,
           };
-          setRows(updated);
+          return updated;
         }
-        setIsAddItemModalOpen(false);
-        setNewItemName("");
-        setNewItemPurchasePrice("");
-        setNewItemRetailPrice("");
-      }
-    } catch (err: any) {
-      setItemError(err.message || "Failed to create item.");
-    } finally {
-      setIsSavingItem(false);
+
+        const emptyIdx = prev.findIndex((r) => !r.itemId && !r.itemName?.trim());
+        if (emptyIdx !== -1) {
+          const updated = [...prev];
+          updated[emptyIdx] = {
+            ...updated[emptyIdx],
+            itemId: itemForState.id,
+            itemName: itemForState.name,
+            hsnCode: itemForState.hsnCode || "1001",
+            unit: unitSymbol,
+            unitPrice: rate,
+            taxRate: itemForState.taxRate ?? 18,
+            quantity: updated[emptyIdx].quantity || 1,
+          };
+          return updated;
+        }
+
+        return [
+          ...prev,
+          {
+            itemId: itemForState.id,
+            itemName: itemForState.name,
+            description: "",
+            hsnCode: itemForState.hsnCode || "1001",
+            mrp: itemForState.retailPrice || "",
+            unit: unitSymbol,
+            quantity: 1,
+            freeQuantity: "",
+            showFreeQty: false,
+            unitPrice: rate,
+            discountValue: "",
+            discountType: "%",
+            taxRate: itemForState.taxRate ?? 18,
+          },
+        ];
+      });
+
+      setActiveItemRowIdx(null);
+      setIsAddItemModalOpen(false);
+      setToastMessage(
+        lang === "gu"
+          ? "નવી વસ્તુ સફળતાપૂર્વક બનાવી દીધી છે!"
+          : "Item created successfully!"
+      );
+      setTimeout(() => setToastMessage(null), 3500);
     }
   };
 
@@ -2743,9 +2843,22 @@ const [notes, setNotes] = useState("");
                               <div className="space-y-1">
                                 <CustomCombobox
                                   value={row.itemId}
-                                  onChange={(val: any) => handleItemSelect(idx, val)}
+                                  onChange={(val: any) => {
+                                    if (val === "__create_new__") {
+                                      setActiveItemRowIdx(idx);
+                                      setIsAddItemModalOpen(true);
+                                    } else {
+                                      handleItemSelect(idx, val);
+                                    }
+                                  }}
                                   options={[
-                                    ...(row.itemName && !items.some(i => i.id === row.itemId) ? [{ value: row.itemId || "", label: row.itemName }] : []),
+                                    {
+                                      value: "__create_new__",
+                                      label: lang === "gu" ? "+ નવી આઇટમ બનાવો (Create New Item)..." : "+ Create New Item...",
+                                    },
+                                    ...(row.itemName && !items.some((i) => i.id === row.itemId)
+                                      ? [{ value: row.itemId || "", label: row.itemName }]
+                                      : []),
                                     ...items.map((it) => ({
                                       value: it.id,
                                       label: it.name,
@@ -3575,6 +3688,30 @@ const [notes, setNotes] = useState("");
             setIsAddItemsCatalogOpen(false);
             setIsAddItemModalOpen(true);
           }}
+        />
+      )}
+
+      {/* Create Item Step Modal */}
+      {isAddItemModalOpen && (
+        <ItemStepModal
+          isOpen={isAddItemModalOpen}
+          onClose={() => {
+            setIsAddItemModalOpen(false);
+            setActiveItemRowIdx(null);
+          }}
+          onSubmit={handleCreateItemStep}
+          initialData={
+            activeItemRowIdx !== null && rows[activeItemRowIdx]?.itemName
+              ? { name: rows[activeItemRowIdx].itemName }
+              : undefined
+          }
+          units={units}
+          categories={categories}
+          warehouses={warehouses}
+          parties={suppliers as any}
+          companyName={companyProfile?.tradeName || companyProfile?.legalName || currentCompany?.tradeName || "myownbillbook"}
+          lang={lang}
+          onAddCategory={handleAddNewCategory}
         />
       )}
 

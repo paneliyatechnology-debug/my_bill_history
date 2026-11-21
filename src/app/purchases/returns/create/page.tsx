@@ -1682,8 +1682,9 @@ const [notes, setNotes] = useState<string>("");
                   min="0"
                   max="100"
                   list="gst-rates-return"
-                  value={createItemForm.taxRate}
-                  onChange={(e) => setCreateItemForm({ ...createItemForm, taxRate: Number(e.target.value) || 0 })}
+                  value={createItemForm.taxRate ?? ""}
+                  onChange={(e) => setCreateItemForm({ ...createItemForm, taxRate: e.target.value as any })}
+                  onFocus={(e) => e.target.select()}
                   placeholder="0"
                   className="w-full p-2 pr-6 border border-slate-300 rounded-lg text-slate-800 font-normal text-right tabular-nums focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
                 />

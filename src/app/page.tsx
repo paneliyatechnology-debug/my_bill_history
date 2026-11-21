@@ -15,12 +15,7 @@ import {
 } from "@/components/dashboard/dashboard-transactions-table";
 import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";
 import { DashboardScannerCard } from "@/components/dashboard/dashboard-scanner-card";
-import {
-  DashboardSalesChart,
-  DailySalesPoint,
-} from "@/components/dashboard/dashboard-sales-chart";
-import { DashboardCategoryDonut } from "@/components/dashboard/dashboard-category-donut";
-import { DashboardBusinessSnapshot } from "@/components/dashboard/dashboard-business-snapshot";
+import { type DailySalesPoint } from "@/components/dashboard/dashboard-sales-chart";
 import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
 import { UpcomingDuesAlertCard } from "@/components/dashboard/upcoming-dues-alert-card";
 import { aggregateItemSalesByCategory, periodToRange } from "@/lib/sales-by-category";
@@ -429,43 +424,10 @@ function DashboardContent() {
       {/* 3. UPCOMING DUES - IMPORTANT SECTION */}
       <UpcomingDuesAlertCard />
 
-      {/* 4. ANALYTICS ROW: SALES TREND (5-col) | SALES BY CATEGORY (4-col) | QUICK ACTIONS (3-col) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        {/* Left Widget: Sales Trend Line Chart (5 cols on xl, 12 on lg) */}
-        <div className="lg:col-span-12 xl:col-span-5 flex flex-col min-w-0">
-          <DashboardSalesChart
-            chartDays={chartDays}
-            sevenDaysSales={sevenDaysSales}
-            invoicesCount={invoicesCount}
-            period={chartPeriod}
-            onPeriodChange={setChartPeriod}
-            isLoading={isChartLoading}
-            lang={lang}
-          />
-        </div>
-
-        {/* Middle Widget: Sales by Category Donut Chart (4 cols on xl, 6 on lg) */}
-        <div className="lg:col-span-6 xl:col-span-4 flex flex-col min-w-0">
-          <DashboardCategoryDonut
-            totalSales={sevenDaysSales}
-            data={categorySplit}
-            isLoading={isChartLoading}
-            error={categoryError}
-            onRetry={fetchSalesChart}
-            lang={lang}
-          />
-        </div>
-
-        {/* Right Widget: Quick Actions Grid (3 cols on xl, 6 on lg) */}
-        <div className="lg:col-span-6 xl:col-span-3 flex flex-col min-w-0">
-          <DashboardQuickActions lang={lang} />
-        </div>
-      </div>
-
-      {/* 5. BOTTOM ROW: RECENT TRANSACTIONS TABLE (8-col) | BUSINESS SNAPSHOT (4-col) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+      {/* 4. MAIN CONTENT ROW: RECENT TRANSACTIONS (8-col) | QUICK ACTIONS (4-col) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left: Detailed Recent Transactions Stream */}
-        <div className="lg:col-span-8 flex flex-col">
+        <div className="lg:col-span-8 flex flex-col min-w-0">
           <DashboardTransactionsTable
             transactions={transactions}
             isLoading={isLoading}
@@ -473,9 +435,9 @@ function DashboardContent() {
           />
         </div>
 
-        {/* Right: Business Snapshot 2x2 Metric Grid */}
-        <div className="lg:col-span-4 flex flex-col">
-          <DashboardBusinessSnapshot metrics={snapshot} lang={lang} />
+        {/* Right: Quick Actions Grid */}
+        <div className="lg:col-span-4 flex flex-col min-w-0">
+          <DashboardQuickActions lang={lang} />
         </div>
       </div>
 

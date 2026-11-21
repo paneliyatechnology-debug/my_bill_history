@@ -221,6 +221,22 @@ function LoginContent() {
     setIsPaying(true);
 
     try {
+      // Validate that user does not already exist BEFORE opening Razorpay
+      const checkRes: any = await apiClient.post("/auth/check-availability", {
+        email,
+        phone,
+      });
+
+      if (checkRes && !checkRes.available) {
+        setError(
+          lang === "gu"
+            ? (checkRes.messageGujarati || "આ ફોન નંબર અથવા ઈમેલ ધરાવતો એકાઉન્ટ પહેલેથી હાજર છે. પ્લાન અપગ્રેડ કરવા માટે કૃપા કરીને સાઇન ઇન કરો.")
+            : (checkRes.message || "An account with this phone number or email already exists. Please switch to Sign In to upgrade your account, or use a new phone/email.")
+        );
+        setIsPaying(false);
+        return;
+      }
+
       const orderRes: any = await apiClient.post("/subscriptions/public-order", {
         tier: selectedTier,
         billingCycle: signupCycle,
@@ -995,27 +1011,36 @@ function LoginContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                      {lang === "gu" ? "મોબાઇલ નંબર (વેરિફાઇડ)" : "Phone (Verified)"}
+                      {lang === "gu" ? "મોબાઇલ નંબર *" : "Phone *"}
                     </label>
                     <input
                       type="tel"
-                      disabled
+                      required
+                      maxLength={10}
                       value={signupData.phone}
-                      className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm tabular-nums text-slate-500 cursor-not-allowed"
+                      onChange={(e) => setSignupData({ ...signupData, phone: e.target.value.replace(/\D/g, "") })}
+                      className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                      {lang === "gu" ? "ઈમેલ (વેરિફાઇડ)" : "Email (Verified)"}
+                      {lang === "gu" ? "ઈમેલ *" : "Email *"}
                     </label>
                     <input
                       type="email"
-                      disabled
+                      required
                       value={signupData.email}
-                      className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-500 cursor-not-allowed"
+                      onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                     />
                   </div>
                 </div>
+
+                <p className="text-[11px] text-[#667085] leading-relaxed">
+                  {lang === "gu"
+                    ? "નોંધ: જો આ ઈમેલ વાળો એકાઉન્ટ પહેલેથી હાજર હોય, તો નીચે તમારો જૂનો પાસવર્ડ દાખલ કરો જેથી પ્લાન તમારા એકાઉન્ટ સાથે લિંક થઈ જશે, અથવા ઉપર નવો ઈમેલ દાખલ કરો."
+                    : "Note: If an account already exists with this email, enter your existing password below to link this subscription, or edit the email above to register a new account."}
+                </p>
 
                 <div>
                   <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">

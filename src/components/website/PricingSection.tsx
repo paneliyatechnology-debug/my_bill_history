@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ArrowRight, Loader2, ShieldCheck, X, Zap, CreditCard, Sparkles } from "lucide-react";
+import { Check, ArrowRight, Loader2, ShieldCheck, X, Zap, CreditCard, Sparkles, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { openRazorpayCheckout } from "../../lib/razorpay";
@@ -132,13 +133,45 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
         setErrorMsg(gu ? "કૃપા કરીને તમારું પૂરું નામ દાખલ કરો." : "Please enter your full name.");
         return;
       }
-      if (!customerPhone.trim() || customerPhone.replace(/\D/g, "").length < 10) {
+      const cleanPhone = customerPhone.replace(/\D/g, "");
+      if (!cleanPhone || cleanPhone.length < 10) {
         setErrorMsg(gu ? "કૃપા કરીને માન્ય ૧૦-અંકનો મોબાઇલ નંબર દાખલ કરો." : "Please enter a valid 10-digit mobile number.");
         return;
       }
-      if (!customerEmail.trim() || !customerEmail.includes("@")) {
+      const cleanEmail = customerEmail.trim().toLowerCase();
+      if (!cleanEmail || !cleanEmail.includes("@")) {
         setErrorMsg(gu ? "કૃપા કરીને માન્ય ઈમેલ દાખલ કરો." : "Please enter a valid email address.");
         return;
+      }
+
+      // Check whether user already exists BEFORE payment to prevent post-payment conflicts
+      setIsProcessing(true);
+      try {
+        const checkRes: any = await apiClient.post("/auth/check-availability", {
+          email: cleanEmail,
+          phone: cleanPhone,
+        });
+
+        if (checkRes && !checkRes.available) {
+          setErrorMsg(
+            gu
+              ? (checkRes.messageGujarati || "આ ફોન નંબર અથવા ઈમેલ ધરાવતો એકાઉન્ટ પહેલેથી હાજર છે. પ્લાન અપગ્રેડ કરવા માટે કૃપા કરીને લોગિન કરો.")
+              : (checkRes.message || "An account with this phone number or email already exists. Please Sign In to upgrade your existing plan, or use a different phone/email.")
+          );
+          setIsProcessing(false);
+          return;
+        }
+      } catch (err: any) {
+        if (err?.status === 409 || err?.statusCode === 409) {
+          setErrorMsg(
+            err?.message ||
+              (gu
+                ? "આ ફોન નંબર અથવા ઈમેલ ધરાવતો એકાઉન્ટ પહેલેથી હાજર છે. પ્લાન અપગ્રેડ કરવા માટે કૃપા કરીને લોગિન કરો."
+                : "An account with this phone number or email already exists. Please Sign In to upgrade your account, or use a different phone/email.")
+          );
+          setIsProcessing(false);
+          return;
+        }
       }
     }
 
@@ -508,8 +541,22 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
 
             {/* Error Message Box */}
             {errorMsg && (
-              <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium">
-                {errorMsg}
+              <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium space-y-2">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span>{errorMsg}</span>
+                </div>
+                {errorMsg.toLowerCase().includes("already exists") && (
+                  <div className="pt-1 flex items-center gap-2">
+                    <Link
+                      href={`/login?redirect=pricing&tier=${checkoutPlan?.tier}&cycle=${billingCycle}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <span>{gu ? "હાલના એકાઉન્ટમાં લોગિન કરો" : "Sign In to Existing Account"}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
 
@@ -695,9 +742,11 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
                       </label>
                       <input
                         type="tel"
-                        disabled
+                        required
+                        maxLength={10}
                         value={customerPhone}
-                        className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm tabular-nums font-medium text-[#667085] cursor-not-allowed"
+                        onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ""))}
+                        className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm tabular-nums font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                       />
                     </div>
                     <div>
@@ -706,12 +755,19 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
                       </label>
                       <input
                         type="email"
-                        disabled
+                        required
                         value={customerEmail}
-                        className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm font-medium text-[#667085] cursor-not-allowed"
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                       />
                     </div>
                   </div>
+
+                  <p className="text-[11px] text-[#667085] leading-relaxed">
+                    {gu
+                      ? "નોંધ: જો આ ઈમેલ વાળો એકાઉન્ટ પહેલેથી હાજર હોય, તો નીચે તમારો જૂનો પાસવર્ડ દાખલ કરો જેથી પ્લાન તમારા એકાઉન્ટ સાથે લિંક થઈ જશે, અથવા ઉપર નવો ઈમેલ દાખલ કરો."
+                      : "Note: If an account already exists with this email, enter your existing password below to link this subscription, or edit the email above to register a new account."}
+                  </p>
 
                   <div>
                     <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
