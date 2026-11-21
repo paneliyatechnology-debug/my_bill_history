@@ -22,6 +22,8 @@ export interface DashboardTransactionsTableProps {
   isLoading?: boolean;
   lang?: "en" | "gu";
   limit?: number;
+  title?: string;
+  subtitle?: string;
 }
 
 function getTypeLabel(type: string, lang: "en" | "gu" = "en") {
@@ -95,6 +97,8 @@ export function DashboardTransactionsTable({
   isLoading = false,
   lang = "en",
   limit = 10,
+  title,
+  subtitle,
 }: DashboardTransactionsTableProps) {
   const router = useRouter();
   const rows = (transactions ?? []).slice(0, limit);
@@ -112,10 +116,10 @@ export function DashboardTransactionsTable({
             </div>
             <div>
               <h2 className="typo-section-heading text-[#182230] leading-tight">
-                {lang === "gu" ? "તાજેતરના વ્યવહારો" : "Recent Transactions"}
+                {title || (lang === "gu" ? "તાજેતરના વ્યવહારો" : "Recent Transactions")}
               </h2>
               <p className="typo-card-desc text-[#64748B] leading-tight mt-0.5">
-                {lang === "gu" ? "તમારા તાજેતરના વ્યવહારો." : "Your latest business transactions."}
+                {subtitle || (lang === "gu" ? "તમારા તાજેતરના વ્યવહારો." : "Your latest business transactions.")}
               </p>
             </div>
           </div>

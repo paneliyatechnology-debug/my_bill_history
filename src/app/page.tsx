@@ -8,7 +8,10 @@ import { apiClient, extractList } from "../lib/api-client";
 import { IntroductionPage } from "../components/landing/introduction-page";
 import { BillScannerModal } from "./purchases/components/bill-scanner-modal";
 import { DashboardKpiCard } from "@/components/dashboard/dashboard-kpi-card";
-import { DashboardWelcomeBanner } from "@/components/dashboard/dashboard-welcome-banner";
+import {
+  DashboardWelcomeBanner,
+  isoToDDMMYYYY,
+} from "@/components/dashboard/dashboard-welcome-banner";
 import {
   DashboardTransactionsTable,
   TransactionRow,
@@ -19,7 +22,7 @@ import { type DailySalesPoint } from "@/components/dashboard/dashboard-sales-cha
 import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
 import { UpcomingDuesAlertCard } from "@/components/dashboard/upcoming-dues-alert-card";
 import { aggregateItemSalesByCategory, periodToRange } from "@/lib/sales-by-category";
-import { X, Gift } from "lucide-react";
+import { Calendar, RotateCcw, X, Gift } from "lucide-react";
 
 function DashboardContent() {
   const router = useRouter();
@@ -47,6 +50,13 @@ function DashboardContent() {
   const [activeModal, setActiveModal] = useState<
     "desktop" | "announcements" | "gift" | "support" | "sales" | null
   >(null);
+
+  // Date Range Filter State for Historical / Past Data
+  const [dateFilter, setDateFilter] = useState<{
+    startDate: string;
+    endDate: string;
+    preset: string;
+  } | null>(null);
 
   // Sales Report Area Chart
   const [chartDays, setChartDays] = useState<DailySalesPoint[]>([]);
@@ -102,209 +112,297 @@ function DashboardContent() {
     return null;
   };
 
-  const fetchDashboardData = useCallback(async () => {
-    setIsRefreshing(true);
-    updateTimestamp();
+  const fetchDashboardData = useCallback(
+    async (customStart?: string, customEnd?: string) => {
+      setIsRefreshing(true);
+      updateTimestamp();
 
-    try {
-      const activeFyId = tenantContext?.financialYearId || currentFY?.id;
-      const [finRes, txnsRes, partiesRes, itemsRes, invoicesRes]: any =
-        await Promise.all([
-        apiClient
-          .get("/dashboard/summary", { financialYearId: activeFyId })
-          .catch(() => null),
-        apiClient
-          .get("/dashboard/all-transactions", {
-            page: 1,
-            limit: 10,
-            sortBy: "date",
-            sortOrder: "desc",
-            financialYearId: activeFyId,
-          })
-          .catch(() => null),
-        apiClient
-          .get("/masters/parties", { page: 1, limit: 1 })
-          .catch(() => null),
-        apiClient
-          .get("/masters/items", { page: 1, limit: 1 })
-          .catch(() => null),
-        apiClient
-          .get("/sales/invoices", { page: 1, limit: 1, financialYearId: activeFyId })
-          .catch(() => null),
-      ]);
+      try {
+        const activeFyId = tenantContext?.financialYearId || currentFY?.id;
+        const effStart = customStart !== undefined ? (customStart || undefined) : dateFilter?.startDate;
+        const effEnd = customEnd !== undefined ? (customEnd || undefined) : dateFilter?.endDate;
 
-      // 1. Process Financial Summary
-      let coll = 0;
-      let pay = 0;
-      let cb = 0;
-
-      if (finRes) {
-        if (finRes.toCollect !== undefined && finRes.toCollect !== null) {
-          coll = Number(finRes.toCollect);
+        const summaryParams: any = { financialYearId: activeFyId };
+        if (effEnd) {
+          summaryParams.asOfDate = effEnd;
         }
-        if (finRes.toPay !== undefined && finRes.toPay !== null) {
-          pay = Number(finRes.toPay);
+
+        const txnsParams: any = {
+          page: 1,
+          limit: 10,
+          sortBy: "date",
+          sortOrder: "desc",
+          financialYearId: activeFyId,
+        };
+        if (effStart) txnsParams.startDate = effStart;
+        if (effEnd) txnsParams.endDate = effEnd;
+
+        const invoicesParams: any = {
+          page: 1,
+          limit: 1,
+          financialYearId: activeFyId,
+        };
+        if (effStart) invoicesParams.startDate = effStart;
+        if (effEnd) invoicesParams.endDate = effEnd;
+
+        const [finRes, txnsRes, partiesRes, itemsRes, invoicesRes]: any =
+          await Promise.all([
+            apiClient
+              .get("/dashboard/summary", summaryParams)
+              .catch(() => null),
+            apiClient
+              .get("/dashboard/all-transactions", txnsParams)
+              .catch(() => null),
+            apiClient
+              .get("/masters/parties", { page: 1, limit: 1 })
+              .catch(() => null),
+            apiClient
+              .get("/masters/items", { page: 1, limit: 1 })
+              .catch(() => null),
+            apiClient
+              .get("/sales/invoices", invoicesParams)
+              .catch(() => null),
+          ]);
+
+        // 1. Process Financial Summary
+        let coll = 0;
+        let pay = 0;
+        let cb = 0;
+
+        if (finRes) {
+          if (finRes.toCollect !== undefined && finRes.toCollect !== null) {
+            coll = Number(finRes.toCollect);
+          }
+          if (finRes.toPay !== undefined && finRes.toPay !== null) {
+            pay = Number(finRes.toPay);
+          }
+          if (
+            finRes.totalCashBankBalance !== undefined &&
+            finRes.totalCashBankBalance !== null
+          ) {
+            cb = Number(finRes.totalCashBankBalance);
+          }
         }
-        if (
-          finRes.totalCashBankBalance !== undefined &&
-          finRes.totalCashBankBalance !== null
-        ) {
-          cb = Number(finRes.totalCashBankBalance);
-        }
-      }
 
-      setToCollect(coll);
-      setToPay(pay);
-      setCashBankBalance(cb);
+        setToCollect(coll);
+        setToPay(pay);
+        setCashBankBalance(cb);
 
-      const pendingFromSummary =
-        typeof finRes?.pendingBills === "number"
-          ? finRes.pendingBills
-          : typeof finRes?.unpaidInvoices === "number"
-            ? finRes.unpaidInvoices
-            : null;
-      setSnapshot({
-        totalParties:
-          typeof finRes?.totalParties === "number"
-            ? finRes.totalParties
-            : readCount(partiesRes),
-        totalItems:
-          typeof finRes?.totalItems === "number"
-            ? finRes.totalItems
-            : readCount(itemsRes),
-        totalInvoices:
-          typeof finRes?.totalInvoices === "number"
-            ? finRes.totalInvoices
-            : typeof finRes?.invoicesCount === "number"
-              ? finRes.invoicesCount
-              : readCount(invoicesRes),
-        pendingBills: pendingFromSummary,
-      });
-
-      // 2. Process Transactions (Latest 10)
-      const txnList = txnsRes?.items || txnsRes?.transactions || [];
-      if (Array.isArray(txnList) && txnList.length > 0) {
-        setTransactions(
-          txnList.slice(0, 10).map((t: any, idx: number) => {
-            const d = new Date(t.date || t.rawDate);
-            return {
-              id: t.id || `txn-${idx}`,
-              rawDate: d,
-              date: d.toLocaleDateString("en-IN", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              }),
-              type: t.type || "Sales Invoice",
-              txnNo: t.transactionNumber || t.txnNo || "-",
-              partyName: t.partyName || "-",
-              amount: Number(t.amount || 0),
-              link: t.link || "/app/home/vouchers/all_transactions",
-              status: t.status || "Paid",
-            };
-          })
-        );
-      } else {
-        setTransactions([]);
-      }
-
-    } catch (err) {
-      console.error("[Dashboard] Error fetching dashboard data:", err);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [updateTimestamp, tenantContext?.financialYearId, currentFY?.id]);
-
-  const fetchSalesChart = useCallback(async () => {
-    setIsChartLoading(true);
-    setCategoryError("");
-    const range = periodToRange(chartPeriod);
-    const activeFyId = tenantContext?.financialYearId || currentFY?.id;
-    try {
-      const [chartRes, itemSalesRes, returnsRes]: any = await Promise.all([
-        apiClient
-          .get("/dashboard/sales-overview", {
-            days: range.days,
-            financialYearId: activeFyId,
-          })
-          .catch(() => null),
-        apiClient
-          .get("/reports/item-sales-report", {
-            startDate: range.startDate,
-            endDate: range.endDate,
-            fromDate: range.startDate,
-            toDate: range.endDate,
-          })
-          .catch(() => null),
-        apiClient
-          .get("/reports/sales-returns", {
-            startDate: range.startDate,
-            endDate: range.endDate,
-            fromDate: range.startDate,
-            toDate: range.endDate,
-          })
-          .catch(() => null),
-      ]);
-
-      if (chartRes?.chartDays) {
-        setChartDays(chartRes.chartDays);
-      } else {
-        setChartDays([]);
-      }
-      if (chartPeriod === "7" && chartRes) {
-        setSevenDaysSales(Number(chartRes.sevenDaysSales || chartRes.totalSales || 0));
-      } else if (chartRes?.sevenDaysSales != null) {
-        setSevenDaysSales(Number(chartRes.sevenDaysSales));
-      }
-      if (chartRes) {
-        setInvoicesCount(Number(chartRes.invoicesCount || 0));
-      }
-
-      const salesRows = itemSalesRes?.items || itemSalesRes?.data || [];
-      const returnRows = returnsRes?.returns || returnsRes?.items || [];
-      let categoryByItemId = new Map<string, string>();
-      const needsLookup =
-        Array.isArray(salesRows) &&
-        salesRows.some((row: any) => {
-          const name = String(row?.category || row?.categoryName || "").trim();
-          return !name || name === "—" || name === "-";
+        const pendingFromSummary =
+          typeof finRes?.pendingBills === "number"
+            ? finRes.pendingBills
+            : typeof finRes?.unpaidInvoices === "number"
+              ? finRes.unpaidInvoices
+              : null;
+        setSnapshot({
+          totalParties:
+            typeof finRes?.totalParties === "number"
+              ? finRes.totalParties
+              : readCount(partiesRes),
+          totalItems:
+            typeof finRes?.totalItems === "number"
+              ? finRes.totalItems
+              : readCount(itemsRes),
+          totalInvoices:
+            typeof finRes?.totalInvoices === "number"
+              ? finRes.totalInvoices
+              : typeof finRes?.invoicesCount === "number"
+                ? finRes.invoicesCount
+                : readCount(invoicesRes),
+          pendingBills: pendingFromSummary,
         });
-      if (needsLookup) {
-        const itemsRes: any = await apiClient
-          .get("/masters/items", { page: 1, limit: 500 })
-          .catch(() => null);
-        const items = itemsRes?.items || itemsRes?.data || [];
-        if (Array.isArray(items)) {
-          categoryByItemId = new Map(
-            items.map((item: any) => [
-              String(item.id),
-              String(item.category?.name || item.categoryName || "").trim(),
-            ])
+
+        // 2. Process Transactions (Latest 10 for period)
+        const txnList = txnsRes?.items || txnsRes?.transactions || [];
+        if (Array.isArray(txnList) && txnList.length > 0) {
+          setTransactions(
+            txnList.slice(0, 10).map((t: any, idx: number) => {
+              const d = new Date(t.date || t.rawDate);
+              return {
+                id: t.id || `txn-${idx}`,
+                rawDate: d,
+                date: d.toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }),
+                type: t.type || "Sales Invoice",
+                txnNo: t.transactionNumber || t.txnNo || "-",
+                partyName: t.partyName || "-",
+                amount: Number(t.amount || 0),
+                link: t.link || "/app/home/vouchers/all_transactions",
+                status: t.status || "Paid",
+              };
+            })
+          );
+        } else {
+          setTransactions([]);
+        }
+      } catch (err) {
+        console.error("[Dashboard] Error fetching dashboard data:", err);
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [updateTimestamp, tenantContext?.financialYearId, currentFY?.id, dateFilter?.startDate, dateFilter?.endDate]
+  );
+
+  const fetchSalesChart = useCallback(
+    async (customStart?: string, customEnd?: string) => {
+      setIsChartLoading(true);
+      setCategoryError("");
+      const effStart = customStart !== undefined ? (customStart || undefined) : dateFilter?.startDate;
+      const effEnd = customEnd !== undefined ? (customEnd || undefined) : dateFilter?.endDate;
+
+      let range: { startDate: string; endDate: string; days: number };
+      if (effStart && effEnd) {
+        const sTime = new Date(effStart).getTime();
+        const eTime = new Date(effEnd).getTime();
+        const diffDays = Math.max(1, Math.round(Math.abs(eTime - sTime) / 86400000) + 1);
+        range = { startDate: effStart, endDate: effEnd, days: diffDays };
+      } else {
+        range = periodToRange(chartPeriod);
+      }
+
+      const activeFyId = tenantContext?.financialYearId || currentFY?.id;
+      try {
+        const [chartRes, itemSalesRes, returnsRes, salesRegRes]: any = await Promise.all([
+          apiClient
+            .get("/dashboard/sales-overview", {
+              days: Math.min(30, range.days),
+              financialYearId: activeFyId,
+            })
+            .catch(() => null),
+          apiClient
+            .get("/reports/item-sales-report", {
+              startDate: range.startDate,
+              endDate: range.endDate,
+              fromDate: range.startDate,
+              toDate: range.endDate,
+            })
+            .catch(() => null),
+          apiClient
+            .get("/reports/sales-returns", {
+              startDate: range.startDate,
+              endDate: range.endDate,
+              fromDate: range.startDate,
+              toDate: range.endDate,
+            })
+            .catch(() => null),
+          effStart && effEnd
+            ? apiClient
+                .get("/reports/sales-register", {
+                  startDate: range.startDate,
+                  endDate: range.endDate,
+                  fromDate: range.startDate,
+                  toDate: range.endDate,
+                })
+                .catch(() => null)
+            : Promise.resolve(null),
+        ]);
+
+        if (chartRes?.chartDays) {
+          setChartDays(chartRes.chartDays);
+        } else {
+          setChartDays([]);
+        }
+
+        if (effStart && effEnd && salesRegRes) {
+          const totalFromReg = Number(
+            salesRegRes?.totals?.totalGrandTotal ??
+            salesRegRes?.summary?.totalGrandTotal ??
+            salesRegRes?.summary?.grandTotal ??
+            0
+          );
+          setSevenDaysSales(totalFromReg);
+          if (salesRegRes?.totalCount != null) {
+            setInvoicesCount(Number(salesRegRes.totalCount));
+          }
+        } else if (chartPeriod === "7" && chartRes) {
+          setSevenDaysSales(Number(chartRes.sevenDaysSales || chartRes.totalSales || 0));
+        } else if (chartRes?.sevenDaysSales != null) {
+          setSevenDaysSales(Number(chartRes.sevenDaysSales));
+        }
+
+        if (chartRes && (!effStart || !effEnd)) {
+          setInvoicesCount(Number(chartRes.invoicesCount || 0));
+        }
+
+        const salesRows = itemSalesRes?.items || itemSalesRes?.data || [];
+        const returnRows = returnsRes?.returns || returnsRes?.items || [];
+        let categoryByItemId = new Map<string, string>();
+        const needsLookup =
+          Array.isArray(salesRows) &&
+          salesRows.some((row: any) => {
+            const name = String(row?.category || row?.categoryName || "").trim();
+            return !name || name === "—" || name === "-";
+          });
+        if (needsLookup) {
+          const itemsRes: any = await apiClient
+            .get("/masters/items", { page: 1, limit: 500 })
+            .catch(() => null);
+          const items = itemsRes?.items || itemsRes?.data || [];
+          if (Array.isArray(items)) {
+            categoryByItemId = new Map(
+              items.map((item: any) => [
+                String(item.id),
+                String(item.category?.name || item.categoryName || "").trim(),
+              ])
+            );
+          }
+        }
+
+        if (!itemSalesRes) {
+          setCategorySplit([]);
+          setCategoryError("Category sales could not be loaded.");
+        } else {
+          setCategorySplit(
+            aggregateItemSalesByCategory(
+              Array.isArray(salesRows) ? salesRows : [],
+              categoryByItemId,
+              Array.isArray(returnRows) ? returnRows : []
+            )
           );
         }
-      }
-
-      if (!itemSalesRes) {
+      } catch (err) {
+        console.error("[Dashboard] Category sales failed:", err);
         setCategorySplit([]);
         setCategoryError("Category sales could not be loaded.");
-      } else {
-        setCategorySplit(
-          aggregateItemSalesByCategory(
-            Array.isArray(salesRows) ? salesRows : [],
-            categoryByItemId,
-            Array.isArray(returnRows) ? returnRows : []
-          )
-        );
+      } finally {
+        setIsChartLoading(false);
       }
-    } catch (err) {
-      console.error("[Dashboard] Category sales failed:", err);
-      setCategorySplit([]);
-      setCategoryError("Category sales could not be loaded.");
-    } finally {
-      setIsChartLoading(false);
-    }
-  }, [chartPeriod, tenantContext?.financialYearId, currentFY?.id]);
+    },
+    [chartPeriod, tenantContext?.financialYearId, currentFY?.id, dateFilter?.startDate, dateFilter?.endDate]
+  );
+
+  const handleDateRangeChange = useCallback(
+    (start: string, end: string, presetLabel: string) => {
+      const today = new Date().toISOString().split("T")[0];
+      if (
+        (presetLabel === "Today" || presetLabel === "આજે" || presetLabel === "Live") &&
+        start === today &&
+        end === today
+      ) {
+        setDateFilter(null);
+        fetchDashboardData("", "");
+        fetchSalesChart("", "");
+        return;
+      }
+
+      const filter = { startDate: start, endDate: end, preset: presetLabel };
+      setDateFilter(filter);
+      fetchDashboardData(start, end);
+      fetchSalesChart(start, end);
+    },
+    [fetchDashboardData, fetchSalesChart]
+  );
+
+  const handleResetDateRange = useCallback(() => {
+    setDateFilter(null);
+    fetchDashboardData("", "");
+    fetchSalesChart("", "");
+  }, [fetchDashboardData, fetchSalesChart]);
 
   useEffect(() => {
     if (!tenantContext.companyId) return;
@@ -356,14 +454,61 @@ function DashboardContent() {
         financialYear={currentFY?.name || ""}
         isRefreshing={isRefreshing}
         onRefresh={() => {
-          fetchDashboardData();
-          fetchSalesChart();
+          if (dateFilter) {
+            fetchDashboardData(dateFilter.startDate, dateFilter.endDate);
+            fetchSalesChart(dateFilter.startDate, dateFilter.endDate);
+          } else {
+            fetchDashboardData();
+            fetchSalesChart();
+          }
         }}
         onOpenAnnouncements={() => setActiveModal("announcements")}
         onOpenScanner={() => setIsScannerModalOpen(true)}
         onOpenDesktopModal={() => setActiveModal("desktop")}
         lang={lang}
+        startDate={dateFilter?.startDate}
+        endDate={dateFilter?.endDate}
+        selectedPreset={dateFilter?.preset}
+        onDateRangeChange={handleDateRangeChange}
+        onResetDateRange={handleResetDateRange}
       />
+
+      {/* Historical Data Filter Active Banner */}
+      {dateFilter && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-2.5 bg-blue-50/90 border border-blue-200/90 rounded-2xl text-blue-900 shadow-2xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-xs sm:text-sm text-blue-950">
+                  {lang === "gu" ? "ઐતિહાસિક ડેટા જોઈ રહ્યા છો:" : "Viewing Historical Data:"}
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-200/70 text-blue-900 text-xs font-semibold">
+                  {dateFilter.preset}
+                </span>
+                <span className="text-xs text-blue-800 font-medium tabular-nums">
+                  ({isoToDDMMYYYY(dateFilter.startDate)} to {isoToDDMMYYYY(dateFilter.endDate)})
+                </span>
+              </div>
+              <p className="text-[11px] text-blue-700/90 mt-0.5">
+                {lang === "gu"
+                  ? "લેવાના/આપવાના બાકી અને બેલેન્સ આપેલ તારીખ સુધીના તથા વ્યવહારો આ સમયગાળા મુજબ દર્શાવેલ છે."
+                  : "Receivables, payables & balances calculated as of cutoff date; transactions filtered for this period."}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleResetDateRange}
+            className="self-start sm:self-auto px-3 py-1.5 bg-white hover:bg-blue-100 text-blue-700 hover:text-blue-900 border border-blue-300 rounded-xl text-xs font-semibold cursor-pointer shadow-2xs whitespace-nowrap transition-all active:scale-95 flex items-center gap-1.5"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>{lang === "gu" ? "આજનો લાઈવ ડેટા જુઓ" : "Return to Live Today"}</span>
+          </button>
+        </div>
+      )}
 
       {/* 2. 4 FINANCIAL KPI CARDS IN ONE MODULAR HORIZONTAL ROW */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -406,17 +551,17 @@ function DashboardContent() {
           />
         )}
 
-        {/* Card 4: Sales (Last 7 Days) */}
+        {/* Card 4: Sales */}
         {hasPermission("dashboard", "view_financial") && (
           <DashboardKpiCard
             id="sales-7d"
             variant="sales"
-            title="Sales (Last 7 Days)"
-            titleGujarati="વેચાણ (છેલ્લા 7 દિવસ)"
+            title={dateFilter ? `Sales (${dateFilter.preset})` : "Sales (Last 7 Days)"}
+            titleGujarati={dateFilter ? `વેચાણ (${dateFilter.preset})` : "વેચાણ (છેલ્લા 7 દિવસ)"}
             amount={sevenDaysSales}
             sparkline={chartDays.map((point) => point.sales)}
             lang={lang}
-            onClick={() => router.push("/sales/invoices")}
+            onClick={() => router.push(dateFilter ? `/reports/sales-register?startDate=${dateFilter.startDate}&endDate=${dateFilter.endDate}` : "/sales/invoices")}
           />
         )}
       </div>
@@ -433,6 +578,8 @@ function DashboardContent() {
             isLoading={isLoading}
             lang={lang}
             limit={10}
+            title={dateFilter ? (lang === "gu" ? `વ્યવહારો (${dateFilter.preset})` : `Transactions (${dateFilter.preset})`) : undefined}
+            subtitle={dateFilter ? (lang === "gu" ? `તારીખ ${isoToDDMMYYYY(dateFilter.startDate)} થી ${isoToDDMMYYYY(dateFilter.endDate)} વચ્ચેના વ્યવહારો` : `Transactions from ${isoToDDMMYYYY(dateFilter.startDate)} to ${isoToDDMMYYYY(dateFilter.endDate)}`) : undefined}
           />
         </div>
 

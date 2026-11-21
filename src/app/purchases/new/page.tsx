@@ -44,6 +44,7 @@ import {
   HelpCircle,
   BarChart2,
   Keyboard,
+  ArrowLeft,
 } from "lucide-react";
 import {
   DocumentHeaderCard,
@@ -300,9 +301,12 @@ function NewPurchaseInvoiceContent() {
 
           // Apply prefix and sequence dynamically
           if (merged.enablePrefix && merged.invoicePrefix) {
-            setPurchaseInvoiceNumber(`${merged.invoicePrefix}${merged.invoiceSequence || "0014"}`);
+            const seqNo = `${merged.invoicePrefix}${merged.invoiceSequence || "0014"}`;
+            setPurchaseInvoiceNumber(seqNo);
+            setVendorInvoiceNumber((prev) => (prev && prev.trim() ? prev : seqNo));
           } else if (merged.invoiceSequence) {
             setPurchaseInvoiceNumber(merged.invoiceSequence);
+            setVendorInvoiceNumber((prev) => (prev && prev.trim() ? prev : merged.invoiceSequence));
           }
 
           if (typeof merged.enableDueDate === "boolean") {
@@ -310,9 +314,9 @@ function NewPurchaseInvoiceContent() {
           }
         } else {
           if (DEFAULT_PURCHASE_QUICK_SETTINGS.enablePrefix && DEFAULT_PURCHASE_QUICK_SETTINGS.invoicePrefix) {
-            setPurchaseInvoiceNumber(
-              `${DEFAULT_PURCHASE_QUICK_SETTINGS.invoicePrefix}${DEFAULT_PURCHASE_QUICK_SETTINGS.invoiceSequence}`
-            );
+            const seqNo = `${DEFAULT_PURCHASE_QUICK_SETTINGS.invoicePrefix}${DEFAULT_PURCHASE_QUICK_SETTINGS.invoiceSequence}`;
+            setPurchaseInvoiceNumber(seqNo);
+            setVendorInvoiceNumber((prev) => (prev && prev.trim() ? prev : seqNo));
           }
         }
       } catch (e) {
@@ -341,9 +345,12 @@ function NewPurchaseInvoiceContent() {
 
     // Apply prefix and sequence dynamically
     if (newSettings.enablePrefix && newSettings.invoicePrefix) {
-      setPurchaseInvoiceNumber(`${newSettings.invoicePrefix}${newSettings.invoiceSequence || "0014"}`);
+      const seqNo = `${newSettings.invoicePrefix}${newSettings.invoiceSequence || "0014"}`;
+      setPurchaseInvoiceNumber(seqNo);
+      setVendorInvoiceNumber((prev) => (prev && prev !== purchaseInvoiceNumber ? prev : seqNo));
     } else if (newSettings.invoiceSequence) {
       setPurchaseInvoiceNumber(newSettings.invoiceSequence);
+      setVendorInvoiceNumber((prev) => (prev && prev !== purchaseInvoiceNumber ? prev : newSettings.invoiceSequence));
     }
 
     // Apply Due Date toggle
@@ -512,6 +519,7 @@ const [notes, setNotes] = useState("");
         resolvedInvoiceNo = `PUR-${currentYear}-${defaultSeq}`;
       }
       setPurchaseInvoiceNumber(resolvedInvoiceNo);
+      setVendorInvoiceNumber((prev) => (prev && prev.trim() ? prev : resolvedInvoiceNo));
 
       // Dynamic Terms with company name
       const compName = compRes?.tradeName || compRes?.legalName || currentCompany?.tradeName || "Godown";
@@ -1641,13 +1649,15 @@ const [notes, setNotes] = useState("");
       return;
     }
 
+    // Auto-fallback sequence number if vendor invoice number was left blank
+    const finalBillNumber = (
+      vendorInvoiceNumber.trim() ||
+      purchaseInvoiceNumber ||
+      `PUR-${new Date().getFullYear().toString().slice(-2)}-${String((totalBillsRecorded || 0) + 1).padStart(4, "0")}`
+    ).trim();
+
     if (!vendorInvoiceNumber.trim()) {
-      setError(
-        lang === "gu"
-          ? "સપ્લાયર બિલ નંબર દાખલ કરો."
-          : "Vendor invoice number is required."
-      );
-      return;
+      setVendorInvoiceNumber(finalBillNumber);
     }
 
     setIsSubmitting(true);
@@ -1703,7 +1713,7 @@ const [notes, setNotes] = useState("");
     try {
       const payload = {
         partyId,
-        vendorInvoiceNumber: vendorInvoiceNumber.trim(),
+        vendorInvoiceNumber: finalBillNumber,
         invoiceDate: formatIsoDate(invoiceDate) || new Date().toISOString(),
         dueDate: formatIsoDate(dueDate),
         placeOfSupply,
@@ -1957,19 +1967,34 @@ const [notes, setNotes] = useState("");
          ───────────────────────────────────────────────────────────── */}
       {activeMode !== "PREVIEW" && (
         <div className="w-full max-w-[1680px] 2xl:max-w-[1760px] mx-auto px-3 sm:px-4 lg:px-6 pt-2 pb-1">
-          {/* Breadcrumb matching Reference Image */}
+          {/* Breadcrumb with Back Navigation */}
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1.5">
-            <span>Purchases</span>
+            <Link href="/purchases" className="hover:text-slate-900 transition-colors">
+              Purchases
+            </Link>
             <span className="text-slate-400">/</span>
-            <span>Purchase Invoices</span>
+            <Link href="/purchases" className="hover:text-slate-900 transition-colors">
+              Purchase Invoices
+            </Link>
             <span className="text-slate-400">/</span>
             <span className="text-slate-800 font-semibold">New</span>
           </div>
 
           {/* Header Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            {/* Left: Icon, Title, Badge, Subtitle */}
-            <div className="flex items-start gap-3">
+            {/* Left: Back Button, Icon, Title, Badge, Subtitle */}
+            <div className="flex items-start gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => router.push("/purchases")}
+                className="h-10 px-3 rounded-xl bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 text-slate-700 flex items-center gap-1.5 shrink-0 shadow-2xs transition-colors cursor-pointer group hover:border-slate-300 text-xs font-semibold"
+                title={lang === "gu" ? "પાછા જાઓ (Back)" : "Back to Purchases"}
+                aria-label="Back"
+              >
+                <ArrowLeft className="w-4 h-4 text-slate-600 group-hover:-translate-x-0.5 transition-transform" />
+                <span>{lang === "gu" ? "પાછળ" : "Back"}</span>
+              </button>
+
               <div className="w-10 h-10 rounded-xl bg-blue-50/80 border border-blue-200/60 flex items-center justify-center text-[#1677E8] shrink-0 shadow-2xs">
                 <svg className="w-5 h-5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -2219,7 +2244,7 @@ const [notes, setNotes] = useState("");
                     Create Bill with AI
                   </h3>
                   <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">
-                    Upload your purchase bill and let Mira AI extract the details automatically.
+                    Upload your purchase bill and let  AI extract the details automatically.
                   </p>
                 </div>
               </div>
@@ -2439,7 +2464,7 @@ const [notes, setNotes] = useState("");
                       2
                     </span>
                     <span className="text-[11px] text-slate-600 leading-tight pt-0.5">
-                      Mira AI extracts party, items, taxes & amounts
+                       AI extracts party, items, taxes & amounts
                     </span>
                   </div>
                   <div className="w-0.5 h-3 bg-blue-100 ml-2.5 my-0.5" />
@@ -2596,9 +2621,14 @@ const [notes, setNotes] = useState("");
 
                     {/* Supplier Bill No. */}
                     <div>
-                      <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
-                        Supplier Bill No.
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700">
+                          {lang === "gu" ? "સપ્લાયર બિલ નં." : "Supplier Bill No."}
+                        </label>
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          {lang === "gu" ? "(ઓટો ક્રમ અથવા વેન્ડર બિલ નં.)" : "(Auto-sequence or Vendor Bill #)"}
+                        </span>
+                      </div>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -2612,9 +2642,22 @@ const [notes, setNotes] = useState("");
                             setVendorInvoiceNumber(e.target.value);
                             setIsDirty(true);
                           }}
-                          placeholder="e.g. BILL-9821"
-                          className="w-full h-10 pl-9 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs"
+                          placeholder={purchaseInvoiceNumber || "e.g. PUR-26-0001"}
+                          className="w-full h-10 pl-9 pr-20 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs font-mono"
                         />
+                        {purchaseInvoiceNumber && vendorInvoiceNumber !== purchaseInvoiceNumber && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setVendorInvoiceNumber(purchaseInvoiceNumber);
+                              setIsDirty(true);
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-[10px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                            title={lang === "gu" ? "ઓટો ક્રમ લાગુ કરો" : "Reset to auto-sequence"}
+                          >
+                            {lang === "gu" ? "ઓટો ક્રમ" : "Auto Seq"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
