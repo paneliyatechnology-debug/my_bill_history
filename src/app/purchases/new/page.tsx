@@ -381,12 +381,12 @@ function NewPurchaseInvoiceContent() {
   );
   const [itcEligibility, setITC] = useState("INPUT");
   const [showNotes, setShowNotes] = useState(false);
-    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
   const [transportMode, setTransportMode] = useState("Road");
   const [vehicleNo, setVehicleNo] = useState("");
   const [ewayBillNo, setEwayBillNo] = useState("");
   const [dispatchDate, setDispatchDate] = useState("");
-const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState("");
   const [showTerms, setShowTerms] = useState(false);
   const [terms, setTerms] = useState("");
 
@@ -2464,7 +2464,7 @@ const [notes, setNotes] = useState("");
                       2
                     </span>
                     <span className="text-[11px] text-slate-600 leading-tight pt-0.5">
-                       AI extracts party, items, taxes & amounts
+                      AI extracts party, items, taxes & amounts
                     </span>
                   </div>
                   <div className="w-0.5 h-3 bg-blue-100 ml-2.5 my-0.5" />
@@ -3066,11 +3066,10 @@ const [notes, setNotes] = useState("");
                       <button
                         type="button"
                         onClick={() => setActiveDetailsTab("notes")}
-                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
-                          activeDetailsTab === "notes"
+                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${activeDetailsTab === "notes"
                             ? "text-[#1677E8] border-b-2 border-[#1677E8]"
                             : "text-slate-500 hover:text-slate-700"
-                        }`}
+                          }`}
                       >
                         <FileText className="w-3.5 h-3.5" strokeWidth={1.75} />
                         <span>Notes</span>
@@ -3078,11 +3077,10 @@ const [notes, setNotes] = useState("");
                       <button
                         type="button"
                         onClick={() => setActiveDetailsTab("terms")}
-                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
-                          activeDetailsTab === "terms"
+                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${activeDetailsTab === "terms"
                             ? "text-[#1677E8] border-b-2 border-[#1677E8]"
                             : "text-slate-500 hover:text-slate-700"
-                        }`}
+                          }`}
                       >
                         <FileSpreadsheet className="w-3.5 h-3.5" strokeWidth={1.75} />
                         <span>Terms & Conditions</span>
@@ -3090,11 +3088,10 @@ const [notes, setNotes] = useState("");
                       <button
                         type="button"
                         onClick={() => setActiveDetailsTab("info")}
-                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
-                          activeDetailsTab === "info"
+                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${activeDetailsTab === "info"
                             ? "text-[#1677E8] border-b-2 border-[#1677E8]"
                             : "text-slate-500 hover:text-slate-700"
-                        }`}
+                          }`}
                       >
                         <HelpCircle className="w-3.5 h-3.5" strokeWidth={1.75} />
                         <span>Additional Information</span>
@@ -3102,11 +3099,10 @@ const [notes, setNotes] = useState("");
                       <button
                         type="button"
                         onClick={() => setActiveDetailsTab("attachments")}
-                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
-                          activeDetailsTab === "attachments"
+                        className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${activeDetailsTab === "attachments"
                             ? "text-[#1677E8] border-b-2 border-[#1677E8]"
                             : "text-slate-500 hover:text-slate-700"
-                        }`}
+                          }`}
                       >
                         <Paperclip className="w-3.5 h-3.5" strokeWidth={1.75} />
                         <span>Attachments ({attachments.length})</span>
@@ -3341,7 +3337,7 @@ const [notes, setNotes] = useState("");
 
                     <div>
                       <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
-                        Amount Received
+                        Amount Paid
                       </label>
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1 min-w-0">
