@@ -852,7 +852,7 @@ export default function CreateCreditNotePage() {
           </div>
         </div>
       ) : (
-        <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
+        <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-28 sm:pb-32 space-y-4">
           {/* DOCUMENT HEADER CARD */}
           <DocumentHeaderCard
             title={lang === "gu" ? (isDebitNote ? "ડેબિટ નોટ" : "ક્રેડિટ નોટ") : (isDebitNote ? "Debit Note" : "Credit Note")}

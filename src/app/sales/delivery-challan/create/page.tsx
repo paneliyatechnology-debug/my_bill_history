@@ -587,7 +587,7 @@ export default function CreateDeliveryChallanPage() {
       )}
 
       {/* 2. MAIN VOUCHER CANVAS (Exact myBillBook Structure) */}
-      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
+      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-28 sm:pb-32 space-y-4">
         {viewMode === "preview" ? (
           <div className="space-y-4 animate-fadeIn">
             {/* Preview Top Control Bar */}

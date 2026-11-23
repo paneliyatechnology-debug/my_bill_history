@@ -1110,8 +1110,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/purchases/create/") ||
     pathname.startsWith("/purchases/invoices/new/");
 
+  const isStudioPage =
+    isPurchaseBillPage ||
+    pathname.includes("/new") ||
+    pathname.includes("/create") ||
+    pathname.includes("/edit");
+
   return (
-    <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F5F8FC] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
+    <div
+      style={{
+        ["--sidebar-width" as any]: isSidebarCollapsed ? "72px" : "240px",
+      }}
+      className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F5F8FC] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block"
+    >
       {/* 1. DEDICATED MYBILLBOOK SETTINGS SIDEBAR (When in Settings mode and permission granted) */}
       {isSettingsPage && !routePermissionDenied && (
         <div className="hidden lg:flex shrink-0 h-full print:hidden">
@@ -1561,8 +1572,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           tabIndex={-1}
           className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 ${
             isPurchaseBillPage
-              ? "p-2 sm:p-3 lg:p-4 pb-20 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block"
-              : "p-3 sm:p-4 lg:px-5 lg:py-4 pb-24 lg:pb-5 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block"
+              ? "p-2 sm:p-3 lg:p-4 pb-28 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block"
+              : isStudioPage
+                ? "p-3 sm:p-4 lg:px-5 lg:py-4 pb-28 lg:pb-28 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block"
+                : "p-3 sm:p-4 lg:px-5 lg:py-4 pb-24 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block"
           }`}
         >
           <div
@@ -1821,8 +1834,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* 5. MOBILE BOTTOM NAVIGATION BAR (Hidden in Settings mode & Purchase Bill mode) */}
-      {(!isSettingsPage || routePermissionDenied) && !isPurchaseBillPage && (
+      {/* 5. MOBILE BOTTOM NAVIGATION BAR (Hidden in Settings mode & Studio mode) */}
+      {(!isSettingsPage || routePermissionDenied) && !isStudioPage && (
         <nav
           aria-label="Mobile Navigation Bar"
           className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print print:hidden print-hide"

@@ -491,7 +491,7 @@ export default function CreateProformaInvoicePage() {
       {/* Top header replaced by unified DocumentHeaderCard */}
 
       {/* Main Container */}
-      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
+      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-28 sm:pb-32 space-y-4">
         {/* Error Alert */}
         {error && (
           <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-semibold text-rose-800 flex items-center justify-between shadow-xs">
