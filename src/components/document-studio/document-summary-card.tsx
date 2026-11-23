@@ -118,12 +118,19 @@ export function DocumentSummaryCard({
 }
 
 export function DocumentPaymentCard({
+  title = "Payment Details",
+  amountLabel,
+  isPurchase = false,
+  isOrder = false,
   amountReceived,
   onAmountReceivedChange,
   paymentMode,
   onPaymentModeChange,
   balanceDue,
+  balanceLabel,
   onPaidInFull,
+  paidInFullLabel = "Paid In Full",
+  lang = "en",
 }: DocumentPaymentCardProps) {
   const formatCur = (val: string | number | undefined) => {
     if (val === undefined || val === null || val === "") return "₹ 0.00";
@@ -133,6 +140,23 @@ export function DocumentPaymentCard({
   };
 
   const isFullyPaid = Number(balanceDue) <= 0.01;
+
+  // Centrally resolve the dynamic label based on whether it is a purchase or sale document
+  const resolvedAmountLabel = amountLabel || (
+    isPurchase
+      ? (isOrder
+          ? (lang === "gu" ? "અગાઉ ચૂકવેલ રકમ (Advance Paid)" : "Advance Paid")
+          : (lang === "gu" ? "ચૂકવેલ રકમ (Amount Paid)" : "Amount Paid"))
+      : (isOrder
+          ? (lang === "gu" ? "અગાઉ મળેલ રકમ (Advance Received)" : "Advance Received")
+          : (lang === "gu" ? "મળેલ રકમ (Amount Received)" : "Amount Received"))
+  );
+
+  const resolvedBalanceLabel = balanceLabel || (
+    isPurchase
+      ? (lang === "gu" ? "ચૂકવવાપાત્ર બાકી" : "Balance Due")
+      : (lang === "gu" ? "મળવાપાત્ર બાકી" : "Balance Due")
+  );
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
@@ -144,14 +168,14 @@ export function DocumentPaymentCard({
           </svg>
         </div>
         <h3 className="typo-form-section text-[#182230]">
-          Payment Details
+          {title}
         </h3>
       </div>
 
       <div className="p-4 sm:p-5 space-y-3.5">
-        {/* Amount Received Input + Paid in Full button */}
+        {/* Amount Input + Paid in Full button */}
         <div className="space-y-1.5">
-          <label className="typo-label text-slate-700 block">Amount Received</label>
+          <label className="typo-label text-slate-700 block">{resolvedAmountLabel}</label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-xs">₹</span>
@@ -159,8 +183,13 @@ export function DocumentPaymentCard({
                 type="number"
                 min="0"
                 step="any"
-                value={amountReceived}
+                value={amountReceived === 0 || amountReceived === "0" || amountReceived === "" ? "" : amountReceived}
                 onChange={(e) => onAmountReceivedChange(e.target.value === "" ? "" : parseFloat(e.target.value))}
+                onFocus={(e) => {
+                  if (e.target.value === "0") {
+                    e.target.select();
+                  }
+                }}
                 placeholder="0.00"
                 className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-xl typo-input text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs h-9"
               />
@@ -171,7 +200,7 @@ export function DocumentPaymentCard({
                 onClick={onPaidInFull}
                 className="h-9 px-2.5 sm:px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl typo-btn-secondary shrink-0 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
               >
-                <span>Paid In Full</span>
+                <span>{paidInFullLabel}</span>
                 <Check className="w-3.5 h-3.5 text-white stroke-[2.5]" />
               </button>
             )}
@@ -206,7 +235,7 @@ export function DocumentPaymentCard({
             }`}
           >
             {isFullyPaid ? <Check className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
-            <span>Balance Due: {formatCur(balanceDue)}</span>
+            <span>{resolvedBalanceLabel}: {formatCur(balanceDue)}</span>
           </div>
         </div>
       </div>

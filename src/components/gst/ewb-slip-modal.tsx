@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useEffect, useRef, useState } from "react";
 import { apiClient } from "../../lib/api-client";
 import { Modal } from "../ui/modal";
@@ -404,7 +406,7 @@ export function EwbSlipModal({
                     <span className="text-slate-500 block text-[10px] font-semibold uppercase">Document No. & Date</span>
                     <span className="tabular-nums font-bold text-slate-900">{data.document?.number}</span>
                     <span className="text-[10px] text-slate-600 block">
-                      {new Date(data.document?.date).toLocaleDateString("en-IN")}
+                      {formatDate(data.document?.date)}
                     </span>
                   </div>
                   <div>

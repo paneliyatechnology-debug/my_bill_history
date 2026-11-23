@@ -7,6 +7,8 @@ import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
 import { AlertTriangle, X, Phone, Check, Calendar, Trash2 } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { CleanNumberInput } from "@/components/ui/clean-number-input";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 // Standard categories matching MyBillBook
 const DEFAULT_EXPENSE_CATEGORIES = [
@@ -1032,17 +1034,10 @@ function CreateExpenseForm() {
                 <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
                   Date
                 </label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={voucherDate}
-                    onChange={(e) => setVoucherDate(e.target.value)}
-                    className="w-full pl-3.5 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg text-[13px] font-normal text-slate-800 outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-teal-100 h-10"
-                  />
-                  <span className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
-                    <Calendar className="w-4 h-4 text-slate-400" />
-                  </span>
-                </div>
+                <CustomDatePicker
+                  value={voucherDate}
+                  onChange={(val) => setVoucherDate(val)}
+                />
               </div>
             </div>
 
@@ -1193,38 +1188,31 @@ function CreateExpenseForm() {
                     {expenseWithGst && (
                       <td className="py-2 px-3">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1 bg-slate-50/60 border border-slate-200 rounded-md px-1.5 py-0.5">
-                            <span className="text-[10px] text-slate-400 font-bold">%</span>
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={item.discountPercent || ""}
-                              onChange={(e) =>
-                                handleUpdateItem(item.id, {
-                                  discountPercent: parseFloat(e.target.value) || 0,
-                                })
-                              }
-                              placeholder="0"
-                              className="w-full bg-transparent text-[11px] tabular-nums outline-none text-right h-10"
-                            />
-                          </div>
-                          <div className="flex items-center gap-1 bg-slate-50/60 border border-slate-200 rounded-md px-1.5 py-0.5">
-                            <span className="text-[10px] text-slate-400 font-bold">₹</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={item.discountAmount || ""}
-                              onChange={(e) =>
-                                handleUpdateItem(item.id, {
-                                  discountAmount: parseFloat(e.target.value) || 0,
-                                  discountPercent: 0,
-                                })
-                              }
-                              placeholder="0"
-                              className="w-full bg-transparent text-[11px] tabular-nums outline-none text-right h-10"
-                            />
-                          </div>
+                          <CleanNumberInput
+                            value={item.discountPercent}
+                            onChange={(val) =>
+                              handleUpdateItem(item.id, {
+                                discountPercent: val === "" ? 0 : val,
+                              })
+                            }
+                            placeholder="0"
+                            prefix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                            className="w-full bg-transparent text-[11px] tabular-nums outline-none text-right"
+                            containerClassName="flex items-center gap-1 bg-slate-50/60 border border-slate-200 rounded-md px-1.5 py-0.5 h-10"
+                          />
+                          <CleanNumberInput
+                            value={item.discountAmount}
+                            onChange={(val) =>
+                              handleUpdateItem(item.id, {
+                                discountAmount: val === "" ? 0 : val,
+                                discountPercent: 0,
+                              })
+                            }
+                            placeholder="0"
+                            prefix={<span className="text-[10px] text-slate-400 font-bold ml-1">₹</span>}
+                            className="w-full bg-transparent text-[11px] tabular-nums outline-none text-right"
+                            containerClassName="flex items-center gap-1 bg-slate-50/60 border border-slate-200 rounded-md px-1.5 py-0.5 h-10"
+                          />
                         </div>
                       </td>
                     )}

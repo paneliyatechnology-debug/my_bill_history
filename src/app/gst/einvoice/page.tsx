@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../../context/auth-context";
@@ -262,7 +264,7 @@ function Body() {
                         {row.invoiceNumber}
                       </Link>
                       <div className="text-[11px] text-slate-500 tabular-nums">
-                        {row.invoiceDate ? new Date(row.invoiceDate).toLocaleDateString("en-IN") : "—"}
+                        {row.invoiceDate ? formatDate(row.invoiceDate) : "—"}
                       </div>
                     </td>
                     <td className="py-3 px-3">
@@ -301,7 +303,7 @@ function Body() {
                             IRN: {row.eInvoice?.irn?.slice(0, 10)}...{row.eInvoice?.irn?.slice(-8)}
                           </div>
                           <div className="text-[10px] text-slate-500">
-                            Ack: {row.eInvoice?.ackNo} · {row.eInvoice?.ackDate ? new Date(row.eInvoice.ackDate).toLocaleDateString("en-IN") : ""}
+                            Ack: {row.eInvoice?.ackNo} · {row.eInvoice?.ackDate ? formatDate(row.eInvoice.ackDate) : ""}
                           </div>
                         </div>
                       ) : (

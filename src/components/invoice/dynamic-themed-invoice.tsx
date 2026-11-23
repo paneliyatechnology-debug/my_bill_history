@@ -11,6 +11,7 @@ import {
 } from "@/components/invoice/invoice-live-preview";
 import { resolveThemeDefinition } from "@/lib/invoice-theme-keys";
 import { AlertTriangle } from "lucide-react";
+import { INDIAN_STATES, getStateDisplayName, resolvePartyStateCode, formatDate } from "@/shared-types";
 
 export interface DynamicInvoiceParty {
   id?: string;
@@ -66,6 +67,13 @@ export interface DynamicInvoiceData {
   balanceAmount?: number;
   outstandingBalance?: number;
   notes?: string;
+  freight?: number;
+  freightAmount?: number;
+  additionalCharges?: number | Array<{ name?: string; amount: number }>;
+  discountTotal?: number;
+  discountAmount?: number;
+  overallDiscount?: number;
+  shippingAddress?: any;
   party?: DynamicInvoiceParty;
   items: DynamicInvoiceItem[];
   eWayBillRecord?: any;
@@ -223,6 +231,11 @@ export function DynamicThemedInvoice({
   const companyGstin = company?.gstin || "24AAAPL1234C1ZV";
   const companyPan = company?.pan || "";
   const companyStateCode = company?.stateCode || "24";
+  const companyStateName = INDIAN_STATES[companyStateCode]?.name || "Gujarat";
+  const partyStateCode = invoice.party?.stateCode || resolvePartyStateCode(invoice.party);
+  const displayPlaceOfSupply = invoice.placeOfSupply
+    ? getStateDisplayName(invoice.placeOfSupply)
+    : getStateDisplayName(companyStateCode);
 
   const partyName = invoice.party?.name || invoice.party?.tradeName || "Cash Customer / Walk-in";
   const partyAddress = formatAddress(invoice.party?.billingAddress) || "Local Customer";
@@ -245,72 +258,72 @@ export function DynamicThemedInvoice({
     docCategory === "PURCHASE_INVOICE" || docCategory === "PURCHASE"
       ? "PURCHASE BILL"
       : docCategory === "PURCHASE_ORDER"
-      ? "PURCHASE ORDER"
-      : docCategory === "PURCHASE_RETURN"
-      ? "PURCHASE RETURN"
-      : docCategory === "DEBIT_MEMO"
-      ? "DEBIT MEMO"
-      : docCategory === "DEBIT_NOTE"
-      ? "DEBIT NOTE"
-      : docCategory === "SALES_RETURN"
-      ? "SALES RETURN"
-      : docCategory === "CREDIT_NOTE"
-      ? "CREDIT NOTE"
-      : docCategory === "QUOTATION" || docCategory === "ESTIMATE"
-      ? "QUOTATION"
-      : docCategory === "PROFORMA_INVOICE" || docCategory === "PROFORMA"
-      ? "PROFORMA INVOICE"
-      : docCategory === "DELIVERY_CHALLAN"
-      ? "DELIVERY CHALLAN"
-      : docCategory === "BILL_OF_SUPPLY"
-      ? "BILL OF SUPPLY"
-      : "TAX INVOICE";
+        ? "PURCHASE ORDER"
+        : docCategory === "PURCHASE_RETURN"
+          ? "PURCHASE RETURN"
+          : docCategory === "DEBIT_MEMO"
+            ? "DEBIT MEMO"
+            : docCategory === "DEBIT_NOTE"
+              ? "DEBIT NOTE"
+              : docCategory === "SALES_RETURN"
+                ? "SALES RETURN"
+                : docCategory === "CREDIT_NOTE"
+                  ? "CREDIT NOTE"
+                  : docCategory === "QUOTATION" || docCategory === "ESTIMATE"
+                    ? "QUOTATION"
+                    : docCategory === "PROFORMA_INVOICE" || docCategory === "PROFORMA"
+                      ? "PROFORMA INVOICE"
+                      : docCategory === "DELIVERY_CHALLAN"
+                        ? "DELIVERY CHALLAN"
+                        : docCategory === "BILL_OF_SUPPLY"
+                          ? "BILL OF SUPPLY"
+                          : "TAX INVOICE";
 
   const docSubtitle =
     docCategory === "DEBIT_MEMO"
       ? "(PURCHASE RETURN / DEBIT MEMO)"
       : docCategory === "DEBIT_NOTE"
-      ? "(DEBIT NOTE / SALES ADJUSTMENT)"
-      : docCategory === "SALES_RETURN"
-      ? "(GOODS RETURN INWARD MEMORANDUM)"
-      : docCategory === "CREDIT_NOTE"
-      ? "(CREDIT NOTE / SALES ADJUSTMENT)"
-      : docCategory === "PURCHASE_ORDER"
-      ? "(PURCHASE ORDER VOUCHER)"
-      : docCategory === "PURCHASE_RETURN"
-      ? "(GOODS RETURN MEMORANDUM)"
-      : docCategory === "PURCHASE_INVOICE" || docCategory === "PURCHASE"
-      ? "(PURCHASE INWARD VOUCHER)"
-      : docCategory === "QUOTATION" || docCategory === "ESTIMATE"
-      ? "(ESTIMATE / QUOTATION)"
-      : docCategory === "PROFORMA_INVOICE" || docCategory === "PROFORMA"
-      ? "(PROFORMA INVOICE)"
-      : docCategory === "DELIVERY_CHALLAN"
-      ? "(DELIVERY CHALLAN - TRANSPORT COPY)"
-      : "ORIGINAL FOR RECIPIENT";
+        ? "(DEBIT NOTE / SALES ADJUSTMENT)"
+        : docCategory === "SALES_RETURN"
+          ? "(GOODS RETURN INWARD MEMORANDUM)"
+          : docCategory === "CREDIT_NOTE"
+            ? "(CREDIT NOTE / SALES ADJUSTMENT)"
+            : docCategory === "PURCHASE_ORDER"
+              ? "(PURCHASE ORDER VOUCHER)"
+              : docCategory === "PURCHASE_RETURN"
+                ? "(GOODS RETURN MEMORANDUM)"
+                : docCategory === "PURCHASE_INVOICE" || docCategory === "PURCHASE"
+                  ? "(PURCHASE INWARD VOUCHER)"
+                  : docCategory === "QUOTATION" || docCategory === "ESTIMATE"
+                    ? "(ESTIMATE / QUOTATION)"
+                    : docCategory === "PROFORMA_INVOICE" || docCategory === "PROFORMA"
+                      ? "(PROFORMA INVOICE)"
+                      : docCategory === "DELIVERY_CHALLAN"
+                        ? "(DELIVERY CHALLAN - TRANSPORT COPY)"
+                        : "ORIGINAL FOR RECIPIENT";
 
   const docNumberLabel =
     docCategory === "PURCHASE_ORDER"
       ? "PO Number"
       : docCategory === "PURCHASE_RETURN"
-      ? "Return No"
-      : docCategory === "DEBIT_MEMO"
-      ? "Debit Memo No"
-      : docCategory === "DEBIT_NOTE"
-      ? "Debit Note No"
-      : docCategory === "SALES_RETURN"
-      ? "Return No"
-      : docCategory === "CREDIT_NOTE"
-      ? "Credit Note No"
-      : docCategory === "PURCHASE_INVOICE" || docCategory === "PURCHASE"
-      ? "Purchase Bill No"
-      : docCategory === "DELIVERY_CHALLAN"
-      ? "Challan No"
-      : docCategory === "QUOTATION" || docCategory === "ESTIMATE"
-      ? "Quotation No"
-      : docCategory === "PROFORMA_INVOICE" || docCategory === "PROFORMA"
-      ? "Proforma No"
-      : "Invoice No";
+        ? "Return No"
+        : docCategory === "DEBIT_MEMO"
+          ? "Debit Memo No"
+          : docCategory === "DEBIT_NOTE"
+            ? "Debit Note No"
+            : docCategory === "SALES_RETURN"
+              ? "Return No"
+              : docCategory === "CREDIT_NOTE"
+                ? "Credit Note No"
+                : docCategory === "PURCHASE_INVOICE" || docCategory === "PURCHASE"
+                  ? "Purchase Bill No"
+                  : docCategory === "DELIVERY_CHALLAN"
+                    ? "Challan No"
+                    : docCategory === "QUOTATION" || docCategory === "ESTIMATE"
+                      ? "Quotation No"
+                      : docCategory === "PROFORMA_INVOICE" || docCategory === "PROFORMA"
+                        ? "Proforma No"
+                        : "Invoice No";
 
   const resolvedDef = resolveThemeDefinition(
     settings.uniqueThemeKey || settings.festiveTheme || settings.themeId,
@@ -341,7 +354,7 @@ export function DynamicThemedInvoice({
           fontSize: 10,
           margin: 1,
         });
-      } catch {}
+      } catch { }
     }
   }, [bankAccountVal]);
 
@@ -358,7 +371,7 @@ export function DynamicThemedInvoice({
             margin: 1,
           });
         }
-      } catch {}
+      } catch { }
     }
   }, [upiVpa, companyName, invoice.balanceAmount, invoice.grandTotal, invoice.invoiceNumber, company?.phone]);
 
@@ -458,6 +471,38 @@ export function DynamicThemedInvoice({
     hsnMap[hsn].total += taxTotal;
   });
 
+  // Calculate resolved Freight
+  const explicitFreight = Number(
+    (invoice as any).freightAmount ??
+    (invoice as any).freight ??
+    (invoice.shippingAddress as any)?.freightAmount ??
+    (invoice.shippingAddress as any)?.freight ??
+    (Array.isArray((invoice as any).additionalCharges)
+      ? (invoice as any).additionalCharges.reduce((acc: number, c: any) => acc + (Number(c.amount) || 0), 0)
+      : (Number((invoice as any).additionalCharges) || 0))
+  );
+  const totalInvoiceTax = (Number(invoice.cgstAmount) || 0) + (Number(invoice.sgstAmount) || 0) + (Number(invoice.igstAmount) || 0);
+  const diffFreight = Math.max(0, Number(invoice.grandTotal || 0) - (Number(invoice.taxableAmount || 0) + totalInvoiceTax + Number(invoice.roundOff || 0)));
+  const resolvedFreight = explicitFreight > 0 ? explicitFreight : (diffFreight > 0.01 ? Math.round(diffFreight * 100) / 100 : 0);
+
+  // Calculate resolved Discount
+  const lineItemsDiscount = (invoice.items || []).reduce((acc: number, it: any) => {
+    const lineDiscAmt = Number(it.discountAmount || 0);
+    if (lineDiscAmt > 0) return acc + lineDiscAmt;
+    const lineDiscPct = Number(it.discountPercent || 0);
+    const qty = Number(it.quantity || 1);
+    const rate = Number(it.unitPrice || 0);
+    if (lineDiscPct > 0) return acc + (qty * rate * lineDiscPct) / 100;
+    return acc;
+  }, 0);
+
+  const resolvedDiscount = Number(
+    (invoice as any).discountTotal ??
+    (invoice as any).discountAmount ??
+    (invoice as any).overallDiscount ??
+    (lineItemsDiscount > 0 ? lineItemsDiscount : 0)
+  ) || 0;
+
   const hsnList = Object.values(hsnMap);
   const isInterState = Number(invoice.igstAmount || 0) > 0;
 
@@ -497,19 +542,6 @@ export function DynamicThemedInvoice({
                   <span className="rounded-[2px] border border-slate-500 bg-white/90 px-2 py-0.5 text-[9px] font-bold text-slate-700 uppercase">
                     ORIGINAL FOR RECIPIENT
                   </span>
-                  {invoice.status && (
-                    <span
-                      className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                        invoice.status === "PAID"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : invoice.status === "PARTIALLY_PAID"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-rose-100 text-rose-800"
-                      }`}
-                    >
-                      {invoice.status}
-                    </span>
-                  )}
                 </div>
                 <div className="text-[11px] font-bold text-amber-950/80 tracking-wide">
                   {skin.subGreeting}
@@ -544,7 +576,7 @@ export function DynamicThemedInvoice({
                     </div>
                   )}
                   <div className="text-[10px] text-slate-800 font-mono">
-                    State: Gujarat (Code: {companyStateCode})
+                    State: {companyStateName} (Code: {companyStateCode})
                   </div>
                 </div>
 
@@ -558,31 +590,22 @@ export function DynamicThemedInvoice({
                   <div className="flex justify-between py-0.5">
                     <span className="font-semibold text-slate-800">Invoice Date:</span>
                     <span className="font-bold text-slate-950">
-                      {new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}
-                      {settings.showTimeOnInvoice && (
-                        <span className="text-[10px] font-normal text-slate-600">
-                          {" "}
-                          {new Date(invoice.invoiceDate).toLocaleTimeString("en-IN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      )}
+                      {formatDate(invoice.invoiceDate)}
                     </span>
                   </div>
                   {invoice.dueDate && (
                     <div className="flex justify-between py-0.5">
                       <span className="font-semibold text-slate-800">Due Date:</span>
                       <span className="font-bold text-slate-950">
-                        {new Date(invoice.dueDate).toLocaleDateString("en-IN")}
+                        {formatDate(invoice.dueDate)}
                       </span>
                     </div>
                   )}
-                  {invoice.placeOfSupply && (
+                  {displayPlaceOfSupply && (
                     <div className="flex justify-between py-0.5">
                       <span className="font-semibold text-slate-800">Place of Supply:</span>
                       <span className="font-bold text-slate-950">
-                        {invoice.placeOfSupply}
+                        {displayPlaceOfSupply}
                       </span>
                     </div>
                   )}
@@ -601,7 +624,7 @@ export function DynamicThemedInvoice({
               <div className="grid grid-cols-12 border-b border-black text-[11px] bg-transparent">
                 <div className="col-span-7 p-3 border-r border-black">
                   <div className="font-semibold uppercase tracking-wider text-[10px] text-slate-700">
-                    DETAILS OF RECEIVER (BILLED TO)
+                    {isPurchase ? "SUPPLIER / VENDOR (BILLED FROM)" : "DETAILS OF RECEIVER (BILLED TO)"}
                   </div>
                   <div className="font-bold text-[13px] text-slate-950 mt-0.5">
                     {partyName}
@@ -619,9 +642,9 @@ export function DynamicThemedInvoice({
                       GSTIN: {partyGstin}
                     </div>
                   )}
-                  {invoice.party?.stateCode && (
+                  {partyStateCode && (
                     <div className="text-[10px] text-slate-700 font-mono">
-                      State Code: {invoice.party.stateCode}
+                      State: {getStateDisplayName(partyStateCode)}
                     </div>
                   )}
                   {settings.showPartyBalance && partyBalance > 0 && (
@@ -633,10 +656,10 @@ export function DynamicThemedInvoice({
 
                 <div className="col-span-5 p-3 text-[11px] bg-transparent">
                   <div className="font-semibold uppercase tracking-wider text-[10px] text-slate-700">
-                    SHIP TO / DELIVERY
+                    {isPurchase ? "CONSIGNEE / WAREHOUSE DESTINATION" : "SHIP TO / DELIVERY"}
                   </div>
                   <div className="text-slate-800 mt-1 leading-snug font-medium">
-                    {settings.showShippingAddress ? shippingAddress : partyAddress}
+                    {settings.showShippingAddress ? shippingAddress : isPurchase ? companyAddress : partyAddress}
                   </div>
                   {invoice.paymentMode && (
                     <div className="mt-2 text-[10px] text-slate-700">
@@ -646,9 +669,9 @@ export function DynamicThemedInvoice({
                 </div>
               </div>
 
-              {/* ITEMS Table - Full Grid Rules Matching myBillBook */}
-              <div className="w-full overflow-hidden bg-transparent flex-1">
-                <table className="w-full text-left text-[11px] border-collapse">
+              {/* ITEMS Table - Vertical Columns extending properly to the bottom, NO horizontal row divider lines */}
+              <div className="w-full overflow-hidden bg-transparent flex-1 flex flex-col">
+                <table className="w-full text-left text-[11px] border-collapse flex-1 h-full min-h-[350px]">
                   <thead>
                     <tr
                       className="border-b border-black font-semibold text-[10.5px]"
@@ -679,35 +702,30 @@ export function DynamicThemedInvoice({
                         </th>
                       )}
                       {settings.showPricePerItem && (
-                        <th className="py-2 px-2 border-r border-black text-right w-20">
+                        <th className="py-2 px-2 border-r border-black text-right w-24 min-w-[85px] whitespace-nowrap">
                           RATE
                         </th>
                       )}
-                      {settings.showDiscount && (
-                        <th className="py-2 px-2 border-r border-black text-right w-14">
-                          DISC
-                        </th>
-                      )}
                       {settings.showTax && (
-                        <th className="py-2 px-2 border-r border-black text-right w-16">
+                        <th className="py-2 px-2 border-r border-black text-right w-16 whitespace-nowrap">
                           TAX
                         </th>
                       )}
-                      <th className="py-2 px-2.5 text-right w-24">
+                      <th className="py-2 px-2.5 text-right w-28 min-w-[110px] whitespace-nowrap">
                         AMOUNT
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-black/30 bg-transparent">
+                  <tbody className="bg-transparent">
                     {(invoice.items || []).map((item, idx) => {
                       const itemName = item.item?.name || item.description || `Item #${idx + 1}`;
                       const itemDesc = item.description && item.description !== itemName ? item.description : "";
                       return (
-                        <tr key={item.id || idx} className="hover:bg-amber-500/10">
-                          <td className="py-2 px-2.5 border-r border-black text-center font-bold text-slate-800">
+                        <tr key={item.id || idx} className="hover:bg-amber-500/10 align-top">
+                          <td className="py-1.5 px-2.5 border-r border-black text-center font-bold text-slate-800 align-top">
                             {idx + 1}
                           </td>
-                          <td className="py-2 px-2.5 border-r border-black">
+                          <td className="py-1.5 px-2.5 border-r border-black align-top">
                             <div className="font-bold text-slate-950">{itemName}</div>
                             {settings.showItemDescription && itemDesc && (
                               <div className="text-[10px] text-slate-600 mt-0.5">
@@ -716,56 +734,48 @@ export function DynamicThemedInvoice({
                             )}
                           </td>
                           {settings.showHsn && (
-                            <td className="py-2 px-2 border-r border-black text-center font-mono text-[10px] text-slate-800 font-semibold">
+                            <td className="py-1.5 px-2 border-r border-black text-center font-mono text-[10px] text-slate-800 font-semibold align-top whitespace-nowrap">
                               {item.hsnCode || "-"}
                             </td>
                           )}
                           {settings.showQuantity && (
-                            <td className="py-2 px-2 border-r border-black text-center font-mono font-bold text-slate-950">
+                            <td className="py-1.5 px-2 border-r border-black text-center font-mono font-bold text-slate-950 align-top whitespace-nowrap">
                               {item.quantity} {item.unit || "PCS"}
                             </td>
                           )}
                           {settings.showBatchNo && (
-                            <td className="py-2 px-2 border-r border-black text-center font-mono text-[10px] text-slate-700">
+                            <td className="py-1.5 px-2 border-r border-black text-center font-mono text-[10px] text-slate-700 align-top whitespace-nowrap">
                               {item.batchNo || "-"}
                             </td>
                           )}
                           {settings.showPricePerItem && (
-                            <td className="py-2 px-2 border-r border-black text-right font-mono text-slate-900 font-medium">
-                              ₹ {Number(item.unitPrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                            </td>
-                          )}
-                          {settings.showDiscount && (
-                            <td className="py-2 px-2 border-r border-black text-right font-mono text-slate-700">
-                              {item.discountPercent ? `${item.discountPercent}%` : "0%"}
+                            <td className="py-1.5 px-2 border-r border-black text-right font-mono text-slate-900 font-medium align-top whitespace-nowrap">
+                              ₹{Number(item.unitPrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                             </td>
                           )}
                           {settings.showTax && (
-                            <td className="py-2 px-2 border-r border-black text-right font-mono text-[10px] text-slate-800">
+                            <td className="py-1.5 px-2 border-r border-black text-right font-mono text-[10px] text-slate-800 align-top whitespace-nowrap">
                               {item.taxRate ? `${item.taxRate}%` : "0%"}
                             </td>
                           )}
-                          <td className="py-2 px-2.5 text-right font-mono font-bold text-slate-950">
-                            ₹ {Number(item.totalAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          <td className="py-1.5 px-2.5 text-right font-mono font-bold text-slate-950 align-top whitespace-nowrap">
+                            ₹{Number(item.totalAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                           </td>
                         </tr>
                       );
                     })}
 
-                    {/* Empty spacer rows so the grid reaches down and covers the whole template */}
-                    {Array.from({ length: Math.max(0, (settings.showTax && hsnList.length > 0 ? 15 : 17) - (invoice.items || []).length) }).map((_, i) => (
-                      <tr key={`filler-${i}`} className="h-7 sm:h-8">
-                        <td className="py-2 px-2.5 border-r border-black">&nbsp;</td>
-                        <td className="py-2 px-2.5 border-r border-black">&nbsp;</td>
-                        {settings.showHsn && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                        {settings.showQuantity && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                        {settings.showBatchNo && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                        {settings.showPricePerItem && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                        {settings.showDiscount && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                        {settings.showTax && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                        <td className="py-2 px-2.5">&nbsp;</td>
-                      </tr>
-                    ))}
+                    {/* Spacer row to stretch vertical column divider lines all the way down to the bottom border with NO horizontal lines */}
+                    <tr className="h-full">
+                      <td className="py-1 px-2.5 border-r border-black">&nbsp;</td>
+                      <td className="py-1 px-2.5 border-r border-black">&nbsp;</td>
+                      {settings.showHsn && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                      {settings.showQuantity && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                      {settings.showBatchNo && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                      {settings.showPricePerItem && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                      {settings.showTax && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                      <td className="py-1 px-2.5">&nbsp;</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -883,12 +893,47 @@ export function DynamicThemedInvoice({
 
                 <div className="col-span-5 space-y-1.5 pl-3 border-l border-black/30 flex flex-col justify-between">
                   <div className="space-y-1.5">
-                    <div className="flex justify-between text-[11px] text-slate-800">
-                      <span className="font-medium">Taxable Amount</span>
-                      <span className="font-mono font-bold text-slate-950">
-                        ₹ {Number(invoice.taxableAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    {resolvedDiscount > 0 ? (
+                      <>
+                        <div className="flex justify-between text-[11px] text-slate-800">
+                          <span className="font-medium">Subtotal (Gross)</span>
+                          <span className="font-mono font-bold text-slate-950">
+                            ₹ {Number((invoice as any).subTotal || (Number(invoice.taxableAmount || 0) + resolvedDiscount)).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-[10.5px] text-slate-800">
+                          <span>Discount</span>
+                          <span className="font-mono font-medium text-rose-600">
+                            - ₹ {Number(resolvedDiscount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-[11px] text-slate-800 font-semibold border-t border-slate-200/80 pt-0.5">
+                          <span>Taxable Amount</span>
+                          <span className="font-mono font-bold text-slate-950">
+                            ₹ {Number(invoice.taxableAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between text-[11px] text-slate-800">
+                        <span className="font-medium">Taxable Amount</span>
+                        <span className="font-mono font-bold text-slate-950">
+                          ₹ {Number(invoice.taxableAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-[10.5px] text-slate-800">
+                      <span>Freight</span>
+                      <span className="font-mono font-medium">
+                        ₹ {Number(resolvedFreight || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </span>
                     </div>
+                    {resolvedDiscount === 0 && (
+                      <div className="flex justify-between text-[10.5px] text-slate-800">
+                        <span>Discount</span>
+                        <span className="font-mono font-medium">₹ 0.00</span>
+                      </div>
+                    )}
                     {settings.showTax && (
                       <>
                         {!isInterState ? (
@@ -941,7 +986,7 @@ export function DynamicThemedInvoice({
                     {(Number(invoice.paidAmount || 0) > 0 || Number(invoice.balanceAmount || 0) > 0) && (
                       <div className="pt-2 mt-2 border-t border-black/30 text-[10.5px] space-y-1">
                         <div className="flex justify-between text-emerald-800 font-bold">
-                          <span>Amount Received:</span>
+                          <span>{isPurchase ? "Amount Paid:" : "Amount Received:"}</span>
                           <span className="font-mono">
                             ₹ {Number(invoice.paidAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                           </span>
@@ -1024,8 +1069,8 @@ export function DynamicThemedInvoice({
               <span className="text-[9px] font-bold text-slate-500 uppercase">ORIGINAL FOR RECIPIENT</span>
               <div className="mt-2 text-xs font-mono space-y-0.5">
                 <div>Invoice No: <strong className="text-amber-900">#{invoice.invoiceNumber}</strong></div>
-                <div>Date: <strong>{new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}</strong></div>
-                {invoice.dueDate && <div>Due Date: <strong>{new Date(invoice.dueDate).toLocaleDateString("en-IN")}</strong></div>}
+                <div>Date: <strong>{formatDate(invoice.invoiceDate)}</strong></div>
+                {invoice.dueDate && <div>Due Date: <strong>{formatDate(invoice.dueDate)}</strong></div>}
               </div>
             </div>
           </div>
@@ -1046,44 +1091,54 @@ export function DynamicThemedInvoice({
                 SHIPPED TO
               </span>
               <p className="text-slate-600">{shippingAddress}</p>
-              <p className="text-slate-600 mt-1">Place of Supply: <strong>{invoice.placeOfSupply || "24 (Gujarat)"}</strong></p>
+              <p className="text-slate-600 mt-1">Place of Supply: <strong>{displayPlaceOfSupply}</strong></p>
             </div>
           </div>
 
-          {/* Table */}
-          <table className="w-full text-left text-xs border border-amber-300 rounded-lg overflow-hidden mb-4">
-            <thead className="bg-amber-600 text-white font-bold">
-              <tr>
-                <th className="p-2 text-center w-10">#</th>
-                <th className="p-2">DESCRIPTION</th>
-                {settings.showHsn && <th className="p-2 text-center w-20">HSN</th>}
-                <th className="p-2 text-center w-16">QTY</th>
-                <th className="p-2 text-right w-20">RATE</th>
-                {settings.showDiscount && <th className="p-2 text-right w-14">DISC</th>}
-                {settings.showTax && <th className="p-2 text-right w-16">GST</th>}
-                <th className="p-2 text-right w-24">TOTAL</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-amber-200/60 bg-white">
-              {(invoice.items || []).map((it, i) => (
-                <tr key={it.id || i} className="hover:bg-amber-50/40">
-                  <td className="p-2 text-center font-mono">{i + 1}</td>
-                  <td className="p-2">
-                    <strong className="text-slate-900">{it.item?.name || it.description}</strong>
-                    {settings.showItemDescription && it.description && it.description !== it.item?.name && (
-                      <p className="text-[10px] text-slate-500">{it.description}</p>
-                    )}
-                  </td>
-                  {settings.showHsn && <td className="p-2 text-center font-mono">{it.hsnCode || "-"}</td>}
-                  <td className="p-2 text-center font-mono font-bold">{it.quantity} {it.unit || "PCS"}</td>
-                  <td className="p-2 text-right font-mono">₹{Number(it.unitPrice || 0).toFixed(2)}</td>
-                  {settings.showDiscount && <td className="p-2 text-right font-mono">{it.discountPercent || 0}%</td>}
-                  {settings.showTax && <td className="p-2 text-right font-mono">{it.taxRate || 0}%</td>}
-                  <td className="p-2 text-right font-mono font-bold">₹{Number(it.totalAmount || 0).toFixed(2)}</td>
+          {/* Table - Only vertical lines extending to bottom */}
+          <div className="w-full overflow-hidden border border-amber-300 rounded-lg mb-4 flex flex-col flex-1">
+            <table className="w-full text-left text-xs border-collapse flex-1 h-full min-h-[300px]">
+              <thead className="bg-amber-600 text-white font-bold border-b border-amber-500">
+                <tr>
+                  <th className="p-2 text-center w-10 border-r border-amber-500">#</th>
+                  <th className="p-2 border-r border-amber-500">DESCRIPTION</th>
+                  {settings.showHsn && <th className="p-2 text-center w-20 border-r border-amber-500">HSN</th>}
+                  <th className="p-2 text-center w-16 border-r border-amber-500">QTY</th>
+                  <th className="p-2 text-right w-24 min-w-[85px] border-r border-amber-500 whitespace-nowrap">RATE</th>
+                  {settings.showTax && <th className="p-2 text-right w-16 border-r border-amber-500 whitespace-nowrap">GST</th>}
+                  <th className="p-2 text-right w-28 min-w-[110px] whitespace-nowrap">TOTAL</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white">
+                {(invoice.items || []).map((it, i) => (
+                  <tr key={it.id || i} className="hover:bg-amber-50/40 align-top">
+                    <td className="p-2 text-center font-mono border-r border-amber-200">{i + 1}</td>
+                    <td className="p-2 border-r border-amber-200">
+                      <strong className="text-slate-900">{it.item?.name || it.description}</strong>
+                      {settings.showItemDescription && it.description && it.description !== it.item?.name && (
+                        <p className="text-[10px] text-slate-500">{it.description}</p>
+                      )}
+                    </td>
+                    {settings.showHsn && <td className="p-2 text-center font-mono border-r border-amber-200 whitespace-nowrap">{it.hsnCode || "-"}</td>}
+                    <td className="p-2 text-center font-mono font-bold border-r border-amber-200 whitespace-nowrap">{it.quantity} {it.unit || "PCS"}</td>
+                    <td className="p-2 text-right font-mono border-r border-amber-200 whitespace-nowrap">₹{Number(it.unitPrice || 0).toFixed(2)}</td>
+                    {settings.showTax && <td className="p-2 text-right font-mono border-r border-amber-200 whitespace-nowrap">{it.taxRate || 0}%</td>}
+                    <td className="p-2 text-right font-mono font-bold whitespace-nowrap">₹{Number(it.totalAmount || 0).toFixed(2)}</td>
+                  </tr>
+                ))}
+                {/* Spacer row to stretch vertical lines down to the bottom with NO horizontal lines */}
+                <tr className="h-full">
+                  <td className="p-1 border-r border-amber-200">&nbsp;</td>
+                  <td className="p-1 border-r border-amber-200">&nbsp;</td>
+                  {settings.showHsn && <td className="p-1 border-r border-amber-200">&nbsp;</td>}
+                  <td className="p-1 border-r border-amber-200">&nbsp;</td>
+                  <td className="p-1 border-r border-amber-200">&nbsp;</td>
+                  {settings.showTax && <td className="p-1 border-r border-amber-200">&nbsp;</td>}
+                  <td className="p-1">&nbsp;</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           {/* Totals */}
           <div className="grid grid-cols-12 gap-4 bg-white p-4 rounded-lg border border-amber-200">
@@ -1109,6 +1164,14 @@ export function DynamicThemedInvoice({
               <div className="flex justify-between">
                 <span>Taxable Amount</span>
                 <span className="font-mono">₹{Number(invoice.taxableAmount || 0).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Freight</span>
+                <span className="font-mono">₹{Number(resolvedFreight || 0).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Discount</span>
+                <span className="font-mono">{resolvedDiscount > 0 ? `- ₹${Number(resolvedDiscount).toFixed(2)}` : "₹0.00"}</span>
               </div>
               {settings.showTax && (
                 <>
@@ -1189,7 +1252,7 @@ export function DynamicThemedInvoice({
                   </div>
                 )}
                 <div className="text-[10px] text-slate-800 font-mono">
-                  State: Gujarat (Code: {companyStateCode})
+                  State: {companyStateName} (Code: {companyStateCode})
                 </div>
               </div>
 
@@ -1201,7 +1264,7 @@ export function DynamicThemedInvoice({
                 <div className="flex justify-between py-0.5">
                   <span className="font-semibold text-slate-700">Date:</span>
                   <span className="font-bold text-slate-950">
-                    {new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}
+                    {formatDate(invoice.invoiceDate)}
                   </span>
                 </div>
                 {invoice.dueDate && (
@@ -1210,14 +1273,14 @@ export function DynamicThemedInvoice({
                       {docCategory === "PURCHASE_ORDER" ? "Expected Delivery:" : "Due Date:"}
                     </span>
                     <span className="font-bold text-slate-950">
-                      {new Date(invoice.dueDate).toLocaleDateString("en-IN")}
+                      {formatDate(invoice.dueDate)}
                     </span>
                   </div>
                 )}
-                {invoice.placeOfSupply && (
+                {displayPlaceOfSupply && (
                   <div className="flex justify-between py-0.5">
                     <span className="font-semibold text-slate-700">Place of Supply:</span>
-                    <span className="font-bold text-slate-950">{invoice.placeOfSupply}</span>
+                    <span className="font-bold text-slate-950">{displayPlaceOfSupply}</span>
                   </div>
                 )}
                 {invoice.eWayBillRecord?.vendorInvoiceNumber && (
@@ -1255,6 +1318,11 @@ export function DynamicThemedInvoice({
                 {partyGstin && (
                   <div className="font-mono text-slate-800 mt-0.5 font-bold">GSTIN: {partyGstin}</div>
                 )}
+                {partyStateCode && (
+                  <div className="text-[10px] text-slate-700 font-mono">
+                    State: {getStateDisplayName(partyStateCode)}
+                  </div>
+                )}
                 {settings.showPartyBalance && partyBalance > 0 && (
                   <div className="text-rose-600 font-bold mt-1">
                     Current Balance: ₹ {partyBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -1282,22 +1350,21 @@ export function DynamicThemedInvoice({
               </div>
             </div>
 
-            {/* Items Table */}
-            <div className="w-full overflow-hidden flex-1">
-              <table className="w-full text-left text-[11px] border-collapse">
+            {/* Items Table - Only vertical lines extending to bottom */}
+            <div className="w-full overflow-hidden flex-1 flex flex-col">
+              <table className="w-full text-left text-[11px] border-collapse flex-1 h-full min-h-[350px]">
                 <thead>
                   <tr className="border-b border-black font-semibold text-[10.5px] bg-slate-100/80">
                     <th className="py-2 px-2.5 border-r border-black w-10 text-center">S.NO.</th>
                     <th className="py-2 px-2.5 border-r border-black">DESCRIPTION OF GOODS / SERVICES</th>
                     {settings.showHsn && <th className="py-2 px-2 border-r border-black text-center w-16">HSN/SAC</th>}
                     {settings.showQuantity && <th className="py-2 px-2 border-r border-black text-center w-16">QTY</th>}
-                    {settings.showPricePerItem && <th className="py-2 px-2 border-r border-black text-right w-20">RATE (₹)</th>}
-                    {settings.showDiscount && <th className="py-2 px-2 border-r border-black text-right w-14">DISC</th>}
-                    {settings.showTax && <th className="py-2 px-2 border-r border-black text-right w-16">TAX %</th>}
-                    <th className="py-2 px-2.5 text-right w-24">AMOUNT (₹)</th>
+                    {settings.showPricePerItem && <th className="py-2 px-2 border-r border-black text-right w-24 min-w-[85px] whitespace-nowrap">RATE (₹)</th>}
+                    {settings.showTax && <th className="py-2 px-2 border-r border-black text-right w-16 whitespace-nowrap">TAX %</th>}
+                    <th className="py-2 px-2.5 text-right w-28 min-w-[110px] whitespace-nowrap">AMOUNT (₹)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="bg-transparent">
                   {(invoice.items || []).map((it, idx) => {
                     const lineRate = Number(it.unitPrice || 0);
                     const lineQty = Number(it.quantity || 0);
@@ -1305,23 +1372,32 @@ export function DynamicThemedInvoice({
                     const lineTaxRate = Number(it.taxRate || 0);
                     const lineAmt = Number(it.totalAmount || 0);
                     return (
-                      <tr key={idx} className="hover:bg-slate-50/50">
-                        <td className="py-2 px-2.5 border-r border-black text-center font-mono text-slate-700">{idx + 1}</td>
-                        <td className="py-2 px-2.5 border-r border-black font-bold text-slate-900">
+                      <tr key={idx} className="hover:bg-slate-50/50 align-top">
+                        <td className="py-1.5 px-2.5 border-r border-black text-center font-mono text-slate-700">{idx + 1}</td>
+                        <td className="py-1.5 px-2.5 border-r border-black font-bold text-slate-900">
                           {it.item?.name || it.description}
                           {settings.showItemDescription && it.description && it.description !== it.item?.name && (
                             <div className="text-[10px] text-slate-500 font-normal">{it.description}</div>
                           )}
                         </td>
-                        {settings.showHsn && <td className="py-2 px-2 border-r border-black text-center font-mono text-slate-700">{it.hsnCode || "-"}</td>}
-                        {settings.showQuantity && <td className="py-2 px-2 border-r border-black text-center font-mono font-bold text-slate-900">{lineQty} {it.unit || "PCS"}</td>}
-                        {settings.showPricePerItem && <td className="py-2 px-2 border-r border-black text-right font-mono text-slate-900">{lineRate.toFixed(2)}</td>}
-                        {settings.showDiscount && <td className="py-2 px-2 border-r border-black text-right font-mono text-slate-600">{lineDisc > 0 ? `${lineDisc}%` : "—"}</td>}
-                        {settings.showTax && <td className="py-2 px-2 border-r border-black text-right font-mono text-slate-600">{lineTaxRate}%</td>}
-                        <td className="py-2 px-2.5 text-right font-mono font-bold text-slate-950">{lineAmt.toFixed(2)}</td>
+                        {settings.showHsn && <td className="py-1.5 px-2 border-r border-black text-center font-mono text-slate-700 whitespace-nowrap">{it.hsnCode || "-"}</td>}
+                        {settings.showQuantity && <td className="py-1.5 px-2 border-r border-black text-center font-mono font-bold text-slate-900 whitespace-nowrap">{lineQty} {it.unit || "PCS"}</td>}
+                        {settings.showPricePerItem && <td className="py-1.5 px-2 border-r border-black text-right font-mono text-slate-900 whitespace-nowrap">{lineRate.toFixed(2)}</td>}
+                        {settings.showTax && <td className="py-1.5 px-2 border-r border-black text-right font-mono text-slate-600 whitespace-nowrap">{lineTaxRate}%</td>}
+                        <td className="py-1.5 px-2.5 text-right font-mono font-bold text-slate-950 whitespace-nowrap">{lineAmt.toFixed(2)}</td>
                       </tr>
                     );
                   })}
+                  {/* Spacer row to stretch vertical lines down to the bottom with NO horizontal lines */}
+                  <tr className="h-full">
+                    <td className="py-1 px-2.5 border-r border-black">&nbsp;</td>
+                    <td className="py-1 px-2.5 border-r border-black">&nbsp;</td>
+                    {settings.showHsn && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {settings.showQuantity && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {settings.showPricePerItem && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {settings.showTax && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    <td className="py-1 px-2.5">&nbsp;</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -1388,6 +1464,14 @@ export function DynamicThemedInvoice({
                     <span>Taxable Value:</span>
                     <span className="font-mono font-bold">₹{Number(invoice.taxableAmount || 0).toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between py-0.5 text-slate-600">
+                    <span>Freight:</span>
+                    <span className="font-mono">₹{Number(resolvedFreight || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between py-0.5 text-slate-600">
+                    <span>Discount:</span>
+                    <span className="font-mono">{resolvedDiscount > 0 ? `- ₹${Number(resolvedDiscount).toFixed(2)}` : "₹0.00"}</span>
+                  </div>
                   {settings.showTax && (
                     <>
                       <div className="flex justify-between py-0.5 text-slate-600">
@@ -1418,7 +1502,7 @@ export function DynamicThemedInvoice({
                   </div>
                   {invoice.paidAmount !== undefined && invoice.paidAmount > 0 && (
                     <div className="flex justify-between py-0.5 text-emerald-700 font-bold text-[10px]">
-                      <span>Amount Received / Paid:</span>
+                      <span>{isPurchase ? "Amount Paid:" : "Amount Received:"}</span>
                       <span className="font-mono">₹{Number(invoice.paidAmount || 0).toFixed(2)}</span>
                     </div>
                   )}
@@ -1455,13 +1539,12 @@ export function DynamicThemedInvoice({
   return (
     <div
       id={printableId}
-      className={`relative w-full max-w-[850px] mx-auto p-6 sm:p-8 text-[11px] bg-white rounded-lg shadow-sm min-h-[920px] transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none ${
-        layout === "modern"
-          ? "border-l-[10px] border-y border-r border-slate-200"
-          : layout === "simple"
+      className={`relative w-full max-w-[850px] mx-auto p-6 sm:p-8 text-[11px] bg-white rounded-lg shadow-sm min-h-[920px] transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none ${layout === "modern"
+        ? "border-l-[10px] border-y border-r border-slate-200"
+        : layout === "simple"
           ? "border border-slate-200 shadow-none"
           : "border border-slate-200"
-      }`}
+        }`}
       style={{
         fontFamily: layout === "simple" ? "Georgia, serif" : settings.fontFamily || "Inter, sans-serif",
         borderLeftColor: layout === "modern" ? activeColor : undefined,
@@ -1470,18 +1553,17 @@ export function DynamicThemedInvoice({
       {renderEInvoiceBanner()}
       {/* Brand Accent Top Banner */}
       <div
-        className={`rounded-xl p-4 sm:p-5 mb-4 shadow-xs flex justify-between items-start gap-4 ${
-          layout === "simple"
-            ? "bg-slate-50 text-slate-900 border-b-2 border-slate-300 rounded-none p-3"
-            : "text-white"
-        }`}
+        className={`rounded-xl p-4 sm:p-5 mb-4 shadow-xs flex justify-between items-start gap-4 ${layout === "simple"
+          ? "bg-slate-50 text-slate-900 border-b-2 border-slate-300 rounded-none p-3"
+          : "text-white"
+          }`}
         style={{
           background:
             layout === "simple"
               ? undefined
               : activeColor !== "#111111"
-              ? `linear-gradient(135deg, ${activeColor} 0%, ${activeColor}dd 100%)`
-              : "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+                ? `linear-gradient(135deg, ${activeColor} 0%, ${activeColor}dd 100%)`
+                : "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
         }}
       >
         <div className="space-y-1 flex-1">
@@ -1511,8 +1593,8 @@ export function DynamicThemedInvoice({
           <span className="text-[9px] font-bold text-slate-500 uppercase block">{docSubtitle}</span>
           <div className="mt-2 text-xs font-mono space-y-0.5">
             <div>{docNumberLabel}: <strong>#{invoice.invoiceNumber}</strong></div>
-            <div>Date: <strong>{new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}</strong></div>
-            {invoice.dueDate && <div>{docCategory === "PURCHASE_ORDER" ? "Delivery:" : "Due:"} <strong>{new Date(invoice.dueDate).toLocaleDateString("en-IN")}</strong></div>}
+            <div>Date: <strong>{formatDate(invoice.invoiceDate)}</strong></div>
+            {invoice.dueDate && <div>{docCategory === "PURCHASE_ORDER" ? "Delivery:" : "Due:"} <strong>{formatDate(invoice.dueDate)}</strong></div>}
             {invoice.eWayBillRecord?.vendorInvoiceNumber && (
               <div className="text-[10px] text-slate-500">Bill Ref: <strong>{invoice.eWayBillRecord.vendorInvoiceNumber}</strong></div>
             )}
@@ -1544,48 +1626,56 @@ export function DynamicThemedInvoice({
             {isPurchase ? "CONSIGNEE / WAREHOUSE:" : "SHIPPED TO:"}
           </span>
           <p className="text-slate-600">{shippingAddress}</p>
-          <p className="text-slate-600 mt-1">Place of Supply: <strong>{invoice.placeOfSupply || "24 (Gujarat)"}</strong></p>
+          <p className="text-slate-600 mt-1">Place of Supply: <strong>{displayPlaceOfSupply}</strong></p>
         </div>
       </div>
 
-      {/* Item Table */}
-      <div className="border border-slate-200 rounded-xl overflow-hidden mb-4">
-        <table className="w-full text-left text-xs border-collapse">
+      {/* Item Table - Only vertical lines extending to bottom */}
+      <div className="border border-slate-200 rounded-xl overflow-hidden mb-4 flex flex-col flex-1">
+        <table className="w-full text-left text-xs border-collapse flex-1 h-full min-h-[300px]">
           <thead>
             <tr
-              className="text-white font-bold"
+              className="text-white font-bold border-b border-slate-300"
               style={{
                 backgroundColor: activeColor !== "#111111" ? activeColor : "#1e293b",
               }}
             >
-              <th className="p-2.5 text-center w-10">#</th>
-              <th className="p-2.5">ITEMS</th>
-              {settings.showHsn && <th className="p-2.5 text-center w-20">HSN</th>}
-              <th className="p-2.5 text-center w-16">QTY</th>
-              <th className="p-2.5 text-right w-20">RATE</th>
-              {settings.showDiscount && <th className="p-2.5 text-right w-14">DISC</th>}
-              {settings.showTax && <th className="p-2.5 text-right w-16">GST</th>}
-              <th className="p-2.5 text-right w-24">AMOUNT</th>
+              <th className="p-2.5 text-center w-10 border-r border-white/20">#</th>
+              <th className="p-2.5 border-r border-white/20">ITEMS</th>
+              {settings.showHsn && <th className="p-2.5 text-center w-20 border-r border-white/20">HSN</th>}
+              <th className="p-2.5 text-center w-16 border-r border-white/20">QTY</th>
+              <th className="p-2.5 text-right w-24 min-w-[85px] border-r border-white/20 whitespace-nowrap">RATE</th>
+              {settings.showTax && <th className="p-2.5 text-right w-16 border-r border-white/20 whitespace-nowrap">GST</th>}
+              <th className="p-2.5 text-right w-28 min-w-[110px] whitespace-nowrap">AMOUNT</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200 bg-white">
+          <tbody className="bg-white">
             {(invoice.items || []).map((it, i) => (
-              <tr key={it.id || i} className="hover:bg-slate-50">
-                <td className="p-2.5 text-center font-mono">{i + 1}</td>
-                <td className="p-2.5">
+              <tr key={it.id || i} className="hover:bg-slate-50 align-top">
+                <td className="p-2.5 text-center font-mono border-r border-slate-200">{i + 1}</td>
+                <td className="p-2.5 border-r border-slate-200">
                   <strong className="text-slate-900">{it.item?.name || it.description}</strong>
                   {settings.showItemDescription && it.description && it.description !== it.item?.name && (
                     <p className="text-[10px] text-slate-500">{it.description}</p>
                   )}
                 </td>
-                {settings.showHsn && <td className="p-2.5 text-center font-mono">{it.hsnCode || "-"}</td>}
-                <td className="p-2.5 text-center font-mono font-bold">{it.quantity} {it.unit || "PCS"}</td>
-                <td className="p-2.5 text-right font-mono">₹{Number(it.unitPrice || 0).toFixed(2)}</td>
-                {settings.showDiscount && <td className="p-2.5 text-right font-mono">{it.discountPercent || 0}%</td>}
-                {settings.showTax && <td className="p-2.5 text-right font-mono">{it.taxRate || 0}%</td>}
-                <td className="p-2.5 text-right font-mono font-bold">₹{Number(it.totalAmount || 0).toFixed(2)}</td>
+                {settings.showHsn && <td className="p-2.5 text-center font-mono border-r border-slate-200 whitespace-nowrap">{it.hsnCode || "-"}</td>}
+                <td className="p-2.5 text-center font-mono font-bold border-r border-slate-200 whitespace-nowrap">{it.quantity} {it.unit || "PCS"}</td>
+                <td className="p-2.5 text-right font-mono border-r border-slate-200 whitespace-nowrap">₹{Number(it.unitPrice || 0).toFixed(2)}</td>
+                {settings.showTax && <td className="p-2.5 text-right font-mono border-r border-slate-200 whitespace-nowrap">{it.taxRate || 0}%</td>}
+                <td className="p-2.5 text-right font-mono font-bold whitespace-nowrap">₹{Number(it.totalAmount || 0).toFixed(2)}</td>
               </tr>
             ))}
+            {/* Spacer row to stretch vertical lines down to the bottom with NO horizontal lines */}
+            <tr className="h-full">
+              <td className="p-1 border-r border-slate-200">&nbsp;</td>
+              <td className="p-1 border-r border-slate-200">&nbsp;</td>
+              {settings.showHsn && <td className="p-1 border-r border-slate-200">&nbsp;</td>}
+              <td className="p-1 border-r border-slate-200">&nbsp;</td>
+              <td className="p-1 border-r border-slate-200">&nbsp;</td>
+              {settings.showTax && <td className="p-1 border-r border-slate-200">&nbsp;</td>}
+              <td className="p-1">&nbsp;</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -1615,6 +1705,14 @@ export function DynamicThemedInvoice({
           <div className="flex justify-between">
             <span>Taxable Value:</span>
             <span className="font-mono">₹{Number(invoice.taxableAmount || 0).toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between text-slate-600">
+            <span>Freight:</span>
+            <span className="font-mono">₹{Number(resolvedFreight || 0).toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between text-slate-600">
+            <span>Discount:</span>
+            <span className="font-mono">{resolvedDiscount > 0 ? `- ₹${Number(resolvedDiscount).toFixed(2)}` : "₹0.00"}</span>
           </div>
           {settings.showTax && (
             <>

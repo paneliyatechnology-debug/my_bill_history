@@ -9,6 +9,7 @@ import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 import { CustomSelect } from "../../../components/ui/custom-select";
 import { ShieldAlert } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 interface JournalLine {
   id: string;
@@ -130,7 +131,7 @@ export default function VouchersPage() {
       sortable: true,
       cell: (v) => (
         <span className="tabular-nums typo-table-td text-slate-600">
-          {new Date(v.voucherDate).toLocaleDateString("en-IN")}
+          {formatDate(v.voucherDate)}
         </span>
       ),
     },
@@ -328,7 +329,7 @@ export default function VouchersPage() {
               <StatusBadge status={v.isCancelled ? "REVERSED" : "POSTED"} />
             </div>
             <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>{new Date(v.voucherDate).toLocaleDateString("en-IN")}</span>
+              <span>{formatDate(v.voucherDate)}</span>
               <span
                 className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
                   (typeStyles[v.voucherType] || { text: "text-slate-700" }).text
@@ -389,9 +390,7 @@ export default function VouchersPage() {
               <div>
                 <span className="font-semibold text-slate-700">Date: </span>
                 <span className="tabular-nums text-slate-900">
-                  {new Date(selectedVoucher.voucherDate).toLocaleDateString(
-                    "en-IN",
-                  )}
+                  {formatDate(selectedVoucher.voucherDate)}
                 </span>
               </div>
               <div>

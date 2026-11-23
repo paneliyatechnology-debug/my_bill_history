@@ -15,6 +15,7 @@ import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { CustomSelect } from "@/components/ui/dropdown-system";
 import { Phone, X, Ban, ShieldAlert } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 interface ProformaInvoiceItem {
   id: string;
@@ -338,7 +339,7 @@ export default function ProformaInvoiceListingPage() {
 
   const exportData = useMemo(() => {
     return filteredInvoices.map((inv) => ({
-      invoiceDate: inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString("en-GB") : "",
+      invoiceDate: inv.invoiceDate ? formatDate(inv.invoiceDate) : "",
       invoiceNumber: inv.invoiceNumber,
       partyName: inv.party?.name || inv.partyName || "Cash Customer",
       amount: formatInr(inv.grandTotal !== undefined ? inv.grandTotal : inv.totalAmount || 0),
@@ -595,17 +596,11 @@ export default function ProformaInvoiceListingPage() {
                       {/* Date & Validity */}
                       <td className="px-4 py-3 whitespace-nowrap typo-table-td text-[#182230]">
                         <div>
-                          {inv.invoiceDate
-                            ? new Date(inv.invoiceDate).toLocaleDateString("en-GB", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })
-                            : "—"}
+                          {formatDate(inv.invoiceDate, "—")}
                         </div>
                         {inv.dueDate && (
                           <div className="typo-card-desc text-slate-400 mt-0.5">
-                            Due: {new Date(inv.dueDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
+                            Due: {formatDate(inv.dueDate)}
                           </div>
                         )}
                       </td>

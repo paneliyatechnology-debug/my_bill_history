@@ -266,7 +266,7 @@ export function ItemDetailView({
 
   const currentStockNum = Number(item.currentStock) || 0;
   const stockValuation =
-    currentStockNum * (Number(item.purchaseRate) || Number(item.retailPrice) || 0);
+    currentStockNum * (Number(item.purchaseRate || (item as any).purchasePrice || 0) || Number(item.retailPrice || (item as any).salesPrice || 0) || 0);
 
   // Stock status badge
   const isNegativeStock = currentStockNum < 0;
@@ -676,7 +676,7 @@ export function ItemDetailView({
                   <div>
                     <p className="text-slate-400 font-medium">Purchase Price</p>
                     <p className="mt-1 font-semibold text-slate-900">
-                      {formatInr(item.purchaseRate)}{" "}
+                      {formatInr(Number(item.purchaseRate ?? (item as any).purchasePrice ?? 0))}{" "}
                       <span className="text-slate-400 font-normal text-[11px]">Without Tax</span>
                     </p>
                   </div>

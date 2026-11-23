@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
 import { X, Phone, Handshake, UserCheck, Zap, CheckCircle2, AlertTriangle, AlertCircle, Check, Square, Play } from "lucide-react";
 
 // ============================================================================
@@ -2115,7 +2116,7 @@ export default function AICollectionsPage() {
                   type="text"
                   value={campaignName}
                   onChange={(e) => setCampaignName(e.target.value)}
-                  placeholder={`Collection Campaign ${new Date().toLocaleDateString("en-IN")}`}
+                  placeholder={`Collection Campaign ${formatDate(new Date())}`}
                   className="w-full h-9 px-3 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#5C56DF]"
                 />
               </div>

@@ -9,7 +9,7 @@ import React, {
   forwardRef,
 } from "react";
 import { createPortal } from "react-dom";
-import { Search, ChevronDown, X } from "lucide-react";
+import { Search, ChevronDown, X, Plus } from "lucide-react";
 import { BaseDropdownProps, DropdownOption } from "./dropdown-types";
 import { DropdownOptionItem } from "./dropdown-option";
 import { DropdownEmpty } from "./dropdown-empty";
@@ -30,6 +30,8 @@ export interface CustomComboboxProps<T = any> extends BaseDropdownProps<T> {
   filterFn?: (option: DropdownOption<T>, query: string) => boolean;
   minPanelWidth?: number;
   renderOption?: (option: DropdownOption<T>, isSelected: boolean) => React.ReactNode;
+  allowCustomValue?: boolean;
+  onCustomValueSelect?: (val: string) => void;
 }
 
 export const CustomCombobox = forwardRef<HTMLButtonElement, CustomComboboxProps<any>>(
@@ -62,6 +64,8 @@ export const CustomCombobox = forwardRef<HTMLButtonElement, CustomComboboxProps<
       filterFn,
       minPanelWidth,
       renderOption,
+      allowCustomValue = false,
+      onCustomValueSelect,
       onChange,
       onSearch,
     },
@@ -488,6 +492,23 @@ export const CustomCombobox = forwardRef<HTMLButtonElement, CustomComboboxProps<
 
               {/* Options List */}
               <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5 min-h-0">
+                {allowCustomValue && query.trim() && !options.some((o) => o.label.toLowerCase() === query.trim().toLowerCase()) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const customVal = query.trim();
+                      if (onCustomValueSelect) {
+                        onCustomValueSelect(customVal);
+                      } else {
+                        handleSelect({ value: customVal, label: customVal });
+                      }
+                    }}
+                    className="w-full text-left p-2 rounded-lg text-xs font-semibold text-blue-600 bg-blue-50/60 hover:bg-blue-100/70 transition-colors flex items-center gap-2 cursor-pointer mb-1 border border-blue-200/60"
+                  >
+                    <Plus className="w-3.5 h-3.5 shrink-0" />
+                    <span>Use &quot;{query.trim()}&quot; as custom item</span>
+                  </button>
+                )}
                 {isLoading ? (
                   <DropdownLoading />
                 ) : filteredOptions.length === 0 ? (

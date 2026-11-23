@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient } from "../../../../lib/api-client";
 import { X, Copy, MessageCircle } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 interface AllocationRow {
   id: string;
@@ -61,14 +62,7 @@ function formatPaymentDate(value?: string): string {
 }
 
 function formatTableDate(value?: string): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDate(value, "—");
 }
 
 function numberToWordsINR(amount: number): string {

@@ -9,6 +9,8 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import { Check, X, Wallet, ArrowUpRight, ArrowLeftRight, FileText, Banknote, Landmark, ArrowDownLeft } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 interface JournalLine {
   id: string;
@@ -389,7 +391,7 @@ export default function FinanceVouchersPage() {
       sortable: true,
       cell: (v) => (
         <span className="tabular-nums text-slate-600 text-xs">
-          {new Date(v.voucherDate).toLocaleDateString("en-IN")}
+          {formatDate(v.voucherDate)}
         </span>
       ),
     },
@@ -714,7 +716,7 @@ export default function FinanceVouchersPage() {
               <div>
                 <span className="font-semibold text-slate-500">Date: </span>
                 <span className="tabular-nums font-bold text-slate-900">
-                  {new Date(selectedVoucher.voucherDate).toLocaleDateString("en-IN")}
+                  {formatDate(selectedVoucher.voucherDate)}
                 </span>
               </div>
               <div>
@@ -865,12 +867,9 @@ export default function FinanceVouchersPage() {
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "તારીખ *" : "Date *"}
                 </label>
-                <input
-                  required
-                  type="date"
+                <CustomDatePicker
                   value={expenseForm.voucherDate}
-                  onChange={(e) => setExpenseForm({ ...expenseForm, voucherDate: e.target.value })}
-                  className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums h-10"
+                  onChange={(val) => setExpenseForm({ ...expenseForm, voucherDate: val })}
                 />
               </div>
             </div>
@@ -981,12 +980,9 @@ export default function FinanceVouchersPage() {
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "તારીખ *" : "Date *"}
                 </label>
-                <input
-                  required
-                  type="date"
+                <CustomDatePicker
                   value={contraForm.voucherDate}
-                  onChange={(e) => setContraForm({ ...contraForm, voucherDate: e.target.value })}
-                  className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums h-10"
+                  onChange={(val) => setContraForm({ ...contraForm, voucherDate: val })}
                 />
               </div>
             </div>

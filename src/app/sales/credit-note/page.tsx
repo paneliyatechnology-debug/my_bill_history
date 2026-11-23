@@ -9,6 +9,7 @@ import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/sc
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { X, ShieldAlert } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 type DateRangePreset =
   | "ALL"
@@ -79,14 +80,7 @@ interface CreditNoteRow {
 }
 
 function formatDisplayDate(val?: string): string {
-  if (!val) return "—";
-  const d = new Date(val);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDate(val, "—");
 }
 
 function isoDate(date: Date): string {

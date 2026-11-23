@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiClient } from "../../../lib/api-client";
@@ -215,7 +217,7 @@ function Body() {
                       </Link>
                     </td>
                     <td className="py-3 px-3 text-slate-600 tabular-nums">
-                      {row.invoiceDate ? new Date(row.invoiceDate).toLocaleDateString("en-IN") : "—"}
+                      {row.invoiceDate ? formatDate(row.invoiceDate) : "—"}
                     </td>
                     <td className="py-3 px-3">
                       <div className="font-medium text-slate-900">{partyName}</div>

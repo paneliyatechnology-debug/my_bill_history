@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { apiClient } from "@/lib/api-client";
@@ -98,11 +100,7 @@ export function UpcomingDuesAlertCard() {
       const monthIndex = Number(parts[1]) - 1;
       const day = Number(parts[2]);
       const d = new Date(year, monthIndex, day);
-      return d.toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+      return formatDate(d);
     }
     return dateStr;
   };

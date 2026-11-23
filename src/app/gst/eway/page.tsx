@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiClient } from "../../../lib/api-client";
@@ -279,7 +281,7 @@ function EwayBody() {
                         </td>
                         <td className="py-2.5 px-3 text-slate-600">
                           {hasEwb && row.eWayBill?.validUpto ? (
-                            <span>{new Date(row.eWayBill.validUpto).toLocaleDateString("en-IN")}</span>
+                            <span>{formatDate(row.eWayBill.validUpto)}</span>
                           ) : (
                             <span className="text-slate-400">—</span>
                           )}

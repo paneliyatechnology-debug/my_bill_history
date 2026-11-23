@@ -16,6 +16,7 @@ import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { CustomSelect } from "@/components/ui/dropdown-system";
 import { Phone, Truck, Ban, X, ShieldAlert } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 interface DeliveryChallanItem {
   id: string;
@@ -347,7 +348,7 @@ export default function DeliveryChallanListingPage() {
 
   const exportData = useMemo(() => {
     return filteredChallans.map((ch) => ({
-      challanDate: ch.challanDate ? new Date(ch.challanDate).toLocaleDateString("en-GB") : "",
+      challanDate: ch.challanDate ? formatDate(ch.challanDate) : "",
       challanNumber: ch.challanNumber,
       partyName: ch.party?.name || ch.warehouse?.name || "Direct / Self",
       amount: formatInr(ch.totalAmount || 0),
@@ -606,13 +607,7 @@ export default function DeliveryChallanListingPage() {
                       {/* Date & Type */}
                       <td className="px-4 py-3 whitespace-nowrap typo-table-td text-[#182230]">
                         <div>
-                          {ch.challanDate
-                            ? new Date(ch.challanDate).toLocaleDateString("en-GB", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })
-                            : "—"}
+                          {formatDate(ch.challanDate, "—")}
                         </div>
                         <div className="typo-card-desc text-slate-400 mt-0.5 capitalize">
                           {ch.challanType ? ch.challanType.toLowerCase().replace(/_/g, " ") : "Challan"}

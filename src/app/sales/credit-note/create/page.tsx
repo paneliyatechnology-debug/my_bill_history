@@ -19,10 +19,12 @@ import {
   DocumentPaymentCard,
   DocumentBottomBar,
   PartySelectorCompact,
+  CleanNumberInput,
 } from "@/components/document-studio";
-import { INDIAN_STATES } from "@/shared-types";
+import { INDIAN_STATES, resolvePartyStateCode, getStateDisplayName } from "@/shared-types";
 import { AlertTriangle, X, Printer, Package, Coins, Landmark, Handshake } from "lucide-react";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
 
 interface Party {
   id: string;
@@ -105,14 +107,7 @@ function formatInr(val: number | string): string {
 }
 
 function formatDisplayDate(val?: string): string {
-  if (!val) return "—";
-  const d = new Date(val);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDate(val, "—");
 }
 
 export default function CreateCreditNotePage() {
@@ -156,12 +151,12 @@ export default function CreateCreditNotePage() {
 
   // Bottom Fields: Notes, Terms, Additional Charges, Discount
   const [showNotes, setShowNotes] = useState(false);
-    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
   const [transportMode, setTransportMode] = useState("Road");
   const [vehicleNo, setVehicleNo] = useState("");
   const [ewayBillNo, setEwayBillNo] = useState("");
   const [dispatchDate, setDispatchDate] = useState("");
-const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState("");
   const [showTerms, setShowTerms] = useState(false);
   const [terms, setTerms] = useState("");
 
@@ -175,7 +170,7 @@ const [notes, setNotes] = useState("");
   const [autoRoundOff, setAutoRoundOff] = useState(true);
 
   // Refund / Payment Received
-  const [amountReceived, setAmountReceived] = useState<string>("0");
+  const [amountReceived, setAmountReceived] = useState<string>("");
   const [paymentMode, setPaymentMode] = useState<string>("Cash");
   const [isMarkAsFullyPaid, setIsMarkAsFullyPaid] = useState(false);
 
@@ -762,8 +757,8 @@ const [notes, setNotes] = useState("");
                         ? "ડેબિટ નોટ પ્રિવ્યૂ"
                         : "Debit Note Preview"
                       : lang === "gu"
-                      ? "ક્રેડિટ નોટ પ્રિવ્યૂ"
-                      : "Credit Note Preview"}
+                        ? "ક્રેડિટ નોટ પ્રિવ્યૂ"
+                        : "Credit Note Preview"}
                   </span>
                   <span
                     className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
@@ -797,7 +792,11 @@ const [notes, setNotes] = useState("");
                 invoiceNumber: returnNumber || (isDebitNote ? "DN-001" : "CN-001"),
                 invoiceDate: returnDate,
                 paymentMode: isDebitNote ? "DEBIT NOTE" : "CREDIT NOTE",
-                placeOfSupply: selectedParty?.stateCode ? `State Code (${selectedParty.stateCode})` : "Gujarat (24)",
+                placeOfSupply: selectedParty
+                  ? getStateDisplayName(resolvePartyStateCode(selectedParty, currentCompany?.stateCode))
+                  : currentCompany?.stateCode
+                    ? getStateDisplayName(currentCompany.stateCode)
+                    : "—",
                 taxableAmount: subtotalTaxable,
                 cgstAmount: subtotalTax > 0 ? subtotalTax / 2 : 0,
                 sgstAmount: subtotalTax > 0 ? subtotalTax / 2 : 0,
@@ -881,11 +880,10 @@ const [notes, setNotes] = useState("");
                   <button
                     type="button"
                     onClick={() => setCreditNoteType("ITEM_BASED")}
-                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
-                      creditNoteType === "ITEM_BASED"
-                        ? "border-blue-600 bg-blue-50/70 text-blue-700 shadow-xs"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                    }`}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${creditNoteType === "ITEM_BASED"
+                      ? "border-blue-600 bg-blue-50/70 text-blue-700 shadow-xs"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                      }`}
                   >
                     <span className="inline-flex items-center justify-center gap-1.5"><Package className="w-3.5 h-3.5" /> Item-Based</span>
                     <span className="block text-[10px] font-normal text-slate-500 mt-0.5">Line-item returns & rates</span>
@@ -893,11 +891,10 @@ const [notes, setNotes] = useState("");
                   <button
                     type="button"
                     onClick={() => setCreditNoteType("AMOUNT_BASED")}
-                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
-                      creditNoteType === "AMOUNT_BASED"
-                        ? "border-purple-600 bg-purple-50/70 text-purple-700 shadow-xs"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                    }`}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${creditNoteType === "AMOUNT_BASED"
+                      ? "border-purple-600 bg-purple-50/70 text-purple-700 shadow-xs"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                      }`}
                   >
                     <span className="inline-flex items-center justify-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Amount-Based</span>
                     <span className="block text-[10px] font-normal text-slate-500 mt-0.5">Flat discount / rebate</span>
@@ -913,11 +910,10 @@ const [notes, setNotes] = useState("");
                   <button
                     type="button"
                     onClick={() => setGstCategory("SECTION_34")}
-                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
-                      gstCategory === "SECTION_34"
-                        ? "border-emerald-600 bg-emerald-50/70 text-emerald-800 shadow-xs"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                    }`}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${gstCategory === "SECTION_34"
+                      ? "border-emerald-600 bg-emerald-50/70 text-emerald-800 shadow-xs"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                      }`}
                   >
                     <span className="inline-flex items-center justify-center gap-1.5"><Landmark className="w-3.5 h-3.5" /> GST Section 34 Note</span>
                     <span className="block text-[10px] font-normal text-slate-500 mt-0.5">Reverses output GST</span>
@@ -925,11 +921,10 @@ const [notes, setNotes] = useState("");
                   <button
                     type="button"
                     onClick={() => setGstCategory("COMMERCIAL")}
-                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
-                      gstCategory === "COMMERCIAL"
-                        ? "border-amber-600 bg-amber-50/70 text-amber-800 shadow-xs"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                    }`}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${gstCategory === "COMMERCIAL"
+                      ? "border-amber-600 bg-amber-50/70 text-amber-800 shadow-xs"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                      }`}
                   >
                     <span className="inline-flex items-center justify-center gap-1.5"><Handshake className="w-3.5 h-3.5" /> Commercial Note</span>
                     <span className="block text-[10px] font-normal text-slate-500 mt-0.5">No tax reduction</span>
@@ -1011,8 +1006,8 @@ const [notes, setNotes] = useState("");
                   invoices.length > 0
                     ? "-- Select Invoice (Optional) --"
                     : selectedParty
-                    ? "-- No Eligible Returnable Invoices --"
-                    : "-- Select Customer First --",
+                      ? "-- No Eligible Returnable Invoices --"
+                      : "-- Select Customer First --",
               },
               {
                 id: "reason",
@@ -1025,292 +1020,286 @@ const [notes, setNotes] = useState("");
             ]}
           />
 
-          {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            {/* Left Column (8 cols): Items & Services Table + Notes & Additional Info */}
-            <div className="lg:col-span-8 space-y-5">
-              {creditNoteType === "AMOUNT_BASED" ? (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900">
-                        Amount-Based Credit Adjustment (રકમ આધારિત ક્રેડિટ)
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Flat monetary credit without item-level inventory returns (e.g. Rate difference, Annual turnover rebate, Commercial discount)
-                      </p>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                      Amount-Based Mode
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Adjustment Amount (₹) <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={amountBasedAmount}
-                        onChange={(e) => setAmountBasedAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="w-full text-base font-bold tabular-nums text-slate-900 bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-600 rounded-xl px-3.5 py-2.5 h-11"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Applicable GST Rate (%)
-                      </label>
-                      {gstCategory === "COMMERCIAL" ? (
-                        <div className="h-11 flex items-center px-3.5 rounded-xl border border-slate-200 bg-slate-100 text-xs font-medium text-slate-500">
-                          0% (Commercial Credit Note - No GST Reversal)
-                        </div>
-                      ) : (
-                        <CustomSelect
-                          value={String(amountBasedTaxRate)}
-                          onChange={(val: any) => setAmountBasedTaxRate(Number(val) || 0)}
-                          options={GST_RATES.map((r) => ({
-                            value: String(r.value),
-                            label: r.label,
-                          }))}
-                          triggerClassName="rounded-xl border-slate-200 bg-white font-bold text-slate-800"
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Reason / Description for Credit
-                    </label>
-                    <input
-                      type="text"
-                      value={amountBasedReason}
-                      onChange={(e) => setAmountBasedReason(e.target.value)}
-                      placeholder="e.g. Annual turnover discount, rate difference, goodwill adjustment"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-purple-600 h-11"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Settlement Mode
-                    </label>
-                    <CustomSelect
-                      value={settlementMode}
-                      onChange={(val: any) => setSettlementMode(val as any)}
-                      options={[
-                        { value: "CUSTOMER_CREDIT", label: "Customer Credit Balance (Hold on Account)" },
-                        { value: "ADJUST_OUTSTANDING", label: "Adjust Against Invoice Outstanding" },
-                        { value: "REFUND_CASH", label: "Immediate Cash Refund" },
-                        { value: "REFUND_BANK", label: "Immediate Bank Refund" },
-                      ]}
-                      triggerClassName="rounded-xl border-slate-200 bg-white font-medium text-slate-900"
-                    />
-                  </div>
+          {/* 1. FULL WIDTH ITEMS OR AMOUNT-BASED WORKSPACE */}
+          {creditNoteType === "AMOUNT_BASED" ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5 mb-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Amount-Based Credit Adjustment (રકમ આધારિત ક્રેડિટ)
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Flat monetary credit without item-level inventory returns (e.g. Rate difference, Annual turnover rebate, Commercial discount)
+                  </p>
                 </div>
-              ) : (
-                <DocumentItemsCard
-                title="Return Line Items"
-                itemsCount={lineItems.length}
-                totalQty={totalQuantity}
-                itemsTotal={calculatedGrandTotal}
-                onImportItems={() => setIsAddItemsModalOpen(true)}
-                onAddItem={() => setIsAddItemsModalOpen(true)}
-                onAddBlankRow={() => {
-                  const newRow: ReturnLineItem = {
-                    id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-                    name: "Return Item",
-                    description: "",
-                    hsn: "1001",
-                    quantity: 1,
-                    unit: "PCS",
-                    unitPrice: 0,
-                    discountValue: 0,
-                    discountType: "PERCENT",
-                    taxRate: 18,
-                  };
-                  setLineItems((curr) => [...curr, newRow]);
-                }}
-                addItemLabel="+ Add Item"
-              >
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
-                    <tr>
-                      <th className="py-3 px-3.5 text-center w-12">#</th>
-                      <th className="py-3 px-3.5">Item / Description</th>
-                      <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
-                      <th className="py-3 px-3 text-right w-24">Qty</th>
-                      <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
-                      <th className="py-3 px-3 text-right w-24">Discount</th>
-                      <th className="py-3 px-3 text-right w-24">Tax (%)</th>
-                      <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
-                      <th className="py-3 px-3 text-center w-16">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {itemCalculations.length === 0 ? (
-                      <tr>
-                        <td colSpan={9} className="py-12 text-center text-slate-400">
-                          <div className="max-w-xs mx-auto space-y-2">
-                            <Package className="w-8 h-8 text-slate-300 mx-auto" />
-                            <p className="font-bold text-slate-700">No return items added yet</p>
-                            <p className="text-[11px] text-slate-400">Add an item or select an original invoice above</p>
-                            <button
-                              type="button"
-                              onClick={() => setIsAddItemsModalOpen(true)}
-                              className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
-                            >
-                              + Add Item
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      itemCalculations.map((item, idx) => (
-                        <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
-                            {idx + 1}
-                          </td>
+                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                  Amount-Based Mode
+                </span>
+              </div>
 
-                          <td className="py-3 px-3">
-                            <input
-                              type="text"
-                              value={item.name}
-                              onChange={(e) => updateLineItem(item.id, { name: e.target.value })}
-                              placeholder="Item name / description"
-                              className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
-                            />
-                          </td>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Adjustment Amount (₹) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={amountBasedAmount}
+                    onChange={(e) => setAmountBasedAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full text-base font-bold tabular-nums text-slate-900 bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-600 rounded-xl px-3.5 py-2.5 h-11"
+                  />
+                </div>
 
-                          <td className="py-3 px-3">
-                            <input
-                              type="text"
-                              value={item.hsn}
-                              onChange={(e) => updateLineItem(item.id, { hsn: e.target.value })}
-                              className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
-                              placeholder="HSN"
-                            />
-                          </td>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Applicable GST Rate (%)
+                  </label>
+                  {gstCategory === "COMMERCIAL" ? (
+                    <div className="h-11 flex items-center px-3.5 rounded-xl border border-slate-200 bg-slate-100 text-xs font-medium text-slate-500">
+                      0% (Commercial Credit Note - No GST Reversal)
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      value={String(amountBasedTaxRate)}
+                      onChange={(val: any) => setAmountBasedTaxRate(Number(val) || 0)}
+                      options={GST_RATES.map((r) => ({
+                        value: String(r.value),
+                        label: r.label,
+                      }))}
+                      triggerClassName="rounded-xl border-slate-200 bg-white font-bold text-slate-800"
+                    />
+                  )}
+                </div>
+              </div>
 
-                          <td className="py-3 px-3">
-                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                              <input
-                                type="number"
-                                min="0.001"
-                                step="any"
-                                value={item.quantity}
-                                onChange={(e) => updateLineItem(item.id, { quantity: Number(e.target.value) || 0 })}
-                                className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none h-10"
-                              />
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-3">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              value={item.unitPrice}
-                              onChange={(e) => updateLineItem(item.id, { unitPrice: Number(e.target.value) || 0 })}
-                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
-                            />
-                          </td>
-
-                          <td className="py-3 px-3">
-                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                              <input
-                                type="number"
-                                min="0"
-                                value={item.discountValue}
-                                onChange={(e) => updateLineItem(item.id, { discountValue: Number(e.target.value) || 0 })}
-                                placeholder="0"
-                                className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
-                              />
-                              <span className="text-[10px] text-slate-400">%</span>
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-3">
-                            <CustomSelect
-                              size="sm"
-                              value={String(item.taxRate)}
-                              onChange={(val: any) => updateLineItem(item.id, { taxRate: Number(val) || 0 })}
-                              options={GST_RATES.map((r) => ({
-                                value: String(r.value),
-                                label: r.label,
-                              }))}
-                              triggerClassName="rounded-xl border-slate-200 bg-slate-50 text-slate-800 tabular-nums"
-                            />
-                          </td>
-
-                          <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
-                            {formatInr(item.totalAmount)}
-                          </td>
-
-                          <td className="py-3 px-3 text-center">
-                            <button
-                              type="button"
-                              onClick={() => removeLineItem(item.id)}
-                              className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
-                              title="Delete row"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </DocumentItemsCard>
-              )}
-
-              {/* Side-by-side: Notes & Terms + Additional Information */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <DocumentNotesAndTermsCard
-                  activeTab={activeNotesTab}
-                  onTabChange={setActiveNotesTab}
-                  notes={notes}
-                  onNotesChange={setNotes}
-                  terms={terms}
-                  onTermsChange={setTerms}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Reason / Description for Credit
+                </label>
+                <input
+                  type="text"
+                  value={amountBasedReason}
+                  onChange={(e) => setAmountBasedReason(e.target.value)}
+                  placeholder="e.g. Annual turnover discount, rate difference, goodwill adjustment"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-purple-600 h-11"
                 />
+              </div>
 
-                <DocumentAdditionalInfoCard
-                  transportMode={transportMode}
-                  onTransportModeChange={setTransportMode}
-                  vehicleNo={vehicleNo}
-                  onVehicleNoChange={setVehicleNo}
-                  ewayBillNo={ewayBillNo}
-                  onEwayBillNoChange={setEwayBillNo}
-                  dispatchDate={dispatchDate}
-                  onDispatchDateChange={setDispatchDate}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Settlement Mode
+                </label>
+                <CustomSelect
+                  value={settlementMode}
+                  onChange={(val: any) => setSettlementMode(val as any)}
+                  options={[
+                    { value: "CUSTOMER_CREDIT", label: "Customer Credit Balance (Hold on Account)" },
+                    { value: "ADJUST_OUTSTANDING", label: "Adjust Against Invoice Outstanding" },
+                    { value: "REFUND_CASH", label: "Immediate Cash Refund" },
+                    { value: "REFUND_BANK", label: "Immediate Bank Refund" },
+                  ]}
+                  triggerClassName="rounded-xl border-slate-200 bg-white font-medium text-slate-900"
                 />
               </div>
             </div>
+          ) : (
+            <DocumentItemsCard
+              title="Return Line Items"
+              itemsCount={lineItems.length}
+              totalQty={totalQuantity}
+              itemsTotal={calculatedGrandTotal}
+              onImportItems={() => setIsAddItemsModalOpen(true)}
+              onAddItem={() => setIsAddItemsModalOpen(true)}
+              onAddBlankRow={() => {
+                const newRow: ReturnLineItem = {
+                  id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                  name: "Return Item",
+                  description: "",
+                  hsn: "1001",
+                  quantity: 1,
+                  unit: "PCS",
+                  unitPrice: 0,
+                  discountValue: 0,
+                  discountType: "PERCENT",
+                  taxRate: 18,
+                };
+                setLineItems((curr) => [...curr, newRow]);
+              }}
+              addItemLabel="+ Add Item"
+            >
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-3.5 text-center w-12">#</th>
+                    <th className="py-3 px-3.5 min-w-[280px]">Item / Description</th>
+                    <th className="py-3 px-3 text-center w-28 min-w-[105px]">HSN/SAC</th>
+                    <th className="py-3 px-3 text-right w-24 min-w-[95px]">Qty</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Rate (₹)</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Discount</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Tax (%)</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Amount (₹)</th>
+                    <th className="py-3 px-3 text-center w-14">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {itemCalculations.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-12 text-center text-slate-400">
+                        <div className="max-w-xs mx-auto space-y-2">
+                          <Package className="w-8 h-8 text-slate-300 mx-auto" />
+                          <p className="font-bold text-slate-700">No return items added yet</p>
+                          <p className="text-[11px] text-slate-400">Add an item or select an original invoice above</p>
+                          <button
+                            type="button"
+                            onClick={() => setIsAddItemsModalOpen(true)}
+                            className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
+                          >
+                            + Add Item
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    itemCalculations.map((item, idx) => (
+                      <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
+                          {idx + 1}
+                        </td>
 
-            {/* Right Column (4 cols): Summary Card + Payment/Adjustment Card */}
-            <div className="lg:col-span-4 space-y-5">
+                        <td className="py-3 px-3">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => updateLineItem(item.id, { name: e.target.value })}
+                            placeholder="Item name / description"
+                            className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
+                          />
+                        </td>
+
+                        <td className="py-3 px-3">
+                          <input
+                            type="text"
+                            value={item.hsn}
+                            onChange={(e) => updateLineItem(item.id, { hsn: e.target.value })}
+                            className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
+                            placeholder="HSN"
+                          />
+                        </td>
+
+                        <td className="py-3 px-3">
+                          <CleanNumberInput
+                            value={item.quantity}
+                            onChange={(val) => updateLineItem(item.id, { quantity: val })}
+                            placeholder="1"
+                            className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none"
+                            containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                          />
+                        </td>
+
+                        <td className="py-3 px-3">
+                          <CleanNumberInput
+                            value={item.unitPrice}
+                            onChange={(val) => updateLineItem(item.id, { unitPrice: val })}
+                            placeholder="0.00"
+                            className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
+                          />
+                        </td>
+
+                        <td className="py-3 px-3">
+                          <CleanNumberInput
+                            value={item.discountValue}
+                            onChange={(val) => updateLineItem(item.id, { discountValue: val })}
+                            placeholder="0"
+                            suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                            className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none"
+                            containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                          />
+                        </td>
+
+                        <td className="py-3 px-3">
+                          <CustomSelect
+                            size="sm"
+                            value={String(item.taxRate)}
+                            onChange={(val: any) => updateLineItem(item.id, { taxRate: Number(val) || 0 })}
+                            options={GST_RATES.map((r) => ({
+                              value: String(r.value),
+                              label: r.label,
+                            }))}
+                            triggerClassName="rounded-xl border-slate-200 bg-slate-50 text-slate-800 tabular-nums"
+                          />
+                        </td>
+
+                        <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
+                          {formatInr(item.totalAmount)}
+                        </td>
+
+                        <td className="py-3 px-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => removeLineItem(item.id)}
+                            className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                            title="Delete row"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </DocumentItemsCard>
+          )}
+
+          {/* 2. BOTTOM WORKSPACE: NOTES & ADDITIONAL INFO (7 cols) + SUMMARY & PAYMENT (5 cols) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            {/* Left Column (7 cols): Notes, Terms & Additional Information */}
+            <div className="lg:col-span-7 space-y-5">
+              <DocumentNotesAndTermsCard
+                activeTab={activeNotesTab}
+                onTabChange={setActiveNotesTab}
+                notes={notes}
+                onNotesChange={setNotes}
+                terms={terms}
+                onTermsChange={setTerms}
+              />
+
+              <DocumentAdditionalInfoCard
+                transportMode={transportMode}
+                onTransportModeChange={setTransportMode}
+                vehicleNo={vehicleNo}
+                onVehicleNoChange={setVehicleNo}
+                ewayBillNo={ewayBillNo}
+                onEwayBillNoChange={setEwayBillNo}
+                dispatchDate={dispatchDate}
+                onDispatchDateChange={setDispatchDate}
+                freightAmount={additionalCharges}
+                onFreightAmountChange={(val) => setAdditionalCharges(Number(val) || 0)}
+              />
+            </div>
+
+            {/* Right Column (5 cols): Summary Card + Payment/Adjustment Card */}
+            <div className="lg:col-span-5 space-y-5">
               <DocumentSummaryCard
                 title={`${docLabel} Valuation`}
                 subtotal={subtotalTaxable}
                 discount={Number(discountAmount) > 0 ? Number(discountAmount) : undefined}
+                customRows={Number(additionalCharges) > 0 ? [{ label: "Freight", value: Number(additionalCharges) }] : []}
                 roundOff={autoRoundOff ? roundOffAmount : undefined}
                 grandTotal={calculatedGrandTotal}
               />
 
               <DocumentPaymentCard
+                amountLabel={isDebitNote ? "Amount Paid" : "Refund Paid"}
                 amountReceived={isMarkAsFullyPaid ? calculatedGrandTotal : amountReceived}
                 onAmountReceivedChange={(val) => {
                   setIsMarkAsFullyPaid(false);
-                  setAmountReceived(val === "" ? "0" : String(val));
+                  setAmountReceived(val === "" ? "" : String(val));
                 }}
                 paymentMode={paymentMode}
                 onPaymentModeChange={setPaymentMode}

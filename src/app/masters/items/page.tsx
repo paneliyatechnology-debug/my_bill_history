@@ -402,8 +402,10 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
       categoryId: data.categoryId || undefined,
       taxRate: Number(data.taxRate) || 0,
       retailPrice: Number(data.retailPrice) || 0,
+      salesPrice: Number(data.retailPrice) || 0,
       mrp: Number(data.mrp) || Number(data.retailPrice) || 0,
       purchaseRate: Number(data.purchaseRate) || 0,
+      purchasePrice: Number(data.purchaseRate) || 0,
       wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
       minStockLevel: data.enableLowStockWarning ? (Number(data.minStockLevel) || 0) : 0,
       openingStock: data.type === "PRODUCT" ? Number(data.openingStock) || 0 : 0,
@@ -472,9 +474,9 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
       conversionFactor: Number(editingItem.conversionFactor) || 1,
       categoryId: editingItem.categoryId || "",
       taxRate: Number(editingItem.taxRate) || 0,
-      retailPrice: Number(editingItem.retailPrice) || "",
-      mrp: Number(editingItem.mrp ?? editingItem.retailPrice ?? ""),
-      purchaseRate: Number(editingItem.purchaseRate ?? ""),
+      retailPrice: Number(editingItem.retailPrice ?? (editingItem as any).salesPrice ?? "") || "",
+      mrp: Number(editingItem.mrp ?? editingItem.retailPrice ?? (editingItem as any).salesPrice ?? "") || "",
+      purchaseRate: Number(editingItem.purchaseRate ?? (editingItem as any).purchasePrice ?? "") || "",
       wholesalePrice: Number(editingItem.wholesalePrice ?? "") || "",
       openingStock:
         editingItem.currentStock !== undefined
@@ -510,8 +512,10 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
       categoryId: data.categoryId || undefined,
       taxRate: Number(data.taxRate) || 0,
       retailPrice: Number(data.retailPrice) || 0,
+      salesPrice: Number(data.retailPrice) || 0,
       mrp: Number(data.mrp) || Number(data.retailPrice) || 0,
       purchaseRate: Number(data.purchaseRate) || 0,
+      purchasePrice: Number(data.purchaseRate) || 0,
       wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
       openingStock:
         data.openingStock !== undefined && data.openingStock !== ""
@@ -807,7 +811,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         accessorKey: "purchaseRate",
         sortable: true,
         cell: (it) => {
-          const price = Number(it.purchaseRate);
+          const price = Number(it.purchaseRate ?? (it as any).purchasePrice ?? (it as any).costPrice ?? (it as any).lastPurchasePrice ?? 0);
           if (!price) return <span className="text-slate-400">-</span>;
           return (
             <span className="typo-table-amount text-slate-800">

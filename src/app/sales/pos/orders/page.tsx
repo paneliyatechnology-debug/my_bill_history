@@ -12,6 +12,7 @@ import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { ExportDropdown } from "@/components/ui/export-dropdown";
 import { ExportColumn } from "@/lib/export/export-types";
 import { executeThermalPrint, getCachedThermalSettings } from "@/lib/thermal-printer";
+import { formatDate } from "@/lib/date-utils";
 import {
   Calculator,
   Receipt,
@@ -877,11 +878,7 @@ export default function PosOrdersPage() {
                             </span>
                           </div>
                           <div className="text-[11px] text-slate-500 mt-0.5">
-                            {new Date(order.createdAt || order.date).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}{" "}
+                            {formatDate(order.createdAt || order.date)}{" "}
                             •{" "}
                             {new Date(order.createdAt || order.date).toLocaleTimeString("en-IN", {
                               hour: "2-digit",
@@ -1062,9 +1059,7 @@ export default function PosOrdersPage() {
                 </div>
                 <div className="text-right">
                   <p>
-                    {new Date(activeReceipt.createdAt || activeReceipt.date).toLocaleDateString(
-                      "en-IN"
-                    )}
+                    {formatDate(activeReceipt.createdAt || activeReceipt.date)}
                   </p>
                   <p>
                     {new Date(activeReceipt.createdAt || activeReceipt.date).toLocaleTimeString(

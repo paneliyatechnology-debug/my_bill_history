@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { apiClient } from "../../../lib/api-client";
 import { X } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 export interface ReportItem {
   id: string;
@@ -441,17 +442,7 @@ const DATE_PRESET_OPTIONS = [
 ];
 
 function formatDisplayDate(dateStr?: string): string {
-  if (!dateStr) return "";
-  try {
-    const raw = dateStr.split("T")[0];
-    const [year, month, day] = raw.split("-");
-    if (!year || !month || !day) return dateStr;
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const mIdx = parseInt(month, 10) - 1;
-    return `${day.padStart(2, "0")} ${months[mIdx] || month} ${year}`;
-  } catch {
-    return dateStr;
-  }
+  return formatDate(dateStr, "");
 }
 
 function formatInr(val: number | null | undefined): string {

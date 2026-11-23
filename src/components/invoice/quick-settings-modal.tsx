@@ -66,8 +66,9 @@ export const DEFAULT_QUICK_SETTINGS: QuickSettingsConfig = {
 
 export const DEFAULT_PURCHASE_QUICK_SETTINGS: QuickSettingsConfig = {
   ...DEFAULT_QUICK_SETTINGS,
-  invoicePrefix: "PUR-26-",
-  invoiceSequence: "0014",
+  enablePrefix: false,
+  invoicePrefix: "",
+  invoiceSequence: "",
 };
 
 export interface QuickSettingsModalProps {
@@ -117,11 +118,13 @@ export function QuickSettingsModal({
         ...defaults,
         ...(settings || {}),
         invoicePrefix:
-          settings?.invoicePrefix && settings.invoicePrefix !== "INV-26-27-"
-            ? settings.invoicePrefix
-            : voucherType === "purchase"
-            ? (settings?.invoicePrefix === "INV-26-27-" ? "PUR-26-" : settings?.invoicePrefix || "PUR-26-")
+          voucherType === "purchase"
+            ? ""
             : settings?.invoicePrefix || "INV-26-27-",
+        invoiceSequence:
+          voucherType === "purchase"
+            ? ""
+            : settings?.invoiceSequence || "0014",
       });
       if (initialTab) {
         setActiveTab(initialTab);
@@ -216,7 +219,7 @@ export function QuickSettingsModal({
     ? "Add your custom prefix & sequence for Purchase Invoice Number"
     : "Add your custom prefix & sequence for Invoice Number";
   const inputPrefixLabel = prefixLabel || (isPurchase ? "Purchase Prefix" : "Invoice Prefix");
-  const inputPrefixPlaceholder = prefixPlaceholder || (isPurchase ? "e.g. PUR-26-" : "e.g. INV-26-27-");
+  const inputPrefixPlaceholder = prefixPlaceholder || (isPurchase ? "" : "e.g. INV-26-27-");
   const customFieldsHeading = isPurchase ? "Show or Hide Purchase Custom Fields" : "Show or Hide Invoice Custom Fields";
 
   return (
@@ -287,71 +290,83 @@ export function QuickSettingsModal({
             {/* TAB 1: INVOICE DETAILS */}
             {activeTab === "invoice" && (
               <div className="space-y-5">
-                {/* Invoice Prefix & Sequence */}
-                <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-3 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-slate-900 text-xs">
-                        {prefixHeading}
-                      </p>
-                      <p className="text-[11px] text-slate-500">
-                        {prefixDesc}
-                      </p>
-                    </div>
-                    {/* iOS Toggle Switch */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggle("enablePrefix")}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        formData.enablePrefix ? "bg-blue-600" : "bg-slate-200"
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                          formData.enablePrefix ? "translate-x-4" : "translate-x-0"
-                        }`}
-                      />
-                    </button>
+                {isPurchase ? (
+                  <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-1.5">
+                    <p className="font-bold text-slate-800 text-xs flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      Supplier Bill Number (Manual Entry)
+                    </p>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      Purchase bills use the invoice/bill number issued directly by your vendor. Automatic sequential numbering is not used for purchases to ensure vendor bill numbers are preserved accurately.
+                    </p>
                   </div>
-
-                  {formData.enablePrefix && (
-                    <div className="pt-2 border-t border-slate-100 space-y-2.5">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[10px] font-medium text-slate-600 uppercase mb-1">
-                            {inputPrefixLabel}
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.invoicePrefix}
-                            onChange={(e) =>
-                              setFormData({ ...formData, invoicePrefix: e.target.value })
-                            }
-                            placeholder={inputPrefixPlaceholder}
-                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg tabular-nums text-slate-900 text-[13px] focus:bg-white focus:outline-none focus:border-blue-500 h-10"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-medium text-slate-600 uppercase mb-1">
-                            Sequence / Starting No.
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.invoiceSequence}
-                            onChange={(e) =>
-                              setFormData({ ...formData, invoiceSequence: e.target.value })
-                            }
-                            placeholder="e.g. 0014"
-                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg tabular-nums text-slate-900 text-[13px] focus:bg-white focus:outline-none focus:border-blue-500 h-10"
-                          />
-                        </div>
+                ) : (
+                  /* Invoice Prefix & Sequence */
+                  <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-3 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-bold text-slate-900 text-xs">
+                          {prefixHeading}
+                        </p>
+                        <p className="text-[11px] text-slate-500">
+                          {prefixDesc}
+                        </p>
                       </div>
-                      <p className="text-[10px] text-slate-500 tabular-nums">
-                        Live Preview: <strong className="text-blue-600">{formData.invoicePrefix}{formData.invoiceSequence}</strong>
-                      </p>
+                      {/* iOS Toggle Switch */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggle("enablePrefix")}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          formData.enablePrefix ? "bg-blue-600" : "bg-slate-200"
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                            formData.enablePrefix ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
                     </div>
-                  )}
-                </div>
+
+                    {formData.enablePrefix && (
+                      <div className="pt-2 border-t border-slate-100 space-y-2.5">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[10px] font-medium text-slate-600 uppercase mb-1">
+                              {inputPrefixLabel}
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.invoicePrefix}
+                              onChange={(e) =>
+                                setFormData({ ...formData, invoicePrefix: e.target.value })
+                              }
+                              placeholder={inputPrefixPlaceholder}
+                              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg tabular-nums text-slate-900 text-[13px] focus:bg-white focus:outline-none focus:border-blue-500 h-10"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-medium text-slate-600 uppercase mb-1">
+                              Sequence / Starting No.
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.invoiceSequence}
+                              onChange={(e) =>
+                                setFormData({ ...formData, invoiceSequence: e.target.value })
+                              }
+                              placeholder="e.g. 0014"
+                              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg tabular-nums text-slate-900 text-[13px] focus:bg-white focus:outline-none focus:border-blue-500 h-10"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-slate-500 tabular-nums">
+                          Live Preview: <strong className="text-blue-600">{formData.invoicePrefix}{formData.invoiceSequence}</strong>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Show or Hide Invoice Custom Fields */}
                 <div className="space-y-2.5">

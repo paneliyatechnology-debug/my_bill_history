@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
@@ -531,7 +533,7 @@ export default function InventoryReconciliationPage() {
                         header: lang === "gu" ? "મોકલ્યા તારીખ" : "Dispatched At",
                         accessorKey: "dispatchedAt",
                         sortable: true,
-                        cell: (t) => <span className="text-slate-600">{new Date(t.dispatchedAt).toLocaleDateString()}</span>,
+                        cell: (t) => <span className="text-slate-600">{formatDate(t.dispatchedAt)}</span>,
                       },
                       {
                         id: "itemsCount",
@@ -580,7 +582,7 @@ export default function InventoryReconciliationPage() {
                         </div>
                         <div className="text-slate-700 font-medium">{t.fromWarehouse} → {t.toWarehouse}</div>
                         <div className="flex justify-between text-slate-500 pt-1 border-t border-slate-100">
-                          <span>Dispatched: {new Date(t.dispatchedAt).toLocaleDateString()}</span>
+                          <span>Dispatched: {formatDate(t.dispatchedAt)}</span>
                           <span className="tabular-nums text-indigo-700 font-bold">Qty: {t.inTransitQuantity}</span>
                         </div>
                       </div>

@@ -10,6 +10,8 @@ import { ExportDropdown } from "@/components/ui/export-dropdown";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { Banknote, Check, ShieldAlert } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 interface LedgerGroup {
   id: string;
@@ -186,17 +188,7 @@ function BankLogo({ bankNameOrIfsc, className = "w-8 h-8" }: { bankNameOrIfsc?: 
 }
 
 function formatDisplayDate(dateStr?: string): string {
-  if (!dateStr) return "-";
-  try {
-    const raw = dateStr.split("T")[0];
-    const parts = raw.split("-");
-    if (parts.length === 3) {
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    return raw;
-  } catch {
-    return dateStr || "-";
-  }
+  return formatDate(dateStr);
 }
 
 function formatINR(val?: number) {
@@ -2179,11 +2171,9 @@ export default function CashAndBankPage() {
 
             <div>
               <label className="block text-[12px] font-medium text-slate-700 mb-1">As of Date</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={bankForm.asOfDate}
-                onChange={(e) => setBankForm({ ...bankForm, asOfDate: e.target.value })}
-                className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
+                onChange={(val) => setBankForm({ ...bankForm, asOfDate: val })}
               />
             </div>
           </div>
@@ -2415,11 +2405,9 @@ export default function CashAndBankPage() {
 
             <div>
               <label className="block text-[11px] text-slate-500 mb-0.5">Date</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={addReduceForm.date}
-                onChange={(e) => setAddReduceForm({ ...addReduceForm, date: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
+                onChange={(val) => setAddReduceForm({ ...addReduceForm, date: val })}
               />
             </div>
           </div>
@@ -2546,11 +2534,9 @@ export default function CashAndBankPage() {
 
             <div>
               <label className="block text-[11px] text-slate-500 mb-0.5">Date</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={transferForm.date}
-                onChange={(e) => setTransferForm({ ...transferForm, date: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
+                onChange={(val) => setTransferForm({ ...transferForm, date: val })}
               />
             </div>
           </div>

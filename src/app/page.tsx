@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -82,11 +84,7 @@ function DashboardContent() {
   // Update current timestamp string
   const updateTimestamp = useCallback(() => {
     const now = new Date();
-    const dateFormatted = now.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+    const dateFormatted = formatDate(now);
     const timeFormatted = now.toLocaleTimeString("en-IN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -221,11 +219,7 @@ function DashboardContent() {
               return {
                 id: t.id || `txn-${idx}`,
                 rawDate: d,
-                date: d.toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                }),
+                date: formatDate(d),
                 type: t.type || "Sales Invoice",
                 txnNo: t.transactionNumber || t.txnNo || "-",
                 partyName: t.partyName || "-",

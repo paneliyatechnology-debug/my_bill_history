@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
 import { Tag, X, Check, Copy, Printer } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 // ─────────────────────────────────────────────────────────────
 // Real Scannable Invoice QR Code Component
@@ -195,11 +196,7 @@ export function InvoiceBarcodeStickerModal({
 
   const invoiceUrl = origin ? `${origin}/purchases/${invoice.id}` : `/purchases/${invoice.id}`;
   const companyName = company?.tradeName || company?.legalName || "MyBill";
-  const formattedDate = new Date(invoice.invoiceDate).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  const formattedDate = formatDate(invoice.invoiceDate);
   const formattedTotal = Number(invoice.grandTotal || 0).toLocaleString("en-IN", {
     style: "currency",
     currency: "INR",

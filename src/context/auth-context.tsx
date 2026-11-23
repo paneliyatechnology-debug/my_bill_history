@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, {
   createContext,
   useContext,
@@ -1273,11 +1275,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               {subscriptionNotice.subscriptionEnds && (
                 <div>
                   <span className="font-semibold">{lang === "gu" ? "સમાપ્તિ: " : "Ended: "}</span>
-                  {new Date(subscriptionNotice.subscriptionEnds).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  {formatDate(subscriptionNotice.subscriptionEnds)}
                 </div>
               )}
               {typeof subscriptionNotice.daysRemaining === "number" && (

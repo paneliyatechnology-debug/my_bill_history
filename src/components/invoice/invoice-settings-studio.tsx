@@ -96,7 +96,7 @@ export const DEFAULT_INVOICE_STUDIO_STATE: InvoiceStudioState = {
   showItemDescription: true,
   showAlternateUnit: true,
   showPhoneNumber: true,
-  showTimeOnInvoice: true,
+  showTimeOnInvoice: false,
   priceHistory: true,
   autoApplyLuxuryForSharing: true,
 

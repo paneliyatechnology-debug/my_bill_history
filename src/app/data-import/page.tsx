@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../context/auth-context";
 import { importApi } from "../../lib/import-api";
@@ -357,7 +359,7 @@ export default function DataImportCenterPage() {
                         <td className="p-3 text-right tabular-nums text-blue-700 font-medium">{job.updatedRows}</td>
                         <td className="p-3 text-right tabular-nums text-rose-700 font-medium">{job.failedRows}</td>
                         <td className="p-3 text-slate-500">
-                          {new Date(job.createdAt).toLocaleDateString()}
+                          {formatDate(job.createdAt)}
                         </td>
                         <td className="p-3 text-center">
                           {job.failedRows > 0 ? (

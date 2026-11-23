@@ -12,8 +12,10 @@ import {
   DynamicInvoiceData,
   DynamicCompanyData,
 } from "@/components/invoice/dynamic-themed-invoice";
+import { getStateDisplayName } from "@/shared-types";
 import { Palette, Zap, Link2, Mail } from "lucide-react";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
 
 // Helper: Indian Rupee Formatter
 function formatInr(val: number | string | undefined): string {
@@ -29,20 +31,14 @@ function formatInr(val: number | string | undefined): string {
 
 // Helper: Format Date
 function formatDisplayDate(val?: string): string {
-  if (!val) return "—";
-  const d = new Date(val);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDate(val, "—");
 }
 
 interface SalesReturnDetail {
   id: string;
   returnNumber: string;
   returnDate: string;
+  placeOfSupply?: string;
   docType?: string;
   creditNoteType?: string;
   gstCategory?: string;
@@ -403,9 +399,13 @@ export default function SalesReturnViewPage() {
     invoiceNumber: data.returnNumber,
     invoiceDate: data.returnDate?.split("T")[0] || new Date().toISOString().split("T")[0],
     status: data.status === "CANCELLED" ? "CANCELLED" : "ISSUED",
-    placeOfSupply: data.party?.stateCode
-      ? `${data.party.stateCode}`
-      : currentCompany?.stateCode || "24 (Gujarat)",
+    placeOfSupply: data.placeOfSupply
+      ? getStateDisplayName(data.placeOfSupply)
+      : data.party?.stateCode
+      ? getStateDisplayName(data.party.stateCode)
+      : currentCompany?.stateCode
+      ? getStateDisplayName(currentCompany.stateCode)
+      : "Gujarat (24)",
     isB2B: !!data.party?.gstin,
     taxableAmount: Number(data.taxableAmount || 0),
     cgstAmount: Number(data.cgstAmount || 0),

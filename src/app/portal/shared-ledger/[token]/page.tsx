@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, use } from "react";
 import { apiClient } from "@/lib/api-client";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { Link as LinkIcon, AlertCircle, Phone, MapPin, Zap, Check, Smartphone, Landmark, Printer, MessageSquare } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 interface PublicPortalData {
   company: {
@@ -425,11 +426,7 @@ Bank: ${company.bankDetails?.bankName}`,
                     {paginatedTransactions.map((t) => (
                       <tr key={t.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="p-3.5 text-slate-600 whitespace-nowrap">
-                          {new Date(t.date).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {formatDate(t.date)}
                         </td>
                         <td className="p-3.5 tabular-nums font-medium text-slate-900">
                           {t.voucherNumber}

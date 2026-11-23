@@ -18,6 +18,7 @@ import {
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { Check, Printer } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { INDIAN_STATES, resolvePartyStateCode, getStateDisplayName } from "@billing/shared-types";
 import {
   DocumentHeaderCard,
   DocumentInfoStrip,
@@ -28,6 +29,7 @@ import {
   DocumentPaymentCard,
   DocumentBottomBar,
   PartySelectorCompact,
+  CleanNumberInput,
 } from "@/components/document-studio";
 
 interface Party {
@@ -69,9 +71,9 @@ interface OrderItemLine {
   unit: string;
   freeQuantity?: number | "";
   unitPrice: number | "";
-  discount: number;
+  discount: number | "";
   discountType: "%" | "₹";
-  taxRate: number;
+  taxRate: number | "";
   taxableAmount: number;
   taxAmount: number;
   totalAmount: number;
@@ -106,6 +108,7 @@ export default function CreatePurchaseOrderPage() {
     phone: "",
     gstin: "",
     address: "",
+    stateCode: "",
   });
 
   // Shipping Address State
@@ -113,7 +116,8 @@ export default function CreatePurchaseOrderPage() {
   const [customShippingAddress, setCustomShippingAddress] = useState("");
 
   // Order Details
-  const [orderNumber, setOrderNumber] = useState("1");
+  const [orderNumber, setOrderNumber] = useState("");
+  const [placeOfSupply, setPlaceOfSupply] = useState("");
   const [orderDate, setOrderDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
   });
@@ -134,10 +138,10 @@ export default function CreatePurchaseOrderPage() {
       quantity: 1,
       unit: "BOX",
       freeQuantity: "",
-      unitPrice: 0,
-      discount: 0,
+      unitPrice: "",
+      discount: "",
       discountType: "%",
-      taxRate: 18,
+      taxRate: "",
       taxableAmount: 0,
       taxAmount: 0,
       totalAmount: 0,
@@ -145,13 +149,14 @@ export default function CreatePurchaseOrderPage() {
   ]);
 
   // Bottom Section State
-    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
   const [transportMode, setTransportMode] = useState("Road");
   const [vehicleNo, setVehicleNo] = useState("");
   const [ewayBillNo, setEwayBillNo] = useState("");
   const [dispatchDate, setDispatchDate] = useState("");
+  const [freightAmount, setFreightAmount] = useState<number | "">("");
   const [paymentMode, setPaymentMode] = useState("Cash");
-const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState("");
   const [showNotesInput, setShowNotesInput] = useState(false);
   const [terms, setTerms] = useState(
     "1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to [ENTER_YOUR_CITY_NAME] jurisdiction only",
@@ -212,7 +217,7 @@ const [notes, setNotes] = useState("");
         );
         setParties(list);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     apiClient
       .get("/items", { limit: 250 })
@@ -231,18 +236,7 @@ const [notes, setNotes] = useState("");
         }));
         setInventoryItems(mapped);
       })
-      .catch(() => {});
-
-    // Compute Next PO Number
-    try {
-      const stored = localStorage.getItem("billing_purchase_orders");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setOrderNumber(String(parsed.length + 1));
-        }
-      }
-    } catch {}
+      .catch(() => { });
   }, []);
 
   // Load for edit if editId provided
@@ -254,7 +248,8 @@ const [notes, setNotes] = useState("");
         const list = JSON.parse(stored);
         const match = list.find((o: any) => o.id === editId || o.orderNumber === editId);
         if (match) {
-          setOrderNumber(match.orderNumber || "1");
+          if (match.orderNumber) setOrderNumber(match.orderNumber);
+          if (match.placeOfSupply) setPlaceOfSupply(match.placeOfSupply);
           if (match.orderDate) setOrderDate(match.orderDate);
           if (match.validTill) setValidTill(match.validTill);
           if (match.party) setSelectedParty(match.party);
@@ -268,7 +263,7 @@ const [notes, setNotes] = useState("");
           if (match.advancePaid) setAdvancePaid(match.advancePaid);
         }
       }
-    } catch {}
+    } catch { }
   }, [editId]);
 
   // Click outside to dismiss autocomplete dropdowns
@@ -366,10 +361,10 @@ const [notes, setNotes] = useState("");
         quantity: 1,
         unit: "BOX",
         freeQuantity: "",
-        unitPrice: 0,
-        discount: 0,
+        unitPrice: "",
+        discount: "",
         discountType: "%",
-        taxRate: 18,
+        taxRate: "",
         taxableAmount: 0,
         taxAmount: 0,
         totalAmount: 0,
@@ -389,10 +384,10 @@ const [notes, setNotes] = useState("");
           quantity: 1,
           unit: "BOX",
           freeQuantity: "",
-          unitPrice: 0,
-          discount: 0,
+          unitPrice: "",
+          discount: "",
           discountType: "%",
-          taxRate: 18,
+          taxRate: "",
           taxableAmount: 0,
           taxAmount: 0,
           totalAmount: 0,
@@ -424,7 +419,7 @@ const [notes, setNotes] = useState("");
       totalDiscount += discAmt;
     });
 
-    const addChargesSum = additionalCharges.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+    const addChargesSum = additionalCharges.reduce((acc, c) => acc + (Number(c.amount) || 0), 0) + (Number(freightAmount) || 0);
     const extraDiscount = Number(overallDiscount) || 0;
 
     let preRoundTotal = rawTotal + addChargesSum - extraDiscount;
@@ -444,8 +439,10 @@ const [notes, setNotes] = useState("");
     const advance = Number(advancePaid) || 0;
     const balance = Math.max(0, finalGrandTotal - advance);
 
-    // GST split (assuming Intrastate CGST + SGST by default, or IGST if interstate)
-    const isInterstate = selectedParty?.stateCode && currentCompany?.stateCode && selectedParty.stateCode !== currentCompany.stateCode;
+    // GST split (Intrastate CGST + SGST or Interstate IGST based on Place of Supply)
+    const companyState = currentCompany?.stateCode || "24";
+    const posState = placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState);
+    const isInterstate = posState !== companyState;
     const cgst = isInterstate ? 0 : totalTax / 2;
     const sgst = isInterstate ? 0 : totalTax / 2;
     const igst = isInterstate ? totalTax : 0;
@@ -464,7 +461,7 @@ const [notes, setNotes] = useState("");
       finalGrandTotal: Number(finalGrandTotal.toFixed(2)),
       balance: Number(balance.toFixed(2)),
     };
-  }, [items, additionalCharges, overallDiscount, autoRoundOff, manualRoundOff, advancePaid, selectedParty, currentCompany]);
+  }, [items, additionalCharges, freightAmount, overallDiscount, autoRoundOff, manualRoundOff, advancePaid, selectedParty, currentCompany, placeOfSupply]);
 
   // Save Order
   const handleSaveOrder = (andNew = false) => {
@@ -486,10 +483,14 @@ const [notes, setNotes] = useState("");
       orderNumber,
       orderDate,
       validTill,
+      placeOfSupply,
       party: selectedParty,
       shippingAddress: customShippingAddress || (selectedParty as any).shippingAddress || selectedParty.billingAddress,
       items: validItems,
-      additionalCharges,
+      additionalCharges: [
+        ...additionalCharges,
+        ...(Number(freightAmount) > 0 ? [{ name: "Freight", amount: Number(freightAmount) }] : []),
+      ],
       overallDiscount: Number(overallDiscount) || 0,
       autoRoundOff,
       manualRoundOff,
@@ -579,239 +580,278 @@ const [notes, setNotes] = useState("");
         {/* Top header replaced by unified DocumentHeaderCard */}
         {/* Main Form Area */}
         <div className="space-y-3">
-        {viewMode === "edit" ? (
-          <div className="space-y-4">
-            {/* DOCUMENT HEADER CARD */}
-            <DocumentHeaderCard
-              title={lang === "gu" ? "ખરીદી ઓર્ડર (Purchase Order)" : "Purchase Order"}
-              subtitle={lang === "gu" ? "તમારો સપ્લાયર ઓર્ડર બનાવો અને મેનેજ કરો" : "Create and manage your supplier purchase orders"}
-              status="Draft"
-              onPreview={() => setViewMode("preview")}
-              onPrint={() => window.print()}
-              onSave={() => handleSaveOrder(false)}
-              onSaveAsDraft={() => handleSaveOrder(false)}
-              isSaving={isSaving}
-              saveButtonLabel="Save Purchase Order"
-              moreMenuItems={[
-                { label: "Quick Settings", onClick: () => setIsSettingsOpen(true) },
-                { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
-              ]}
-            />
+          {viewMode === "edit" ? (
+            <div className="space-y-4">
+              {/* DOCUMENT HEADER CARD */}
+              <DocumentHeaderCard
+                title={lang === "gu" ? "ખરીદી ઓર્ડર (Purchase Order)" : "Purchase Order"}
+                subtitle={lang === "gu" ? "તમારો સપ્લાયર ઓર્ડર બનાવો અને મેનેજ કરો" : "Create and manage your supplier purchase orders"}
+                status="Draft"
+                onPreview={() => setViewMode("preview")}
+                onPrint={() => window.print()}
+                onSave={() => handleSaveOrder(false)}
+                onSaveAsDraft={() => handleSaveOrder(false)}
+                isSaving={isSaving}
+                saveButtonLabel="Save Purchase Order"
+                moreMenuItems={[
+                  { label: "Quick Settings", onClick: () => setIsSettingsOpen(true) },
+                  { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
+                ]}
+              />
 
-            {/* 5-COLUMN DOCUMENT INFO STRIP */}
-            <DocumentInfoStrip
-              fields={[
-                {
-                  id: "vendor",
-                  label: "Supplier / Vendor",
-                  required: true,
-                  type: "custom",
-                  customRender: (
-                    <PartySelectorCompact
-                      selectedParty={selectedParty ? {
-                        id: selectedParty.id,
-                        name: selectedParty.name,
-                        phone: selectedParty.phone,
-                        gstin: selectedParty.gstin,
-                        address: typeof selectedParty.billingAddress === "string" ? selectedParty.billingAddress : selectedParty.billingAddress?.line1,
-                      } : null}
-                      searchTerm={partySearchQuery}
-                      onSearchChange={setPartySearchQuery}
-                      isOpen={isPartySearchOpen}
-                      onOpenChange={setIsPartySearchOpen}
-                      filteredParties={parties
-                        .filter((p) => p.name.toLowerCase().includes(partySearchQuery.toLowerCase()))
-                        .map((p) => ({
-                          id: p.id,
-                          name: p.name,
-                          phone: p.phone,
-                          gstin: p.gstin,
-                          outstandingBalance: p.currentBalance,
-                        }))}
-                      onSelectParty={(id) => {
-                        const p = parties.find((party) => party.id === id);
-                        if (p) setSelectedParty(p);
-                      }}
-                      onClearParty={() => {
-                        setSelectedParty(null);
-                        setPartySearchQuery("");
-                      }}
-                      onAddNew={() => setIsCreatePartyModalOpen(true)}
-                      placeholder="Search vendor..."
-                    />
-                  ),
-                },
-                {
-                  id: "orderNumber",
-                  label: "PO Number",
-                  type: "text",
-                  value: orderNumber,
-                  onChange: setOrderNumber,
-                  placeholder: "PO-001",
-                },
-                {
-                  id: "orderDate",
-                  label: "PO Date",
-                  type: "date",
-                  value: orderDate,
-                  onChange: setOrderDate,
-                },
-                {
-                  id: "validTill",
-                  label: "Expected Delivery",
-                  type: "date",
-                  value: validTill,
-                  onChange: setValidTill,
-                },
-                {
-                  id: "placeOfSupply",
-                  label: "Place of Supply",
-                  type: "text",
-                  value: selectedParty?.stateCode ? `State Code: ${selectedParty.stateCode}` : "Gujarat (24)",
-                },
-              ]}
-            />
+              {/* 5-COLUMN DOCUMENT INFO STRIP */}
+              <DocumentInfoStrip
+                fields={[
+                  {
+                    id: "vendor",
+                    label: "Supplier / Vendor",
+                    required: true,
+                    type: "custom",
+                    customRender: (
+                      <PartySelectorCompact
+                        selectedParty={selectedParty ? {
+                          id: selectedParty.id,
+                          name: selectedParty.name,
+                          phone: selectedParty.phone,
+                          gstin: selectedParty.gstin,
+                          address: typeof selectedParty.billingAddress === "string" ? selectedParty.billingAddress : selectedParty.billingAddress?.line1,
+                        } : null}
+                        searchTerm={partySearchQuery}
+                        onSearchChange={setPartySearchQuery}
+                        isOpen={isPartySearchOpen}
+                        onOpenChange={setIsPartySearchOpen}
+                        filteredParties={parties
+                          .filter((p) => p.name.toLowerCase().includes(partySearchQuery.toLowerCase()))
+                          .map((p) => ({
+                            id: p.id,
+                            name: p.name,
+                            phone: p.phone,
+                            gstin: p.gstin,
+                            outstandingBalance: p.currentBalance,
+                          }))}
+                        onSelectParty={(id) => {
+                          const p = parties.find((party) => party.id === id);
+                          if (p) {
+                            setSelectedParty(p);
+                            const st = resolvePartyStateCode(p, "");
+                            if (st) {
+                              setPlaceOfSupply(st);
+                            }
+                          }
+                        }}
+                        onClearParty={() => {
+                          setSelectedParty(null);
+                          setPartySearchQuery("");
+                          setPlaceOfSupply("");
+                        }}
+                        onAddNew={() => setIsCreatePartyModalOpen(true)}
+                        placeholder="Search vendor..."
+                      />
+                    ),
+                  },
+                  {
+                    id: "orderNumber",
+                    label: "PO Number",
+                    type: "text",
+                    value: orderNumber,
+                    onChange: setOrderNumber,
+                    placeholder: "Enter PO Number (e.g. PO-001)",
+                  },
+                  {
+                    id: "orderDate",
+                    label: "PO Date",
+                    type: "date",
+                    value: orderDate,
+                    onChange: setOrderDate,
+                  },
+                  {
+                    id: "validTill",
+                    label: "Expected Delivery",
+                    type: "date",
+                    value: validTill,
+                    onChange: setValidTill,
+                  },
+                  {
+                    id: "placeOfSupply",
+                    label: "Place of Supply",
+                    type: "combobox",
+                    value: placeOfSupply,
+                    onChange: (val: string) => setPlaceOfSupply(val),
+                    placeholder: "Select State...",
+                    options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                      value: code,
+                      label: `${st.name} (${code})`,
+                    })),
+                  },
+                ]}
+              />
 
-            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {/* Left Column (8 cols): Items Table + Notes & Additional Info */}
-              <div className="lg:col-span-8 space-y-5">
-                <DocumentItemsCard
-                  title="Items & Services"
-                  itemsCount={items.length}
-                  totalQty={calculations.totalQty}
-                  itemsTotal={calculations.finalGrandTotal}
-                  onImportItems={handleAddItem}
-                  onAddItem={handleAddItem}
-                  onAddBlankRow={handleAddItem}
-                  addItemLabel="+ Add Item"
-                >
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 typo-table-th uppercase tracking-wider">
-                      <tr>
-                        <th className="py-3 px-3.5 text-center w-12">#</th>
-                        <th className="py-3 px-3.5">Item / Description</th>
-                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
-                        <th className="py-3 px-3 text-right w-24">Qty</th>
-                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
-                        <th className="py-3 px-3 text-right w-24">Discount</th>
-                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
-                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
-                        <th className="py-3 px-3 text-center w-16">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {items.map((row, idx) => (
-                        <tr key={row.id || idx} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
-                            {idx + 1}
-                          </td>
+              {/* 1. FULL WIDTH ITEMS & SERVICES TABLE */}
+              <DocumentItemsCard
+                title="Items & Services"
+                itemsCount={items.length}
+                totalQty={calculations.totalQty}
+                itemsTotal={calculations.finalGrandTotal}
+                onImportItems={handleAddItem}
+                onAddItem={handleAddItem}
+                onAddBlankRow={handleAddItem}
+                addItemLabel="+ Add Item"
+              >
+                <table className="w-full text-left text-xs border-collapse min-w-[960px]">
+                  <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 typo-table-th uppercase tracking-wider">
+                    <tr>
+                      <th className="py-3 px-3 text-center w-12">#</th>
+                      <th className="py-3 px-3.5 min-w-[280px]">Item / Description</th>
+                      <th className="py-3 px-3 text-center w-28 min-w-[105px]">HSN/SAC</th>
+                      <th className="py-3 px-3 text-right w-28 min-w-[105px]">Qty</th>
+                      <th className="py-3 px-3 text-right w-36 min-w-[130px]">Rate (₹)</th>
+                      <th className="py-3 px-3 text-right w-32 min-w-[115px]">Discount</th>
+                      <th className="py-3 px-3 text-right w-28 min-w-[105px]">Tax (%)</th>
+                      <th className="py-3 px-3 text-right w-36 min-w-[130px]">Amount (₹)</th>
+                      <th className="py-3 px-3 text-center w-14">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {items.map((row, idx) => (
+                      <tr key={row.id || idx} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
+                          {idx + 1}
+                        </td>
 
-                          <td className="py-3 px-3">
-                            <div className="space-y-1">
+                        <td className="py-3 px-3.5 min-w-[280px]">
+                          <div className="space-y-1">
+                            <CustomCombobox
+                              size="sm"
+                              placeholder="Select or type item..."
+                              searchPlaceholder="Search catalog or type custom item..."
+                              allowCustomValue={true}
+                              onCustomValueSelect={(customName) => {
+                                updateItemLine(idx, "name", customName);
+                              }}
+                              value={row.itemId || (row.name ? `custom-${idx}` : "")}
+                              onChange={(val: any) => {
+                                if (val === "__create_new__") {
+                                  setActiveRowForNewItem(idx);
+                                  setIsCreateItemModalOpen(true);
+                                } else {
+                                  const itm = inventoryItems.find((it) => it.id === val);
+                                  if (itm) {
+                                    handlePickInventoryItem(idx, itm);
+                                  } else if (val) {
+                                    updateItemLine(idx, "name", val);
+                                  }
+                                }
+                              }}
+                              options={[
+                                {
+                                  value: "__create_new__",
+                                  label: "+ Create New Item...",
+                                },
+                                ...(row.name && !inventoryItems.some((it) => it.id === row.itemId)
+                                  ? [{ value: `custom-${idx}`, label: row.name }]
+                                  : []),
+                                ...inventoryItems.map((it) => ({
+                                  value: it.id,
+                                  label: it.name,
+                                  sublabel: `₹${it.purchaseRate || it.purchasePrice || 0} • Stock: ${it.currentStock || 0}${it.hsnCode ? ` • HSN: ${it.hsnCode}` : ""}`,
+                                })),
+                              ]}
+                              triggerClassName="rounded-xl border-slate-200 bg-white h-10 text-[13px]"
+                            />
+                            {row.showDescriptionInput ? (
                               <input
                                 type="text"
-                                value={row.name}
-                                onChange={(e) => updateItemLine(idx, "name", e.target.value)}
-                                placeholder="Type item name..."
-                                className="w-full text-[13px] py-1.5 px-2.5 font-normal text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#1677E8] h-10"
+                                value={row.description || ""}
+                                onChange={(e) => updateItemLine(idx, "description", e.target.value)}
+                                placeholder="Add item description..."
+                                className="w-full text-xs py-1 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:border-[#1677E8] h-7"
                               />
-                              {inventoryItems.length > 0 && !row.name && (
-                                <CustomCombobox
-                                  size="sm"
-                                  placeholder="Choose from Catalog..."
-                                  value=""
-                                  onChange={(val: any) => {
-                                    const itm = inventoryItems.find((it) => it.id === val);
-                                    if (itm) handlePickInventoryItem(idx, itm);
-                                  }}
-                                  options={inventoryItems.map((it) => ({
-                                    value: it.id,
-                                    label: `${it.name} (₹${it.purchaseRate || it.purchasePrice || 0})`,
-                                  }))}
-                                  triggerClassName="rounded-lg border-dashed border-slate-200 text-slate-500"
-                                />
-                              )}
-                            </div>
-                          </td>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => updateItemLine(idx, "showDescriptionInput", true)}
+                                className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-medium inline-block pl-1 cursor-pointer"
+                              >
+                                + Description
+                              </button>
+                            )}
+                          </div>
+                        </td>
 
-                          <td className="py-3 px-3">
-                            <input
-                              type="text"
-                              value={row.hsn}
-                              onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
-                              placeholder="HSN"
-                              className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
-                            />
-                          </td>
+                        <td className="py-3 px-3">
+                          <input
+                            type="text"
+                            value={row.hsn}
+                            onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
+                            placeholder="HSN"
+                            className="w-full text-[13px] py-1.5 px-2.5 text-center tabular-nums bg-white border border-slate-200 rounded-xl text-slate-700 focus:bg-white focus:border-[#1677E8] h-10 shadow-2xs"
+                          />
+                        </td>
 
-                          <td className="py-3 px-3">
-                            <input
-                              type="number"
-                              min="1"
-                              value={row.quantity}
-                              onChange={(e) => updateItemLine(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
-                            />
-                          </td>
+                        <td className="py-3 px-3">
+                          <CleanNumberInput
+                            value={row.quantity}
+                            onChange={(val) => updateItemLine(idx, "quantity", val)}
+                            placeholder="1"
+                            className="w-full text-[13px] py-1.5 px-3 text-right tabular-nums bg-white border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:border-[#1677E8] h-10 shadow-2xs"
+                          />
+                        </td>
 
-                          <td className="py-3 px-3">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              value={row.unitPrice}
-                              onChange={(e) => updateItemLine(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
-                            />
-                          </td>
+                        <td className="py-3 px-3">
+                          <CleanNumberInput
+                            value={row.unitPrice}
+                            onChange={(val) => updateItemLine(idx, "unitPrice", val)}
+                            placeholder="0.00"
+                            className="w-full text-[13px] py-1.5 px-3 text-right tabular-nums font-medium bg-white border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:border-[#1677E8] h-10 shadow-2xs"
+                          />
+                        </td>
 
-                          <td className="py-3 px-3">
-                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                              <input
-                                type="number"
-                                min="0"
-                                value={row.discount}
-                                onChange={(e) => updateItemLine(idx, "discount", Number(e.target.value) || 0)}
-                                className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
-                              />
-                              <span className="text-[10px] text-slate-400 font-bold ml-1">{row.discountType}</span>
-                            </div>
-                          </td>
+                        <td className="py-3 px-3">
+                          <CleanNumberInput
+                            value={row.discount}
+                            onChange={(val) => updateItemLine(idx, "discount", val)}
+                            placeholder="0"
+                            suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">{row.discountType}</span>}
+                            className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none"
+                            containerClassName="bg-white border border-slate-200 rounded-xl px-2.5 py-1 h-10 shadow-2xs"
+                          />
+                        </td>
 
-                          <td className="py-3 px-3">
-                            <input
-                              type="number"
-                              value={row.taxRate}
-                              onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
-                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
-                            />
-                          </td>
+                        <td className="py-3 px-3">
+                          <CleanNumberInput
+                            value={row.taxRate}
+                            onChange={(val) => updateItemLine(idx, "taxRate", val)}
+                            placeholder="0"
+                            className="w-full text-[13px] py-1.5 px-3 text-right tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#1677E8] h-10 shadow-2xs"
+                          />
+                        </td>
 
-                          <td className="py-3 px-3 text-right typo-table-amount text-slate-900">
-                            ₹ {row.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
+                        <td className="py-3 px-3 text-right typo-table-amount text-slate-900 font-bold whitespace-nowrap text-[13.5px]">
+                          ₹ {row.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
 
-                          <td className="py-3 px-3 text-center">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveItem(idx)}
-                              className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
-                              title="Delete row"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </DocumentItemsCard>
+                        <td className="py-3 px-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(idx)}
+                            className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                            title="Delete row"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </DocumentItemsCard>
 
-                {/* Side-by-side: Notes & Terms + Additional Information */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* 2. BOTTOM WORKSPACE: NOTES & ADDITIONAL INFO (7 cols) + SUMMARY & PAYMENT (5 cols) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                {/* Left Column (7 cols): Notes, Terms & Additional Information */}
+                <div className="lg:col-span-7 space-y-5">
                   <DocumentNotesAndTermsCard
                     activeTab={activeNotesTab}
                     onTabChange={setActiveNotesTab}
@@ -830,155 +870,166 @@ const [notes, setNotes] = useState("");
                     onEwayBillNoChange={setEwayBillNo}
                     dispatchDate={dispatchDate}
                     onDispatchDateChange={setDispatchDate}
+                    freightAmount={freightAmount}
+                    onFreightAmountChange={setFreightAmount}
+                  />
+                </div>
+
+                {/* Right Column (5 cols): Summary Card + Advance Payment Card */}
+                <div className="lg:col-span-5 space-y-5">
+                  <DocumentSummaryCard
+                    title="Order Summary"
+                    subtotal={calculations.totalTaxable}
+                    discount={calculations.totalDiscount > 0 ? calculations.totalDiscount : undefined}
+                    cgst={calculations.cgst > 0 ? calculations.cgst : undefined}
+                    sgst={calculations.sgst > 0 ? calculations.sgst : undefined}
+                    igst={calculations.igst > 0 ? calculations.igst : undefined}
+                    customRows={Number(freightAmount) > 0 ? [{ label: "Freight", value: Number(freightAmount) }] : []}
+                    roundOff={calculations.roundOffDelta !== 0 ? calculations.roundOffDelta : undefined}
+                    grandTotal={calculations.finalGrandTotal}
+                  />
+
+                  <DocumentPaymentCard
+                    isPurchase={true}
+                    amountLabel="Amount Paid"
+                    amountReceived={advancePaid}
+                    onAmountReceivedChange={(val) => setAdvancePaid(val === "" ? "" : Number(val))}
+                    paymentMode={paymentMode}
+                    onPaymentModeChange={setPaymentMode}
+                    balanceDue={calculations.balance}
+                    onPaidInFull={() => setAdvancePaid(calculations.finalGrandTotal)}
+                    paidInFullLabel="Paid In Full"
                   />
                 </div>
               </div>
 
-              {/* Right Column (4 cols): Summary Card + Advance Payment Card */}
-              <div className="lg:col-span-4 space-y-5">
-                <DocumentSummaryCard
-                  title="Order Summary"
-                  subtotal={calculations.totalTaxable}
-                  discount={calculations.totalDiscount > 0 ? calculations.totalDiscount : undefined}
-                  cgst={calculations.cgst > 0 ? calculations.cgst : undefined}
-                  sgst={calculations.sgst > 0 ? calculations.sgst : undefined}
-                  igst={calculations.igst > 0 ? calculations.igst : undefined}
-                  roundOff={calculations.roundOffDelta !== 0 ? calculations.roundOffDelta : undefined}
-                  grandTotal={calculations.finalGrandTotal}
-                />
-
-                <DocumentPaymentCard
-                  amountReceived={Number(advancePaid) || 0}
-                  onAmountReceivedChange={(val) => setAdvancePaid(val)}
-                  paymentMode={paymentMode}
-                  onPaymentModeChange={setPaymentMode}
-                  balanceDue={calculations.balance}
-                  onPaidInFull={() => setAdvancePaid(calculations.finalGrandTotal)}
-                />
-              </div>
-            </div>
-
-            {/* STICKY BOTTOM ACTION BAR */}
-            <DocumentBottomBar
-              totalItems={items.length}
-              totalAmount={calculations.finalGrandTotal}
-              onSaveAsDraft={() => handleSaveOrder(false)}
-              onSave={() => handleSaveOrder(false)}
-              isSaving={isSaving}
-              saveButtonLabel="Save Purchase Order"
-              backHref="/purchases/orders"
-            />
-          </div>
-
-        ) : (
-          <div className="space-y-4 animate-fadeIn">
-            {/* Preview Top Control Bar */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("edit")}
-                  className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
-                </button>
-                <div>
-                  <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
-                    <span>{lang === "gu" ? "ખરીદી ઓર્ડર પ્રિવ્યૂ" : "Purchase Order Preview"}</span>
-                    <span
-                      className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#0F172A" }}
-                    >
-                      {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
-                    </span>
-                  </h2>
-                  <p className="text-[11px] text-slate-500">
-                    {lang === "gu" ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ" : "Live preview rendered with your saved settings theme"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>{lang === "gu" ? "પ્રિન્ટ" : "Print PO"}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Themed Document using DynamicThemedInvoice */}
-            <div className="bg-slate-100/70 p-4 sm:p-8 rounded-2xl border border-slate-200 overflow-x-auto flex justify-center">
-              <DynamicThemedInvoice
-                invoice={{
-                  category: "PURCHASE_ORDER",
-                  invoiceNumber: orderNumber || "PO-001",
-                  invoiceDate: orderDate,
-                  dueDate: validTill,
-                  paymentMode: paymentMode,
-                  placeOfSupply: selectedParty?.stateCode ? `State Code (${selectedParty.stateCode})` : "Gujarat (24)",
-                  taxableAmount: calculations.totalTaxable,
-                  cgstAmount: calculations.cgst,
-                  sgstAmount: calculations.sgst,
-                  igstAmount: calculations.igst,
-                  roundOff: calculations.roundOffDelta,
-                  grandTotal: calculations.finalGrandTotal,
-                  paidAmount: Number(advancePaid) || 0,
-                  balanceAmount: calculations.balance,
-                  notes: notes,
-                  party: {
-                    name: selectedParty?.name || "Supplier Name",
-                    gstin: selectedParty?.gstin,
-                    phone: selectedParty?.phone,
-                    billingAddress: typeof selectedParty?.billingAddress === "string" ? selectedParty.billingAddress : selectedParty?.billingAddress?.line1,
-                  },
-                  items: items.map((r, idx) => ({
-                    id: r.id || `row-${idx}`,
-                    description: r.name || "Item",
-                    hsnCode: r.hsn,
-                    quantity: typeof r.quantity === "number" ? r.quantity : Number(r.quantity) || 0,
-                    unit: r.unit || "PCS",
-                    unitPrice: typeof r.unitPrice === "number" ? r.unitPrice : Number(r.unitPrice) || 0,
-                    discountPercent: r.discountType === "%" ? Number(r.discount) || 0 : 0,
-                    taxRate: Number(r.taxRate) || 0,
-                    taxableAmount: r.taxableAmount,
-                    cgstAmount: calculations.cgst > 0 ? r.taxAmount / 2 : 0,
-                    sgstAmount: calculations.sgst > 0 ? r.taxAmount / 2 : 0,
-                    igstAmount: calculations.igst > 0 ? r.taxAmount : 0,
-                    totalAmount: r.totalAmount,
-                    item: { name: r.name },
-                  })),
-                  eWayBillRecord: {
-                    poNumber: orderNumber,
-                    vehicleNo: vehicleNo,
-                    ewayBillNo: ewayBillNo,
-                    dispatchDate: dispatchDate,
-                    transportMode: transportMode,
-                  },
-                }}
-                settings={{
-                  ...activeInvoiceTheme,
-                  termsAndConditions: {
-                    ...activeInvoiceTheme.termsAndConditions,
-                    sales: terms,
-                  },
-                }}
-                company={{
-                  tradeName: currentCompany?.tradeName || currentCompany?.legalName || "My Company",
-                  legalName: currentCompany?.legalName,
-                  addressLine1: (currentCompany as any)?.address || currentCompany?.city || "Gujarat, India",
-                  city: currentCompany?.city,
-                  gstin: currentCompany?.gstin,
-                  phone: (currentCompany as any)?.phone,
-                  stateCode: currentCompany?.stateCode || "24",
-                }}
-                printableId="printable-purchase-order"
+              {/* STICKY BOTTOM ACTION BAR */}
+              <DocumentBottomBar
+                totalItems={items.length}
+                totalAmount={calculations.finalGrandTotal}
+                onSaveAsDraft={() => handleSaveOrder(false)}
+                onSave={() => handleSaveOrder(false)}
+                isSaving={isSaving}
+                saveButtonLabel="Save Purchase Order"
+                backHref="/purchases/orders"
               />
             </div>
-          </div>
-        )}
+
+          ) : (
+            <div className="space-y-4 animate-fadeIn">
+              {/* Preview Top Control Bar */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("edit")}
+                    className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
+                  </button>
+                  <div>
+                    <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
+                      <span>{lang === "gu" ? "ખરીદી ઓર્ડર પ્રિવ્યૂ" : "Purchase Order Preview"}</span>
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                        style={{ backgroundColor: activeInvoiceTheme.accentColor || "#0F172A" }}
+                      >
+                        {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
+                      </span>
+                    </h2>
+                    <p className="text-[11px] text-slate-500">
+                      {lang === "gu" ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ" : "Live preview rendered with your saved settings theme"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>{lang === "gu" ? "પ્રિન્ટ" : "Print PO"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Themed Document using DynamicThemedInvoice */}
+              <div className="bg-slate-100/70 p-4 sm:p-8 rounded-2xl border border-slate-200 overflow-x-auto flex justify-center">
+                <DynamicThemedInvoice
+                  invoice={{
+                    category: "PURCHASE_ORDER",
+                    invoiceNumber: orderNumber || "PO-001",
+                    invoiceDate: orderDate,
+                    dueDate: validTill,
+                    paymentMode: paymentMode,
+                    placeOfSupply: placeOfSupply
+                      ? getStateDisplayName(placeOfSupply)
+                      : selectedParty
+                        ? getStateDisplayName(resolvePartyStateCode(selectedParty, currentCompany?.stateCode))
+                        : currentCompany?.stateCode
+                          ? getStateDisplayName(currentCompany.stateCode)
+                          : "—",
+                    taxableAmount: calculations.totalTaxable,
+                    cgstAmount: calculations.cgst,
+                    sgstAmount: calculations.sgst,
+                    igstAmount: calculations.igst,
+                    roundOff: calculations.roundOffDelta,
+                    grandTotal: calculations.finalGrandTotal,
+                    paidAmount: Number(advancePaid) || 0,
+                    balanceAmount: calculations.balance,
+                    notes: notes,
+                    party: {
+                      name: selectedParty?.name || "Supplier Name",
+                      gstin: selectedParty?.gstin,
+                      phone: selectedParty?.phone,
+                      billingAddress: typeof selectedParty?.billingAddress === "string" ? selectedParty.billingAddress : selectedParty?.billingAddress?.line1,
+                    },
+                    items: items.map((r, idx) => ({
+                      id: r.id || `row-${idx}`,
+                      description: r.name || "Item",
+                      hsnCode: r.hsn,
+                      quantity: typeof r.quantity === "number" ? r.quantity : Number(r.quantity) || 0,
+                      unit: r.unit || "PCS",
+                      unitPrice: typeof r.unitPrice === "number" ? r.unitPrice : Number(r.unitPrice) || 0,
+                      discountPercent: r.discountType === "%" ? Number(r.discount) || 0 : 0,
+                      taxRate: Number(r.taxRate) || 0,
+                      taxableAmount: r.taxableAmount,
+                      cgstAmount: calculations.cgst > 0 ? r.taxAmount / 2 : 0,
+                      sgstAmount: calculations.sgst > 0 ? r.taxAmount / 2 : 0,
+                      igstAmount: calculations.igst > 0 ? r.taxAmount : 0,
+                      totalAmount: r.totalAmount,
+                      item: { name: r.name },
+                    })),
+                    eWayBillRecord: {
+                      poNumber: orderNumber,
+                      vehicleNo: vehicleNo,
+                      ewayBillNo: ewayBillNo,
+                      dispatchDate: dispatchDate,
+                      transportMode: transportMode,
+                    },
+                  }}
+                  settings={{
+                    ...activeInvoiceTheme,
+                    termsAndConditions: {
+                      ...activeInvoiceTheme.termsAndConditions,
+                      sales: terms,
+                    },
+                  }}
+                  company={{
+                    tradeName: currentCompany?.tradeName || currentCompany?.legalName || "My Company",
+                    legalName: currentCompany?.legalName,
+                    addressLine1: (currentCompany as any)?.address || currentCompany?.city || "Gujarat, India",
+                    city: currentCompany?.city,
+                    gstin: currentCompany?.gstin,
+                    phone: (currentCompany as any)?.phone,
+                    stateCode: currentCompany?.stateCode || "24",
+                  }}
+                  printableId="printable-purchase-order"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1021,6 +1072,18 @@ const [notes, setNotes] = useState("");
               />
             </div>
             <div>
+              <label className="block font-medium text-slate-600 mb-1">State</label>
+              <CustomCombobox
+                value={newPartyForm.stateCode}
+                onChange={(val) => setNewPartyForm((prev) => ({ ...prev, stateCode: val }))}
+                placeholder="Select State..."
+                options={Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                  value: code,
+                  label: `${st.name} (${code})`,
+                }))}
+              />
+            </div>
+            <div>
               <label className="block font-medium text-slate-600 mb-1">Address</label>
               <textarea
                 rows={2}
@@ -1042,16 +1105,21 @@ const [notes, setNotes] = useState("");
                 type="button"
                 onClick={() => {
                   if (!newPartyForm.name.trim()) return;
+                  const derivedStateCode = newPartyForm.stateCode || (newPartyForm.gstin?.length >= 2 ? newPartyForm.gstin.slice(0, 2) : "");
                   const newP: Party = {
                     id: `vendor-${Date.now()}`,
                     name: newPartyForm.name,
                     phone: newPartyForm.phone,
                     gstin: newPartyForm.gstin,
+                    stateCode: derivedStateCode || undefined,
                     billingAddress: newPartyForm.address,
                     type: "SUPPLIER",
                   };
                   setParties((prev) => [newP, ...prev]);
                   setSelectedParty(newP);
+                  if (derivedStateCode) {
+                    setPlaceOfSupply(derivedStateCode);
+                  }
                   setIsCreatePartyModalOpen(false);
                 }}
                 className="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-medium"
@@ -1108,30 +1176,24 @@ const [notes, setNotes] = useState("");
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block font-medium text-slate-600 mb-1">Purchase Price (₹)</label>
-                <input
-                  type="number"
+                <CleanNumberInput
                   value={createItemForm.price}
-                  onChange={(e) => setCreateItemForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
+                  onChange={(val) => setCreateItemForm((prev) => ({ ...prev, price: val }))}
+                  placeholder="0.00"
                   className="w-full rounded-lg border border-slate-300 p-2 text-[13px] h-10"
                 />
               </div>
               <div>
                 <label className="block font-medium text-slate-600 mb-1">GST Rate (%)</label>
-                <div className="relative flex items-center">
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
-                    max="100"
-                    list="gst-rates-po"
-                    value={createItemForm.taxRate ?? ""}
-                    onChange={(e) => setCreateItemForm((prev) => ({ ...prev, taxRate: e.target.value as any }))}
-                    onFocus={(e) => e.target.select()}
-                    placeholder="0"
-                    className="w-full rounded-lg border border-slate-300 p-2 pr-6 text-[13px] text-right tabular-nums bg-white h-10"
-                  />
-                  <span className="absolute right-2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
-                </div>
+                <CleanNumberInput
+                  value={createItemForm.taxRate}
+                  onChange={(val) => setCreateItemForm((prev) => ({ ...prev, taxRate: val }))}
+                  placeholder="0"
+                  list="gst-rates-po"
+                  suffix={<span className="absolute right-2 text-xs font-bold text-slate-400 pointer-events-none">%</span>}
+                  className="w-full rounded-lg border border-slate-300 p-2 pr-6 text-[13px] text-right tabular-nums bg-white h-10"
+                  containerClassName="relative flex items-center"
+                />
                 <datalist id="gst-rates-po">
                   <option value="0">0% (None)</option>
                   <option value="0.1">0.1%</option>

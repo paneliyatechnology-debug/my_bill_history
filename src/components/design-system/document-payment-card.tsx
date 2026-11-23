@@ -6,8 +6,9 @@ import { formatInr } from "./tokens";
 import { CustomSelect } from "@/components/ui/dropdown-system";
 
 export interface DocumentPaymentCardProps {
-  amountReceived: number;
-  onAmountReceivedChange: (val: number) => void;
+  amountLabel?: string;
+  amountReceived: number | string;
+  onAmountReceivedChange: (val: any) => void;
   paymentMode: string;
   onPaymentModeChange: (val: string) => void;
   isFullyPaid: boolean;
@@ -20,6 +21,7 @@ export interface DocumentPaymentCardProps {
 }
 
 export function DocumentPaymentCard({
+  amountLabel,
   amountReceived,
   onAmountReceivedChange,
   paymentMode,
@@ -33,17 +35,20 @@ export function DocumentPaymentCard({
   lang = "en",
 }: DocumentPaymentCardProps) {
   const isSettled = balanceAmount <= 0.01;
+  const resolvedHeader = amountLabel || (
+    isPurchase
+      ? (lang === "gu" ? "ચુકવણી નિકાલ (Payment Settlement)" : "Payment Settlement")
+      : (lang === "gu" ? "રકમ પ્રાપ્તિ (Payment Received)" : "Payment Settlement")
+  );
 
   return (
     <div className="bg-white rounded-2xl border border-[#E2E8E5] p-5 shadow-xs space-y-3.5">
       <div className="flex items-center justify-between border-b border-[#E2E8E5] pb-2.5">
         <span className="text-xs font-semibold text-[#1A2E2B] uppercase tracking-wider">
-          {isPurchase
-            ? (lang === "gu" ? "ચુકવણી નિકાલ (Payment Settlement)" : "Payment Settlement")
-            : (lang === "gu" ? "રકમ પ્રાપ્તિ (Payment Received)" : "Payment Settlement")}
+          {resolvedHeader}
         </span>
         <span className="text-xs tabular-nums font-bold text-slate-900">
-          {isPurchase ? "Paid: " : "Recv: "}{formatInr(isFullyPaid ? grandTotal : amountReceived)}
+          {isPurchase ? "Paid: " : "Recv: "}{formatInr(isFullyPaid ? grandTotal : (Number(amountReceived) || 0))}
         </span>
       </div>
 
@@ -52,9 +57,19 @@ export function DocumentPaymentCard({
           <span className="text-slate-400 font-bold text-xs">₹</span>
           <input
             type="number"
-            value={isFullyPaid ? grandTotal : amountReceived}
+            min="0"
+            step="any"
+            value={isFullyPaid ? grandTotal : (amountReceived === 0 || amountReceived === "0" || amountReceived === "" ? "" : amountReceived)}
             disabled={isFullyPaid}
-            onChange={(e) => onAmountReceivedChange(Number(e.target.value) || 0)}
+            onChange={(e) => {
+              const val = e.target.value;
+              onAmountReceivedChange(val === "" ? "" : Number(val));
+            }}
+            onFocus={(e) => {
+              if (e.target.value === "0") {
+                e.target.select();
+              }
+            }}
             placeholder="0.00"
             className="w-full text-[13px] bg-transparent tabular-nums font-normal text-slate-900 focus:outline-none disabled:text-slate-500 h-10"
           />

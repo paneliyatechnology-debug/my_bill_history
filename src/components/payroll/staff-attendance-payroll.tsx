@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient, extractList } from "../../lib/api-client";
+import { WEEKDAY_NAMES_SHORT, MONTH_NAMES_SHORT } from "@/lib/date-utils";
 import { Calendar, History, X, AlertTriangle } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
@@ -338,9 +339,9 @@ export default function StaffAttendancePayrollView() {
       const todayStr = getTodayStr();
       const isToday = selectedDate === todayStr;
 
-      const weekday = dateObj.toLocaleDateString("en-US", { weekday: "short" });
+      const weekday = WEEKDAY_NAMES_SHORT[dateObj.getDay()] || "Mon";
       const dayNum = dateObj.getDate();
-      const monthStr = dateObj.toLocaleDateString("en-US", { month: "short" });
+      const monthStr = MONTH_NAMES_SHORT[dateObj.getMonth()] || "Jan";
       const yearNum = dateObj.getFullYear();
 
       if (isToday) {

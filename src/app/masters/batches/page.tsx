@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
@@ -249,7 +251,7 @@ export default function BatchesPage() {
             cell: (b) => (
               <span className="tabular-nums text-slate-600">
                 {b.mfgDate
-                  ? new Date(b.mfgDate).toLocaleDateString("en-IN")
+                  ? formatDate(b.mfgDate)
                   : "—"}
               </span>
             ),
@@ -261,7 +263,7 @@ export default function BatchesPage() {
             cell: (b) => (
               <span className="tabular-nums text-amber-700">
                 {b.expiryDate
-                  ? new Date(b.expiryDate).toLocaleDateString("en-IN")
+                  ? formatDate(b.expiryDate)
                   : "—"}
               </span>
             ),
@@ -326,10 +328,10 @@ export default function BatchesPage() {
             </div>
             <div className="flex items-center justify-between text-xs text-slate-500 tabular-nums">
               <span>
-                Mfg: {b.mfgDate ? new Date(b.mfgDate).toLocaleDateString("en-IN") : "—"}
+                Mfg: {b.mfgDate ? formatDate(b.mfgDate) : "—"}
               </span>
               <span className="text-amber-700">
-                Exp: {b.expiryDate ? new Date(b.expiryDate).toLocaleDateString("en-IN") : "—"}
+                Exp: {b.expiryDate ? formatDate(b.expiryDate) : "—"}
               </span>
             </div>
             <div className="flex items-center justify-between text-xs text-slate-600 pt-1 border-t border-slate-100 tabular-nums">
@@ -384,7 +386,7 @@ export default function BatchesPage() {
                 </span>
                 <span className="tabular-nums font-semibold text-slate-800">
                   {selectedBatchForView.mfgDate
-                    ? new Date(selectedBatchForView.mfgDate).toLocaleDateString("en-IN")
+                    ? formatDate(selectedBatchForView.mfgDate)
                     : "—"}
                 </span>
               </div>
@@ -394,7 +396,7 @@ export default function BatchesPage() {
                 </span>
                 <span className="tabular-nums font-bold text-amber-700">
                   {selectedBatchForView.expiryDate
-                    ? new Date(selectedBatchForView.expiryDate).toLocaleDateString("en-IN")
+                    ? formatDate(selectedBatchForView.expiryDate)
                     : "—"}
                 </span>
               </div>
@@ -524,13 +526,16 @@ export default function BatchesPage() {
                 step="0.01"
                 min="0"
                 required
-                value={formData.purchaseRate}
+                value={formData.purchaseRate === 0 || formData.purchaseRate === ("" as any) ? "" : formData.purchaseRate}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    purchaseRate: parseFloat(e.target.value) || 0,
+                    purchaseRate: e.target.value === "" ? ("" as any) : parseFloat(e.target.value),
                   })
                 }
+                onFocus={(e) => {
+                  if (e.target.value === "0") e.target.select();
+                }}
                 placeholder="80.00"
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums font-medium focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
@@ -545,13 +550,16 @@ export default function BatchesPage() {
                 step="0.01"
                 min="0"
                 required
-                value={formData.mrp}
+                value={formData.mrp === 0 || formData.mrp === ("" as any) ? "" : formData.mrp}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    mrp: parseFloat(e.target.value) || 0,
+                    mrp: e.target.value === "" ? ("" as any) : parseFloat(e.target.value),
                   })
                 }
+                onFocus={(e) => {
+                  if (e.target.value === "0") e.target.select();
+                }}
                 placeholder="100.00"
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
@@ -566,13 +574,16 @@ export default function BatchesPage() {
                 step="0.01"
                 min="0"
                 required
-                value={formData.saleRate}
+                value={formData.saleRate === 0 || formData.saleRate === ("" as any) ? "" : formData.saleRate}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    saleRate: parseFloat(e.target.value) || 0,
+                    saleRate: e.target.value === "" ? ("" as any) : parseFloat(e.target.value),
                   })
                 }
+                onFocus={(e) => {
+                  if (e.target.value === "0") e.target.select();
+                }}
                 placeholder="90.00"
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums font-normal text-emerald-700 focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />

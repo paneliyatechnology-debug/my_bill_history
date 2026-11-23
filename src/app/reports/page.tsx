@@ -15,6 +15,8 @@ import { ExportFormat } from "../../lib/export/export-types";
 import { exportReportData } from "./lib/report-export-adapter";
 import { DataTablePagination } from "../../components/ui/data-table-pagination";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 import {
   Star,
   Search,
@@ -73,17 +75,7 @@ type ReportTab =
   | "hsn-sales-summary";
 
 function formatDisplayDate(dateStr?: string): string {
-  if (!dateStr) return "-";
-  try {
-    const raw = dateStr.split("T")[0];
-    const parts = raw.split("-");
-    if (parts.length === 3) {
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    return raw;
-  } catch {
-    return dateStr || "-";
-  }
+  return formatDate(dateStr);
 }
 
 interface ReportPaginationProps {
@@ -825,19 +817,21 @@ export default function ReportsPage({
 
                 {selectedDatePreset === "Custom" && (
                   <div className="flex items-center gap-1">
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="px-2 py-1 text-[13px] bg-white border border-[#CBD5E1] rounded-md tabular-nums text-slate-700 h-10"
-                    />
+                    <div className="w-36">
+                      <CustomDatePicker
+                        size="sm"
+                        value={startDate}
+                        onChange={(val) => setStartDate(val)}
+                      />
+                    </div>
                     <span className="text-xs text-slate-400">-</span>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="px-2 py-1 text-[13px] bg-white border border-[#CBD5E1] rounded-md tabular-nums text-slate-700 h-10"
-                    />
+                    <div className="w-36">
+                      <CustomDatePicker
+                        size="sm"
+                        value={endDate}
+                        onChange={(val) => setEndDate(val)}
+                      />
+                    </div>
                   </div>
                 )}
               </div>

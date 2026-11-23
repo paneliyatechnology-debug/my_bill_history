@@ -9,6 +9,10 @@ import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 import { ImportWizardModal } from "../../../components/imports/import-wizard-modal";
 import { ImportModuleType } from "@billing/shared-types";
+import { CustomCombobox } from "@/components/ui/custom-combobox";
+import { INDIAN_STATES, getStateDisplayName } from "@/shared-types";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 import {
   X,
   Phone,
@@ -1289,8 +1293,8 @@ export default function PartiesPage() {
                   {/* Actions */}
                   <div className="flex items-center gap-2">
                     <Link
-                      href="/app/home/shared-ledger"
-                      className="p-2 rounded-xl bg-[#EFF6FF] hover:bg-teal-100 text-[#1677E8] border border-teal-200 typo-btn-secondary transition-colors inline-flex items-center gap-1.5"
+                      href={`/app/home/shared-ledger?partyId=${selectedParty.id}`}
+                      className="p-2 rounded-xl bg-[#EFF6FF] hover:bg-blue-100 text-[#1677E8] border border-blue-200 typo-btn-secondary transition-colors inline-flex items-center gap-1.5"
                       title="Open Shared Ledger"
                     >
                       <LinkIcon className="w-3.5 h-3.5 text-[#1677E8]" />
@@ -1515,11 +1519,7 @@ export default function PartiesPage() {
                                   {txn.number || "—"}
                                 </td>
                                 <td className="p-3 text-slate-600 tabular-nums">
-                                  {new Date(txn.date).toLocaleDateString("en-IN", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                  })}
+                                  {formatDate(txn.date)}
                                 </td>
                                 <td className="p-3 text-right tabular-nums font-medium text-slate-900">
                                   ₹ {txn.amount.toLocaleString("en-IN")}
@@ -1575,9 +1575,9 @@ export default function PartiesPage() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500">State Code:</span>
+                            <span className="text-slate-500">State:</span>
                             <span className="tabular-nums font-semibold text-slate-900">
-                              {selectedParty.stateCode} ({selectedParty.stateCode === "24" ? "Gujarat" : "Other State"})
+                              {getStateDisplayName(selectedParty.stateCode) || selectedParty.stateCode || "—"}
                             </span>
                           </div>
                         </div>
@@ -1703,7 +1703,7 @@ export default function PartiesPage() {
                             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 tabular-nums">
                               <span className="inline-flex items-center gap-1">
                                 <Calendar className="w-3 h-3 text-slate-400" />
-                                <span>{new Date(n.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                <span>{formatDate(n.createdAt)}</span>
                               </span>
                               <span>{new Date(n.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
                             </div>
@@ -1783,7 +1783,7 @@ export default function PartiesPage() {
                                 <div className="flex items-center gap-2 mt-1">
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
                                     <Calendar className="w-3 h-3 text-purple-600" />
-                                    <span>{new Date(a.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                    <span>{formatDate(a.date)}</span>
                                   </span>
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700">
                                     <span>{a.time}</span>
@@ -1811,7 +1811,7 @@ export default function PartiesPage() {
                                 {a.status || "SCHEDULED"}
                               </span>
                               <span className="text-[11px] text-slate-400 tabular-nums">
-                                Created: {new Date(a.createdAt).toLocaleDateString("en-IN")}
+                                Created: {formatDate(a.createdAt)}
                               </span>
                             </div>
                           </div>
@@ -1872,7 +1872,7 @@ export default function PartiesPage() {
                             return (
                               <tr key={txn.id} className="hover:bg-slate-50/60">
                                 <td className="p-3 text-slate-600">
-                                  {new Date(txn.date).toLocaleDateString("en-IN")}
+                                  {formatDate(txn.date)}
                                 </td>
                                 <td className="p-3 font-sans text-slate-800 font-medium">
                                   {txn.type}
@@ -2429,17 +2429,16 @@ export default function PartiesPage() {
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
-                  {lang === "gu" ? "રાજ્ય કોડ" : "State Code"}
+                  {lang === "gu" ? "રાજ્ય (સ્ટેટ)" : "State"}
                 </label>
-                <input
-                  type="text"
+                <CustomCombobox
                   value={formData.stateCode}
-                  onChange={(e) =>
-                    setFormData({ ...formData, stateCode: e.target.value })
-                  }
-                  placeholder={lang === "gu" ? "રાજ્ય કોડ (દા.ત. 24)" : "e.g. 24"}
-                  maxLength={2}
-                  className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums focus:ring-1 focus:ring-[#1677E8] h-10"
+                  onChange={(val) => setFormData({ ...formData, stateCode: val })}
+                  placeholder={lang === "gu" ? "રાજ્ય પસંદ કરો..." : "Select State..."}
+                  options={Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                    value: code,
+                    label: `${st.name} (${code})`,
+                  }))}
                 />
               </div>
             </div>
@@ -2821,17 +2820,16 @@ export default function PartiesPage() {
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
-                  {lang === "gu" ? "રાજ્ય કોડ" : "State Code"}
+                  {lang === "gu" ? "રાજ્ય (સ્ટેટ)" : "State"}
                 </label>
-                <input
-                  type="text"
+                <CustomCombobox
                   value={editFormData.stateCode}
-                  onChange={(e) =>
-                    setEditFormData({ ...editFormData, stateCode: e.target.value })
-                  }
-                  placeholder={lang === "gu" ? "રાજ્ય કોડ (દા.ત. 24)" : "e.g. 24"}
-                  maxLength={2}
-                  className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums focus:ring-1 focus:ring-[#1677E8] h-10"
+                  onChange={(val) => setEditFormData({ ...editFormData, stateCode: val })}
+                  placeholder={lang === "gu" ? "રાજ્ય પસંદ કરો..." : "Select State..."}
+                  options={Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                    value: code,
+                    label: `${st.name} (${code})`,
+                  }))}
                 />
               </div>
             </div>

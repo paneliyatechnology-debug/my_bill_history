@@ -21,6 +21,7 @@ import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
 import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { ALL_THEME_KEYS, resolveThemeDefinition } from "@/lib/invoice-theme-keys";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { formatDate, getTodayDisplayDate } from "@/lib/date-utils";
 import JsBarcode from "jsbarcode";
 import QRCode from "qrcode";
 import { EwbSlipModal } from "../../../../components/gst/ewb-slip-modal";
@@ -71,6 +72,11 @@ interface InvoiceDetail {
   paidAmount: number;
   balanceAmount?: number;
   outstandingBalance?: number;
+  discountTotal?: number;
+  discountAmount?: number;
+  freight?: number;
+  freightAmount?: number;
+  shippingAddress?: any;
   notes?: string;
   convertedInvoiceId?: string;
   convertedInvoice?: {
@@ -171,7 +177,7 @@ export default function InvoiceDetailPage() {
       upiId: displayUpi,
 
       invoiceNumber: inv.invoiceNumber,
-      invoiceDate: inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN"),
+      invoiceDate: inv.invoiceDate ? formatDate(inv.invoiceDate) : getTodayDisplayDate(),
       invoiceTime: inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "",
       cashierName: user?.fullName || "",
 
@@ -180,7 +186,7 @@ export default function InvoiceDetailPage() {
       customerAddress: customerAddressStr || "",
       customerGstin: inv.party?.gstin || "",
       placeOfSupply: inv.placeOfSupply || "",
-      dueDate: (inv as any)?.dueDate ? new Date((inv as any).dueDate).toLocaleDateString("en-IN") : "",
+      dueDate: (inv as any)?.dueDate ? formatDate((inv as any).dueDate) : "",
 
       items: (inv.items || []).map((it) => ({
         name: it.item?.name || it.description || "Item",
@@ -197,7 +203,7 @@ export default function InvoiceDetailPage() {
       subTotal: Number(inv.taxableAmount) || 0,
       taxableAmount: Number(inv.taxableAmount) || 0,
       taxTotal: (Number(inv.cgstAmount) || 0) + (Number(inv.sgstAmount) || 0) + (Number(inv.igstAmount) || 0),
-      discountTotal: 0,
+      discountTotal: Number((inv as any).discountTotal || (inv as any).discountAmount || 0),
       grandTotal: Number(inv.grandTotal) || 0,
       paymentMode: inv.paymentMode || "Cash",
       receivedAmount: Number(inv.paidAmount) || 0,
@@ -653,58 +659,22 @@ export default function InvoiceDetailPage() {
             <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="font-semibold text-[#182230] text-base sm:text-lg tracking-tight truncate">
-                  {invoice.category === "PROFORMA_INVOICE"
-                    ? `Quotation #${invoice.invoiceNumber}`
-                    : invoice.category === "DELIVERY_CHALLAN"
-                      ? `Delivery Challan #${invoice.invoiceNumber}`
-                      : `Invoice #${invoice.invoiceNumber}`}
-                </h1>
-
-                {/* Status Badge */}
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase ${
-                    invoice.status === "CONVERTED" || (invoice.category === "PROFORMA_INVOICE" && (invoice.convertedInvoice || invoice.convertedInvoiceId))
-                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                      : invoice.status === "PAID"
-                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                        : invoice.status === "PARTIALLY_PAID"
-                          ? "bg-amber-50 text-amber-800 border border-amber-200"
-                          : invoice.status === "DRAFT"
-                            ? "bg-slate-100 text-slate-700 border border-slate-200"
-                            : invoice.status === "CANCELLED"
-                              ? "bg-rose-50 text-rose-700 line-through border border-rose-200"
-                              : "bg-rose-50 text-rose-800 border border-rose-200"
-                  }`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${
-                    invoice.status === "CONVERTED" || (invoice.category === "PROFORMA_INVOICE" && (invoice.convertedInvoice || invoice.convertedInvoiceId))
-                      ? "bg-emerald-500"
-                      : invoice.status === "PAID" ? "bg-emerald-500" : invoice.status === "PARTIALLY_PAID" ? "bg-amber-500" : invoice.status === "DRAFT" ? "bg-slate-400" : "bg-rose-500"
-                  }`} />
-                  {invoice.status === "CONVERTED" || (invoice.category === "PROFORMA_INVOICE" && (invoice.convertedInvoice || invoice.convertedInvoiceId))
-                    ? (lang === "gu" ? "પાકા બિલમાં રૂપાંતરિત" : "Converted")
-                    : invoice.status === "PARTIALLY_PAID"
-                      ? (lang === "gu" ? "અંશતઃ ચૂકવેલ" : "Partially Paid")
-                      : invoice.status === "PAID"
-                        ? (lang === "gu" ? "સંપૂર્ણ ચૂકવેલ" : "Paid")
-                        : invoice.status === "DRAFT"
-                          ? (lang === "gu" ? "કાચું બિલ" : "Draft")
-                          : invoice.status === "CANCELLED"
-                            ? (lang === "gu" ? "રદ કરેલ" : "Cancelled")
-                            : (lang === "gu" ? "બાકી" : "Unpaid")}
-                </span>
-              </div>
+              <h1 className="font-semibold text-slate-900 text-base sm:text-lg tracking-tight truncate">
+                {invoice.category === "PROFORMA_INVOICE"
+                  ? `Quotation #${invoice.invoiceNumber}`
+                  : invoice.category === "DELIVERY_CHALLAN"
+                    ? `Delivery Challan #${invoice.invoiceNumber}`
+                    : `Invoice #${invoice.invoiceNumber}`}
+              </h1>
             </div>
 
             {/* Financial Summary Pill */}
-            <div className="hidden md:flex items-center gap-2 bg-[#F6F8F7] px-3 py-1 rounded-xl border border-slate-200 text-xs shadow-2xs">
+            <div className="hidden md:flex items-center gap-2.5 bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200/90 text-xs shadow-2xs">
               <span className="text-slate-500 font-medium">{lang === "gu" ? "કુલ:" : "Total:"}</span>
-              <span className="tabular-nums font-bold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-              <span className="text-slate-300">•</span>
+              <span className="tabular-nums font-semibold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+              <span className="text-slate-300">|</span>
               <span className="text-slate-500 font-medium">{lang === "gu" ? "બાકી:" : "Due:"}</span>
-              <span className={`tabular-nums font-bold ${bal > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+              <span className={`tabular-nums font-semibold ${bal > 0 ? "text-rose-600" : "text-emerald-700"}`}>
                 ₹{bal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
@@ -716,10 +686,10 @@ export default function InvoiceDetailPage() {
             <button
               id="btn-payment-history"
               onClick={() => setShowPaymentHistory(!showPaymentHistory)}
-              className={`px-3 py-2 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs ${
+              className={`h-9 px-3.5 text-xs font-semibold rounded-xl border flex items-center gap-2 transition-all cursor-pointer shadow-2xs ${
                 showPaymentHistory
-                  ? "bg-[#0F172A] text-white border-[#0F172A]"
-                  : "bg-white text-slate-700 border-slate-200 hover:bg-[#F8FAFC] hover:text-[#0F172A] hover:border-[#93C5FD]"
+                  ? "bg-slate-900 text-white border-slate-900"
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300"
               }`}
               title="View Payment History Drawer"
             >
@@ -727,124 +697,44 @@ export default function InvoiceDetailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
               <span>{lang === "gu" ? "ચુકવણી ઇતિહાસ" : "Payment History"}</span>
-              <span className={`text-[10px] tabular-nums px-1.5 py-0.2 rounded-full font-bold ${
+              <span className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded-full font-bold ${
                 showPaymentHistory ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
               }`}>
                 {allocations.length || (invoice.paidAmount > 0 ? 1 : 0)}
               </span>
             </button>
 
-            {/* Format & Theme Dropdown Menu */}
-            <div className="relative">
-              <button
-                id="btn-format-theme"
-                type="button"
-                onClick={() => {
-                  setIsFormatMenuOpen(!isFormatMenuOpen);
-                  setIsShareDropdownOpen(false);
-                  setIsDownloadDropdownOpen(false);
-                  setIsPrintDropdownOpen(false);
-                  setIsMoreMenuOpen(false);
-                }}
-                className="h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 text-[13px] font-medium rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                title="Theme and Paper Size"
-              >
-                <span
-                  className="w-3 h-3 rounded-full shrink-0 border border-black/15 shadow-2xs"
-                  style={{ backgroundColor: invoiceThemeState.accentColor || primaryColor }}
-                />
-                <span>{lang === "gu" ? "થીમ & ફોર્મેટ" : "Theme & Paper"}</span>
-                <span className="text-[10px] text-slate-400">▾</span>
-              </button>
-
-              {isFormatMenuOpen && (
-                <div
-                  className="absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-xl p-3 z-40 text-xs space-y-3 animate-in fade-in zoom-in-95 duration-100"
-                  onMouseLeave={() => setIsFormatMenuOpen(false)}
-                >
-                  <div>
-                    <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
-                      {lang === "gu" ? "ઇન્વોઇસ થીમ" : "Invoice Theme"}
-                    </label>
-                    <CustomSelect
-                      size="sm"
-                      value={
-                        resolveThemeDefinition(
-                          invoiceThemeState.uniqueThemeKey || invoiceThemeState.festiveTheme || invoiceThemeState.themeId,
-                          invoiceThemeState.festiveVariant
-                        ).uniqueKey
-                      }
-                      onChange={(val: any) => {
-                        updateThemeFast(val);
-                      }}
-                      options={ALL_THEME_KEYS.map((t) => ({
-                        value: t.uniqueKey,
-                        label: `${t.isFestive ? "🎉 " : ""}${lang === "gu" ? t.displayNameGu : t.displayName}`,
-                        group: t.isFestive
-                          ? (lang === "gu" ? "તહેવાર થીમ્સ (Festive)" : "Festive Themes")
-                          : (lang === "gu" ? "સ્ટાન્ડર્ડ થીમ્સ (Standard)" : "Standard Themes"),
-                      }))}
-                      triggerClassName="rounded-lg border-slate-200 bg-slate-50"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
-                      {lang === "gu" ? "કાગળનું માપ" : "Paper Size"}
-                    </label>
-                    <CustomSelect
-                      size="sm"
-                      value={selectedPaperSize}
-                      onChange={(val: any) => setSelectedPaperSize(val as any)}
-                      options={[
-                        { value: "A4", label: "A4 (210 × 297 mm)" },
-                        { value: "A5", label: "A5 (148 × 210 mm)" },
-                        { value: "US_LETTER", label: "Letter (8.5 × 11 in)" },
-                        { value: "LEGAL", label: "Legal (8.5 × 14 in)" },
-                        { value: "THERMAL_80", label: "Thermal 80mm (3 inch)" },
-                        { value: "DL", label: "DL (99 × 210 mm)" },
-                      ]}
-                      triggerClassName="rounded-lg border-slate-200 bg-slate-50"
-                    />
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-[11px] text-slate-500">Need deep styling?</span>
-                    <Link
-                      href="/settings/invoice"
-                      className="text-xs font-bold text-[#0F172A] hover:text-[#1677E8] hover:underline flex items-center gap-1"
-                      title="Open Invoice Settings Studio"
-                    >
-                      <Settings className="w-3.5 h-3.5" />
-                      <span>Studio</span>
-                      <span>→</span>
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Print PDF Dropdown */}
+            {/* Print Dropdown */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => {
                   setIsPrintDropdownOpen(!isPrintDropdownOpen);
-                  setIsFormatMenuOpen(false);
                   setIsShareDropdownOpen(false);
                   setIsDownloadDropdownOpen(false);
                   setIsMoreMenuOpen(false);
                 }}
-                className="h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 text-[13px] font-medium rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className={`h-9 px-3.5 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 border text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-2xs ${
+                  isPrintDropdownOpen ? "border-[#1677E8] ring-2 ring-[#1677E8]/10 text-slate-900" : "border-slate-200"
+                }`}
                 title="Print Invoice"
               >
-                <Printer className="w-3.5 h-3.5 text-slate-600" />
+                <Printer className="w-3.5 h-3.5 text-slate-500" />
                 <span>{lang === "gu" ? "પ્રિન્ટ" : "Print"}</span>
-                <span className="text-[10px] text-slate-400">▾</span>
+                <svg
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                    isPrintDropdownOpen ? "rotate-180 text-slate-700" : ""
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
               {isPrintDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute right-0 mt-1.5 w-56 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
                   onMouseLeave={() => setIsPrintDropdownOpen(false)}
                 >
                   <button
@@ -852,9 +742,9 @@ export default function InvoiceDetailPage() {
                       setIsPrintDropdownOpen(false);
                       window.print();
                     }}
-                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2.5 text-slate-700 font-medium cursor-pointer"
                   >
-                    <Printer className="w-3.5 h-3.5 text-slate-600" />
+                    <Printer className="w-3.5 h-3.5 text-slate-500" />
                     <span>Print Standard A4</span>
                   </button>
                   <button
@@ -862,29 +752,29 @@ export default function InvoiceDetailPage() {
                       setIsPrintDropdownOpen(false);
                       handleThermalPrint("3inch");
                     }}
-                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2.5 text-slate-700 font-medium cursor-pointer"
                   >
-                    <Receipt className="w-4 h-4 text-slate-500" />
-                    <span>Thermal Printer (3 inch / 80mm)</span>
+                    <Receipt className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Thermal Slip (80mm / 3 inch)</span>
                   </button>
                   <button
                     onClick={() => {
                       setIsPrintDropdownOpen(false);
                       handleThermalPrint("2inch");
                     }}
-                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2.5 text-slate-700 font-medium cursor-pointer"
                   >
-                    <Smartphone className="w-4 h-4 text-slate-500" />
-                    <span>Thermal Printer (2 inch / 58mm)</span>
+                    <Smartphone className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Thermal Slip (58mm / 2 inch)</span>
                   </button>
                   <button
                     onClick={() => {
                       setIsPrintDropdownOpen(false);
                       handleBluetoothThermalPrint();
                     }}
-                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-blue-700 font-medium cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-blue-50 flex items-center gap-2.5 text-blue-700 font-medium cursor-pointer border-t border-slate-100"
                   >
-                    <Wifi className="w-4 h-4 text-blue-600" />
+                    <Wifi className="w-3.5 h-3.5 text-blue-600" />
                     <span>Bluetooth POS Machine</span>
                   </button>
                 </div>
@@ -897,24 +787,34 @@ export default function InvoiceDetailPage() {
                 type="button"
                 onClick={() => {
                   setIsDownloadDropdownOpen(!isDownloadDropdownOpen);
-                  setIsFormatMenuOpen(false);
                   setIsShareDropdownOpen(false);
                   setIsPrintDropdownOpen(false);
                   setIsMoreMenuOpen(false);
                 }}
                 disabled={isGeneratingPdf}
-                className="h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 text-[13px] font-medium rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className={`h-9 px-3.5 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 border text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-2xs ${
+                  isDownloadDropdownOpen ? "border-[#1677E8] ring-2 ring-[#1677E8]/10 text-slate-900" : "border-slate-200"
+                }`}
                 title="Download PDF Document"
               >
                 <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <span>{isGeneratingPdf ? "Generating..." : (lang === "gu" ? "ડાઉનલોડ" : "PDF")}</span>
-                <span className="text-[10px] text-slate-400">▾</span>
+                <span>{isGeneratingPdf ? "Generating..." : (lang === "gu" ? "પીડીએફ" : "PDF")}</span>
+                <svg
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                    isDownloadDropdownOpen ? "rotate-180 text-slate-700" : ""
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
               {isDownloadDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-1.5 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
                   onMouseLeave={() => setIsDownloadDropdownOpen(false)}
                 >
                   <button
@@ -922,9 +822,9 @@ export default function InvoiceDetailPage() {
                       setIsDownloadDropdownOpen(false);
                       handleDownloadPdf();
                     }}
-                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2.5 text-slate-700 font-medium cursor-pointer"
                   >
-                    <FileText className="w-4 h-4 text-slate-500" />
+                    <FileText className="w-3.5 h-3.5 text-slate-500" />
                     <span>Regular A4 Tax PDF</span>
                   </button>
                   <button
@@ -932,9 +832,9 @@ export default function InvoiceDetailPage() {
                       setIsDownloadDropdownOpen(false);
                       handleDownloadPdf();
                     }}
-                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2.5 text-slate-700 font-medium cursor-pointer"
                   >
-                    <Receipt className="w-4 h-4 text-slate-500" />
+                    <Receipt className="w-3.5 h-3.5 text-slate-500" />
                     <span>Thermal Slip (80mm)</span>
                   </button>
                 </div>
@@ -947,37 +847,47 @@ export default function InvoiceDetailPage() {
                 type="button"
                 onClick={() => {
                   setIsShareDropdownOpen(!isShareDropdownOpen);
-                  setIsFormatMenuOpen(false);
                   setIsDownloadDropdownOpen(false);
                   setIsPrintDropdownOpen(false);
                   setIsMoreMenuOpen(false);
                 }}
-                className="h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 text-[13px] font-medium rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className={`h-9 px-3.5 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 border text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-2xs ${
+                  isShareDropdownOpen ? "border-[#1677E8] ring-2 ring-[#1677E8]/10 text-slate-900" : "border-slate-200"
+                }`}
                 title="Share Invoice"
               >
                 <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
                 <span>{lang === "gu" ? "શેર કરો" : "Share"}</span>
-                <span className="text-[10px] text-slate-400">▾</span>
+                <svg
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                    isShareDropdownOpen ? "rotate-180 text-slate-700" : ""
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
               {isShareDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute right-0 mt-1.5 w-56 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
                   onMouseLeave={() => setIsShareDropdownOpen(false)}
                 >
                   <button
                     onClick={() => {
                       setIsShareDropdownOpen(false);
                       const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
-                      const text = `*Invoice from ${companyName}*\nInvoice No: ${invoice.invoiceNumber}\nDate: ${new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}\nGrand Total: ₹${Number(invoice.grandTotal).toFixed(2)}\nOutstanding Balance: ₹${bal.toFixed(2)}\n\nThank you for your business!`;
+                      const text = `*Invoice from ${companyName}*\nInvoice No: ${invoice.invoiceNumber}\nDate: ${formatDate(invoice.invoiceDate)}\nGrand Total: ₹${Number(invoice.grandTotal).toFixed(2)}\nOutstanding Balance: ₹${bal.toFixed(2)}\n\nThank you for your business!`;
                       const phone = invoice.party?.phone ? invoice.party.phone.replace(/[^0-9]/g, "") : "";
                       const waUrl = phone
                         ? `https://wa.me/${phone.startsWith("91") ? phone : "91" + phone}?text=${encodeURIComponent(text)}`
                         : `https://wa.me/?text=${encodeURIComponent(text)}`;
                       window.open(waUrl, "_blank");
                     }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-emerald-50 flex items-center gap-2 text-emerald-800 font-semibold cursor-pointer"
+                    className="w-full text-left px-3.5 py-2.5 hover:bg-emerald-50 flex items-center gap-2.5 text-emerald-800 font-semibold cursor-pointer"
                   >
                     <MessageSquare className="w-4 h-4 text-emerald-600" />
                     <span>Share on WhatsApp</span>
@@ -988,9 +898,9 @@ export default function InvoiceDetailPage() {
                       navigator.clipboard.writeText(window.location.href);
                       setActionSuccess("Invoice link copied to clipboard!");
                     }}
-                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2.5 text-slate-700 font-medium cursor-pointer"
                   >
-                    <Link2 className="w-3.5 h-3.5 text-slate-600" />
+                    <Link2 className="w-3.5 h-3.5 text-slate-500" />
                     <span>Copy Invoice Link</span>
                   </button>
                   <button
@@ -999,9 +909,9 @@ export default function InvoiceDetailPage() {
                       setEmailShareTo(invoice.party?.email || "");
                       setEmailShareOpen(true);
                     }}
-                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 border-t border-slate-100 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2.5 text-slate-700 font-medium border-t border-slate-100 cursor-pointer"
                   >
-                    <Mail className="w-3.5 h-3.5 text-slate-600" />
+                    <Mail className="w-3.5 h-3.5 text-slate-500" />
                     <span>Email Invoice</span>
                   </button>
                 </div>
@@ -1015,7 +925,7 @@ export default function InvoiceDetailPage() {
               <button
                 onClick={() => setIsIssueConfirmOpen(true)}
                 disabled={isIssuing}
-                className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white text-xs font-semibold rounded-xl shadow-xs flex items-center gap-2 transition-all cursor-pointer"
               >
                 {isIssuing && (
                   <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
@@ -1038,28 +948,31 @@ export default function InvoiceDetailPage() {
                   setPaymentError(null);
                   setIsPaymentModalOpen(true);
                 }}
-                className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-98"
               >
                 <CreditCard className="w-3.5 h-3.5" />
                 <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment In"}</span>
               </button>
             ) : null}
 
-            {/* More Options Dropdown (Consolidated Infrequent Actions) */}
+            {/* More Options Dropdown */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => {
                   setIsMoreMenuOpen(!isMoreMenuOpen);
-                  setIsFormatMenuOpen(false);
                   setIsShareDropdownOpen(false);
                   setIsDownloadDropdownOpen(false);
                   setIsPrintDropdownOpen(false);
                 }}
-                className="p-2 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium transition-colors cursor-pointer shadow-2xs"
+                className={`h-9 w-9 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 border rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
+                  isMoreMenuOpen ? "border-[#1677E8] ring-2 ring-[#1677E8]/10 text-slate-900" : "border-slate-200"
+                }`}
                 title="More Actions"
               >
-                •••
+                <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                </svg>
               </button>
 
               {isMoreMenuOpen && (
@@ -1283,7 +1196,7 @@ export default function InvoiceDetailPage() {
                 companyName,
                 details: [
                   { label: "Invoice Number", value: invoice.invoiceNumber },
-                  { label: "Invoice Date", value: new Date(invoice.invoiceDate).toLocaleDateString("en-IN") },
+                  { label: "Invoice Date", value: formatDate(invoice.invoiceDate) },
                   { label: "Billed To", value: invoice.party?.name || "—" },
                   { label: "Grand Total", value: formattedGrandTotal },
                   { label: "Balance", value: formattedBalance },
@@ -1417,7 +1330,7 @@ export default function InvoiceDetailPage() {
                             </span>
                           </div>
                           <div className="flex justify-between items-center text-[11px] text-slate-500">
-                            <span>{new Date(a.createdAt || a.voucher?.voucherDate || invoice.invoiceDate).toLocaleDateString("en-IN")}</span>
+                            <span>{formatDate(a.createdAt || a.voucher?.voucherDate || invoice.invoiceDate)}</span>
                             <span className="font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-700">
                               {a.paymentMode || "Cash"}
                             </span>
@@ -1436,7 +1349,7 @@ export default function InvoiceDetailPage() {
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-[11px] text-slate-500">
-                        <span>{new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}</span>
+                        <span>{formatDate(invoice.invoiceDate)}</span>
                         <span className="font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-700">
                           {invoice.paymentMode || "Cash"}
                         </span>
@@ -1506,7 +1419,7 @@ export default function InvoiceDetailPage() {
                       {ret.returnNumber}
                     </td>
                     <td className="py-2 px-3 tabular-nums">
-                      {new Date(ret.returnDate).toLocaleDateString("en-IN")}
+                      {formatDate(ret.returnDate)}
                     </td>
                     <td className="py-2 px-3 text-slate-600">
                       {ret.reason || "-"}
@@ -1942,11 +1855,7 @@ export default function InvoiceDetailPage() {
                       Tax Invoice
                     </span>
                     <span className="text-[11px] text-slate-500">
-                      {new Date(invoice.invoiceDate).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {formatDate(invoice.invoiceDate)}
                     </span>
                   </div>
                   <p className="text-slate-600 text-[11px] mt-0.5 truncate max-w-sm">

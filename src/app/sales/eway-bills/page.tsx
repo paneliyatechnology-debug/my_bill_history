@@ -9,6 +9,7 @@ import { Badge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 import { EwbSlipModal } from "../../../components/gst/ewb-slip-modal";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { formatDate, formatDateTime } from "@/lib/date-utils";
 
 interface EWayBillListItem {
   id: string;
@@ -269,11 +270,7 @@ export default function EWayBillsPage() {
             </button>
           </div>
           <div className="text-[10px] text-slate-500">
-            {new Date(item.ewbDate).toLocaleDateString("en-IN", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
+            {formatDate(item.ewbDate)}
           </div>
         </div>
       ),
@@ -363,12 +360,7 @@ export default function EWayBillsPage() {
         return (
           <div className="space-y-1">
             <div className="text-xs font-medium text-slate-800">
-              {validDate.toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatDateTime(validDate)}
             </div>
             {item.status === "CNL" ? (
               <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 uppercase">

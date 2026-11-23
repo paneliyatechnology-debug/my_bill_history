@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { apiClient } from "@/lib/api-client";
 import { einvoiceApi, EInvoiceValidationError } from "@/lib/einvoice";
-import { INDIAN_STATES } from "@/shared-types";
+import { INDIAN_STATES, resolvePartyStateCode } from "@/shared-types";
 import { formatInr } from "@/components/design-system/tokens";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import { X, Check } from "lucide-react";
@@ -67,7 +67,7 @@ export default function CreateEInvoicePage() {
   const [buyerCity, setBuyerCity] = useState("");
   const [buyerStateCode, setBuyerStateCode] = useState("24");
   const [buyerPincode, setBuyerPincode] = useState("");
-  const [placeOfSupply, setPlaceOfSupply] = useState("24");
+  const [placeOfSupply, setPlaceOfSupply] = useState("");
 
   // Conditional Ship-to / Dispatch-from
   const [showDispatchFrom, setShowDispatchFrom] = useState(false);
@@ -169,9 +169,11 @@ export default function CreateEInvoicePage() {
       const addr = p.billingAddress || {};
       setBuyerAddress(typeof addr === "string" ? addr : addr.line1 || addr.address || "");
       setBuyerCity(addr.city || "");
-      const st = String(p.stateCode || addr.stateCode || "24").padStart(2, "0");
-      setBuyerStateCode(st);
-      setPlaceOfSupply(st);
+      const st = resolvePartyStateCode(p, companyState);
+      if (st) {
+        setBuyerStateCode(st);
+        setPlaceOfSupply(st);
+      }
       setBuyerPincode(addr.pincode || addr.pin || p.pincode || "");
     }
   };

@@ -11,8 +11,10 @@ import {
   DynamicInvoiceData,
   DynamicCompanyData,
 } from "@/components/invoice/dynamic-themed-invoice";
+import { getStateDisplayName } from "@/shared-types";
 import { Modal } from "@/components/ui/modal";
 import { Palette } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 export default function DeliveryChallanViewPage() {
   const params = useParams();
@@ -252,7 +254,7 @@ export default function DeliveryChallanViewPage() {
     const comp = currentCompany?.tradeName || currentCompany?.legalName || "My Company";
     const text = `*Delivery Challan #${challan?.challanNumber}*\nParty: ${
       challan?.party?.name || challan?.warehouse?.name || "Customer"
-    }\nDate: ${challan?.challanDate ? new Date(challan.challanDate).toLocaleDateString("en-GB") : "—"}\nAmount: ₹${Number(challan?.totalAmount || 0).toFixed(2)}\n\nDispatched by: ${comp}`;
+    }\nDate: ${challan?.challanDate ? formatDate(challan.challanDate) : "—"}\nAmount: ₹${Number(challan?.totalAmount || 0).toFixed(2)}\n\nDispatched by: ${comp}`;
     const phone = challan?.party?.phone ? String(challan.party.phone).replace(/[^0-9]/g, "") : "";
     const waUrl = phone
       ? `https://wa.me/${phone.startsWith("91") ? phone : "91" + phone}?text=${encodeURIComponent(text)}`
@@ -307,11 +309,13 @@ export default function DeliveryChallanViewPage() {
     invoiceNumber: challan.challanNumber,
     invoiceDate: challanDateIso,
     status: isClosed ? "CLOSED" : isCancelled ? "CANCELLED" : "ISSUED",
-    placeOfSupply: party.stateCode
-      ? `${party.stateCode} (${party.state || "State"})`
+    placeOfSupply: (challan as any).placeOfSupply
+      ? getStateDisplayName((challan as any).placeOfSupply)
+      : party.stateCode
+      ? getStateDisplayName(party.stateCode)
       : currentCompany?.stateCode
-      ? `${currentCompany.stateCode} (${(currentCompany as any).state || "Gujarat"})`
-      : "24 (Gujarat)",
+      ? getStateDisplayName(currentCompany.stateCode)
+      : "Gujarat (24)",
     isB2B: !!party.gstin,
     taxableAmount: taxableAmount,
     cgstAmount: Number(challan.cgstAmount || 0),

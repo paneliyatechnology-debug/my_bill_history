@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useAuth } from "@/context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { ExtractedBillData, ExtractedBillItem, PurchaseBillScanRecord } from "@billing/shared-types";
 import { CustomCombobox, CustomSelect } from "@/components/ui/dropdown-system";
@@ -404,6 +405,7 @@ export function BillScannerModal({
   initialScanRecord,
   initialPreviewUrl,
 }: BillScannerModalProps) {
+  const { currentCompany } = useAuth();
   // Step: "upload" | "processing" | "review"
   const [step, setStep] = useState<"upload" | "processing" | "review">("upload");
   const [processingStage, setProcessingStage] = useState<string>("Uploading document...");
@@ -436,7 +438,7 @@ export function BillScannerModal({
   const [vendorInvoiceNumber, setVendorInvoiceNumber] = useState<string>("");
   const [invoiceDate, setInvoiceDate] = useState<string>("");
   const [dueDate, setDueDate] = useState<string>("");
-  const [placeOfSupply, setPlaceOfSupply] = useState<string>("24");
+  const [placeOfSupply, setPlaceOfSupply] = useState<string>(() => currentCompany?.stateCode || "");
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
   const [currency, setCurrency] = useState<string>("INR");
   const [exchangeRate, setExchangeRate] = useState<number>(83.5);
@@ -709,7 +711,7 @@ export function BillScannerModal({
     setVendorInvoiceNumber(invoiceNo);
     setInvoiceDate(ext.invoice?.invoiceDate || "");
     setDueDate(ext.invoice?.dueDate || "");
-    setPlaceOfSupply(ext.invoice?.placeOfSupply || "24");
+    setPlaceOfSupply(ext.invoice?.placeOfSupply || ext.supplier?.gstin?.slice(0, 2) || currentCompany?.stateCode || "");
     setCurrency(ext.currency || "INR");
     setExchangeRate(ext.exchangeRate || 83.5);
     setIsRcm(!!ext.isRcm);
@@ -1251,7 +1253,7 @@ export function BillScannerModal({
   const handleOpenCreateSupplierModal = () => {
     const sup = scanRecord?.extractedData?.supplier;
     const detectedGstin = (sup?.gstin || "").trim().toUpperCase();
-    let detectedState = detectedGstin ? detectedGstin.substring(0, 2) : (placeOfSupply || "24");
+    let detectedState = detectedGstin ? detectedGstin.substring(0, 2) : (placeOfSupply || currentCompany?.stateCode || "24");
     if (
       !detectedGstin &&
       /LLC|Inc|Corp|Ltd|Pte|USA|United States|DE|Delaware|Ireland|Singapore|Germany|UK/i.test(
@@ -2334,7 +2336,7 @@ export function BillScannerModal({
                         </span>
                       </div>
                       <div className="text-slate-500">
-                        {placeOfSupply === "24" ? "CGST (9%) + SGST (9%):" : "IGST (18%):"}{" "}
+                        {placeOfSupply === (currentCompany?.stateCode || "24") ? "CGST + SGST:" : "IGST:"}{" "}
                         <span className="tabular-nums font-semibold text-slate-800">
                           {currency === "INR" ? "₹" : `${currency} `}
                           {totals.tax.toFixed(2)}

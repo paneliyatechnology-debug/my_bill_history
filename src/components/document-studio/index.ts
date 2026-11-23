@@ -6,3 +6,5 @@ export * from "./document-lower-sections";
 export * from "./document-summary-card";
 export * from "./document-bottom-bar";
 export * from "./party-selector-compact";
+export * from "../ui/clean-number-input";
+

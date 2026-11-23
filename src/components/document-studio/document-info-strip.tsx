@@ -2,7 +2,8 @@
 
 import React from "react";
 import { DocumentInfoStripProps } from "./types";
-import { CustomSelect } from "@/components/ui/dropdown-system";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
   return (
@@ -16,6 +17,19 @@ export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
 
             {field.customRender ? (
               field.customRender
+            ) : field.type === "combobox" ? (
+              <CustomCombobox
+                size="sm"
+                value={field.value ?? ""}
+                onChange={(val: any) => field.onChange?.(val)}
+                placeholder={field.placeholder || "Select..."}
+                options={field.options?.map((opt) => ({
+                  value: opt.value,
+                  label: opt.label,
+                  sublabel: opt.sublabel,
+                })) || []}
+                triggerClassName="rounded-xl border-slate-200 bg-white h-8.5"
+              />
             ) : field.type === "select" ? (
               <CustomSelect
                 size="sm"
@@ -29,13 +43,26 @@ export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
                 triggerClassName="rounded-xl border-slate-200 bg-white"
               />
             ) : field.type === "date" ? (
+              <CustomDatePicker
+                size="sm"
+                value={String(field.value ?? "")}
+                onChange={(val) => field.onChange?.(val)}
+                placeholder={field.placeholder || "DD/MM/YYYY"}
+                triggerClassName="rounded-xl border-slate-200 bg-white h-8.5"
+              />
+            ) : field.readOnly ? (
               <div className="relative">
                 <input
-                  type="date"
+                  type="text"
+                  readOnly
+                  tabIndex={-1}
                   value={field.value ?? ""}
-                  onChange={(e) => field.onChange?.(e.target.value)}
-                  className="w-full py-1 px-1.5 typo-input tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs cursor-pointer h-8.5"
+                  placeholder={field.placeholder || "Auto-generated"}
+                  className="w-full py-1 pl-2.5 pr-14 typo-input bg-slate-50 border border-slate-200/90 rounded-xl text-slate-800 font-mono text-[12px] font-semibold tracking-wide cursor-default select-all focus:outline-none focus:ring-0 focus:border-slate-300 shadow-none h-8.5 truncate"
                 />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-200/60 px-1.5 py-0.5 rounded pointer-events-none">
+                  {field.badge || "Auto"}
+                </span>
               </div>
             ) : (
               <input

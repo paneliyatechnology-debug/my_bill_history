@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
@@ -146,7 +148,7 @@ export function LiveGstInvoiceCard({
           )}
           {invoice?.invoiceDate ? (
             <p className={`mt-1 text-[0.68rem] ${paper ? "text-[#102033]/65" : "text-[#E7DCCB]/70"}`}>
-              {new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}
+              {formatDate(invoice.invoiceDate)}
             </p>
           ) : null}
         </div>

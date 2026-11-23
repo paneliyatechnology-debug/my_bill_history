@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Sparkles, X, Zap, Clock, BookOpen, Lock, Check, FileText, BarChart3 } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 interface SharedLedgerParty {
   id: string;
@@ -63,6 +66,9 @@ type DateFilterOption =
   | "Custom Date";
 
 export default function SharedLedgerPage() {
+  const searchParams = useSearchParams();
+  const partyIdParam = searchParams?.get("partyId") || searchParams?.get("id");
+
   // Parties List state
   const [parties, setParties] = useState<SharedLedgerParty[]>([]);
   const [selectedParty, setSelectedParty] = useState<SharedLedgerParty | null>(null);
@@ -138,6 +144,10 @@ export default function SharedLedgerPage() {
 
       setParties(items);
       setSelectedParty((prev) => {
+        if (partyIdParam) {
+          const match = items.find((it) => it.id === partyIdParam);
+          if (match) return match;
+        }
         if (prev) {
           const updated = items.find((it) => it.id === prev.id);
           return updated || prev;
@@ -149,7 +159,17 @@ export default function SharedLedgerPage() {
     } finally {
       setIsLoadingParties(false);
     }
-  }, []);
+  }, [partyIdParam]);
+
+  // Sync selectedParty if partyIdParam changes
+  useEffect(() => {
+    if (partyIdParam && parties.length > 0) {
+      const match = parties.find((p) => p.id === partyIdParam);
+      if (match && (!selectedParty || selectedParty.id !== match.id)) {
+        setSelectedParty(match);
+      }
+    }
+  }, [partyIdParam, parties, selectedParty]);
 
   // 2. Fetch settings
   const loadSettings = useCallback(async () => {
@@ -267,44 +287,80 @@ export default function SharedLedgerPage() {
 
       if (res?.transactions) {
         setTransactions(res.transactions);
+      } else {
+        setTransactions([]);
       }
     } catch {
-      // fallback to public portal endpoint if specific route not loaded
-      apiClient
-        .get<{ transactions: any[] }>(`/shared-ledger/public/${selectedParty.token}`)
-        .then((pubRes) => {
-          const list = (pubRes?.transactions || []).map((t: any) => ({
-            id: t.id,
-            rawType: t.rawType || t.type,
-            type:
-              t.type === "SALES_INVOICE"
-                ? "Sales Invoices"
-                : t.type === "PURCHASE_INVOICE"
-                ? "Purchase Invoices"
-                : t.type === "DELIVERY_CHALLAN"
-                ? "Delivery Challan"
-                : t.type === "PAYMENT_IN"
-                ? "Payment In"
-                : "Transaction",
-            transactionNumber: t.voucherNumber || t.id.slice(0, 8),
-            date: t.date ? String(t.date).slice(0, 10) : "",
-            rawDate: t.date ? new Date(t.date).getTime() : 0,
-            amount: Number(t.amount || t.debit || t.credit || 0),
-            debit: Number(t.debit || 0),
-            credit: Number(t.credit || 0),
-            paidAmount: Number(t.paidAmount || 0),
-            status: (Number(t.paidAmount || 0) >= Number(t.amount || 0) ? "Completed" : Number(t.paidAmount || 0) > 0 ? "Partial" : "Unpaid") as "Completed" | "Partial" | "Unpaid",
-            canConvertToPurchase: t.type === "SALES_INVOICE",
-          }));
-          setTransactions(list);
-        })
-        .catch(() => {
-          setTransactions([]);
-        });
+      // Fallback: fetch sales and purchase invoices directly for this party
+      try {
+        const [salesRes, purchRes]: any[] = await Promise.all([
+          apiClient.get("/sales/invoices", { partyId: selectedParty.id }).catch(() => ({ data: [] })),
+          apiClient.get("/purchases/invoices", { partyId: selectedParty.id }).catch(() => ({ data: [] })),
+        ]);
+        const sales = Array.isArray(salesRes?.data)
+          ? salesRes.data
+          : Array.isArray(salesRes?.items)
+          ? salesRes.items
+          : Array.isArray(salesRes)
+          ? salesRes
+          : [];
+        const purch = Array.isArray(purchRes?.data)
+          ? purchRes.data
+          : Array.isArray(purchRes?.items)
+          ? purchRes.items
+          : Array.isArray(purchRes)
+          ? purchRes
+          : [];
+        const combined: TransactionItem[] = [
+          ...sales.map((s: any) => ({
+            id: s.id,
+            rawType: "SALES_INVOICE",
+            type: "Sales Invoices",
+            transactionNumber: s.invoiceNumber || s.id.slice(0, 8),
+            date: s.invoiceDate ? String(s.invoiceDate).slice(0, 10) : "",
+            rawDate: s.invoiceDate ? new Date(s.invoiceDate).getTime() : 0,
+            amount: Number(s.grandTotal || 0),
+            debit: s.status === "CANCELLED" ? 0 : Number(s.grandTotal || 0),
+            credit: 0,
+            paidAmount: Number(s.paidAmount || 0),
+            status: (s.status === "CANCELLED"
+              ? "Cancelled"
+              : Number(s.paidAmount || 0) >= Number(s.grandTotal || 0)
+              ? "Completed"
+              : Number(s.paidAmount || 0) > 0
+              ? "Partial"
+              : "Unpaid") as any,
+            canConvertToPurchase: s.status !== "CANCELLED",
+          })),
+          ...purch.map((p: any) => ({
+            id: p.id,
+            rawType: "PURCHASE_INVOICE",
+            type: "Purchase Invoices",
+            transactionNumber: p.vendorInvoiceNumber || p.invoiceNumber || p.id.slice(0, 8),
+            date: p.invoiceDate ? String(p.invoiceDate).slice(0, 10) : "",
+            rawDate: p.invoiceDate ? new Date(p.invoiceDate).getTime() : 0,
+            amount: Number(p.grandTotal || 0),
+            debit: 0,
+            credit: p.status === "CANCELLED" ? 0 : Number(p.grandTotal || 0),
+            paidAmount: Number(p.paidAmount || 0),
+            status: (p.status === "CANCELLED"
+              ? "Cancelled"
+              : Number(p.paidAmount || 0) >= Number(p.grandTotal || 0)
+              ? "Completed"
+              : Number(p.paidAmount || 0) > 0
+              ? "Partial"
+              : "Unpaid") as any,
+            canConvertToPurchase: false,
+          })),
+        ].sort((a, b) => (sortAsc ? a.rawDate - b.rawDate : b.rawDate - a.rawDate));
+        setTransactions(combined);
+      } catch {
+        setTransactions([]);
+      }
     } finally {
       setIsLoadingTransactions(false);
     }
-  }, [selectedParty?.id, selectedParty?.token, startDate, endDate, sortField, sortAsc]);
+  }, [selectedParty?.id, startDate, endDate, sortField, sortAsc]);
 
   useEffect(() => {
     loadTransactions();
@@ -864,7 +920,7 @@ export default function SharedLedgerPage() {
                     transactions.map((tx) => (
                       <tr key={tx.id} className="hover:bg-slate-50/60 transition-colors">
                         <td className="py-3.5 px-4 font-medium text-slate-600">
-                          {tx.date || "-"}
+                          {formatDate(tx.date, "-")}
                         </td>
                         <td className="py-3.5 px-4 font-semibold text-slate-800">
                           {tx.type}
@@ -882,7 +938,9 @@ export default function SharedLedgerPage() {
                                 ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
                                 : tx.status === "Partial"
                                 ? "bg-amber-50 text-amber-600 border border-amber-100"
-                                : "bg-rose-50 text-rose-600 border border-rose-100"
+                                : tx.status === "Cancelled"
+                                ? "bg-rose-50 text-rose-600 border border-rose-200"
+                                : "bg-slate-50 text-slate-600 border border-slate-200"
                             }`}
                           >
                             {tx.status}
@@ -1295,7 +1353,7 @@ export default function SharedLedgerPage() {
                     Converting Invoice #{selectedInvoiceToConvert.transactionNumber}
                   </div>
                   <div className="mt-1 flex items-center justify-between text-xs text-slate-600">
-                    <span>Date: {selectedInvoiceToConvert.date}</span>
+                    <span>Date: {formatDate(selectedInvoiceToConvert.date)}</span>
                     <span className="font-bold text-slate-900">
                       Amount: ₹ {selectedInvoiceToConvert.amount.toLocaleString("en-IN")}
                     </span>
@@ -1445,21 +1503,17 @@ export default function SharedLedgerPage() {
             <div className="space-y-3 text-xs">
               <div>
                 <label className="block text-slate-600 font-medium mb-1">From Date</label>
-                <input
-                  type="date"
+                <CustomDatePicker
                   value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none h-10"
+                  onChange={(val) => setCustomStartDate(val)}
                 />
               </div>
 
               <div>
                 <label className="block text-slate-600 font-medium mb-1">To Date</label>
-                <input
-                  type="date"
+                <CustomDatePicker
                   value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none h-10"
+                  onChange={(val) => setCustomEndDate(val)}
                 />
               </div>
             </div>

@@ -8,6 +8,8 @@ import { apiClient, extractList } from "../../../../lib/api-client";
 import { DocumentHeaderCard, DocumentBottomBar } from "@/components/document-studio";
 import { X } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 interface Party {
   id: string;
@@ -598,7 +600,7 @@ function CreateSalesReturnForm() {
                   <div>
                     <span className="font-bold text-slate-900 block">#{selectedInvoice.invoiceNumber}</span>
                     <span className="text-[11px] text-slate-500">
-                      Date: {new Date(selectedInvoice.invoiceDate).toLocaleDateString("en-GB")} · Total: ₹{Number(selectedInvoice.grandTotal || 0).toLocaleString("en-IN")}
+                      Date: {formatDate(selectedInvoice.invoiceDate)} · Total: ₹{Number(selectedInvoice.grandTotal || 0).toLocaleString("en-IN")}
                     </span>
                   </div>
                   <button
@@ -654,7 +656,7 @@ function CreateSalesReturnForm() {
                         <div>
                           <p className="font-bold text-slate-900">#{inv.invoiceNumber}</p>
                           <p className="text-[11px] text-slate-500">
-                            {new Date(inv.invoiceDate).toLocaleDateString("en-GB")} · {inv.items?.length || 0} items
+                            {formatDate(inv.invoiceDate)} · {inv.items?.length || 0} items
                           </p>
                         </div>
                         <div className="text-right">
@@ -725,11 +727,9 @@ function CreateSalesReturnForm() {
             <label className="block text-[12px] font-semibold text-slate-700 mb-1">
               Return Date
             </label>
-            <input
-              type="date"
+            <CustomDatePicker
               value={returnDate}
-              onChange={(e) => setReturnDate(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-blue-500 focus:outline-none h-10"
+              onChange={(val) => setReturnDate(val)}
             />
           </div>
 

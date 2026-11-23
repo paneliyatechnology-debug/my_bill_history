@@ -16,6 +16,8 @@ import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
 import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { AlertTriangle, Check, X, Tag, MessageCircle, CreditCard } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 interface PurchaseInvoiceDetail {
   id: string;
@@ -154,18 +156,31 @@ function PurchaseInvoiceDetailContent() {
         apiClient.get("/accounting/ledgers", { nature: "ASSET", limit: 100 }).catch(() => ({ data: [] })),
       ]);
 
-      setInvoice(invRes);
-      setPayments(payRes?.payments || []);
+      const paymentsList = payRes?.payments || [];
+      const totalAllocatedPaid = paymentsList.reduce(
+        (sum: number, p: any) => sum + Number(p.allocatedAmount || p.amount || 0) + Number(p.cashDiscount || 0),
+        0,
+      );
+      const effectivePaid = Math.max(Number(invRes?.paidAmount || 0), totalAllocatedPaid);
+      const effectiveBalance = Math.max(0, Number(invRes?.grandTotal || 0) - effectivePaid);
+
+      const normalizedInvoice = {
+        ...invRes,
+        paidAmount: effectivePaid,
+        balanceAmount: effectiveBalance,
+      };
+
+      setInvoice(normalizedInvoice);
+      setPayments(paymentsList);
 
       const accounts = extractList<any>(ledgerRes);
-      const cashBank = accounts.filter((a: any) => /cash|bank/i.test(a.name || ""));
+      const cashBank = accounts.filter((a: any) => a.isCashLedger || a.isBankLedger || /cash|bank/i.test(a.name || ""));
       setPayAccounts(cashBank);
       if (cashBank.length > 0 && !payAccountId) {
         setPayAccountId(cashBank[0].id);
       }
 
-      const bal = Number(invRes?.balanceAmount ?? invRes?.grandTotal ?? 0);
-      setPayAmount(bal);
+      setPayAmount(effectiveBalance);
     } catch (err: any) {
       setError(err.message || "Failed to load purchase invoice details.");
     } finally {
@@ -264,9 +279,14 @@ function PurchaseInvoiceDetailContent() {
   }
 
   const isInterState = invoice.placeOfSupply !== (currentCompany?.stateCode || "24");
-  const balance = Number(invoice.balanceAmount ?? (invoice.grandTotal - (invoice.paidAmount || 0)));
+  const totalAllocatedPaid = (payments || []).reduce(
+    (sum: number, p: any) => sum + Number(p.allocatedAmount || p.amount || 0) + Number(p.cashDiscount || 0),
+    0,
+  );
+  const effectivePaid = Math.max(Number(invoice.paidAmount || 0), totalAllocatedPaid);
+  const balance = Math.max(0, Number(invoice.grandTotal || 0) - effectivePaid);
   const isPaid = balance <= 0.01;
-  const isPartiallyPaid = !isPaid && Number(invoice.paidAmount) > 0;
+  const isPartiallyPaid = !isPaid && effectivePaid > 0;
 
   // ─── Build DynamicInvoiceData for the themed invoice renderer ────────────
   const themedInvoiceData = {
@@ -283,7 +303,7 @@ function PurchaseInvoiceDetailContent() {
     sgstAmount: Number(invoice.sgstAmount),
     igstAmount: Number(invoice.igstAmount),
     grandTotal: Number(invoice.grandTotal),
-    paidAmount: Number(invoice.paidAmount || 0),
+    paidAmount: effectivePaid,
     balanceAmount: balance,
     notes: invoice.notes,
     party: {
@@ -399,7 +419,7 @@ function PurchaseInvoiceDetailContent() {
               </div>
               {invoice.party?.name && (
                 <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                  {invoice.party.name} • {new Date(invoice.invoiceDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                  {invoice.party.name} • {formatDate(invoice.invoiceDate)}
                 </p>
               )}
             </div>
@@ -444,7 +464,7 @@ function PurchaseInvoiceDetailContent() {
             <button
               onClick={() => {
                 const comp = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
-                const text = `*Purchase Invoice Record*\nVendor Bill No: ${invoice.vendorInvoiceNumber}\nSupplier: ${invoice.party?.name}\nDate: ${new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}\nGrand Total: ₹${Number(invoice.grandTotal).toFixed(2)}\nBalance Due: ₹${balance.toFixed(2)}\n\nRecorded by: ${comp}`;
+                const text = `*Purchase Invoice Record*\nVendor Bill No: ${invoice.vendorInvoiceNumber}\nSupplier: ${invoice.party?.name}\nDate: ${formatDate(invoice.invoiceDate)}\nGrand Total: ₹${Number(invoice.grandTotal).toFixed(2)}\nBalance Due: ₹${balance.toFixed(2)}\n\nRecorded by: ${comp}`;
                 const phone = invoice.party?.phone ? invoice.party.phone.replace(/[^0-9]/g, "") : "";
                 const waUrl = phone
                   ? `https://wa.me/${phone.startsWith("91") ? phone : "91" + phone}?text=${encodeURIComponent(text)}`
@@ -532,14 +552,22 @@ function PurchaseInvoiceDetailContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {payments.map((p, idx) => (
-                  <tr key={idx}>
-                    <td className="p-2.5 tabular-nums">{new Date(p.paymentDate).toLocaleDateString("en-IN")}</td>
-                    <td className="p-2.5 font-medium">{p.paymentMode}</td>
-                    <td className="p-2.5 tabular-nums text-slate-500">{p.referenceNo || "—"}</td>
-                    <td className="p-2.5 text-right tabular-nums font-medium text-emerald-700">₹{Number(p.amount).toFixed(2)}</td>
-                  </tr>
-                ))}
+                {payments.map((p, idx) => {
+                  const payDate = p.allocationDate || p.paymentDate || p.voucher?.voucherDate || p.createdAt;
+                  const formattedDate = payDate ? formatDate(payDate) : "—";
+                  const amt = Number(p.allocatedAmount ?? p.amount ?? 0);
+                  const ref = p.referenceNo || p.voucher?.referenceNo || p.voucher?.voucherNumber || "—";
+                  const mode = p.paymentMode || (p.voucher?.narration?.includes("via ") ? p.voucher.narration.split("via ")[1]?.trim() : "Cash / Bank");
+
+                  return (
+                    <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="p-2.5 tabular-nums text-slate-700">{formattedDate}</td>
+                      <td className="p-2.5 font-medium text-slate-800">{mode}</td>
+                      <td className="p-2.5 tabular-nums text-slate-500">{ref}</td>
+                      <td className="p-2.5 text-right tabular-nums font-bold text-emerald-700">₹{amt.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -580,12 +608,9 @@ function PurchaseInvoiceDetailContent() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block font-medium text-slate-700 mb-1">Payment Date *</label>
-                <input
-                  type="date"
-                  required
+                <CustomDatePicker
                   value={payDate}
-                  onChange={(e) => setPayDate(e.target.value)}
-                  className="w-full p-2 border border-slate-300 rounded-xl tabular-nums text-[13px] font-normal h-10"
+                  onChange={(val) => setPayDate(val)}
                 />
               </div>
 

@@ -16,8 +16,10 @@ import {
   DynamicInvoiceData,
   DynamicCompanyData,
 } from "@/components/invoice/dynamic-themed-invoice";
+import { getStateDisplayName } from "@/shared-types";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
 import {
   Palette,
   FileText,
@@ -54,6 +56,7 @@ interface PurchaseOrderRecord {
   orderNumber: string;
   orderDate: string;
   validTill?: string;
+  placeOfSupply?: string;
   party: {
     id?: string;
     name: string;
@@ -347,18 +350,7 @@ export default function PurchaseOrdersListPage() {
   };
 
   const formatDateDisplay = (dateStr: string) => {
-    if (!dateStr) return "-";
-    try {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      return d.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return dateStr;
-    }
+    return formatDate(dateStr);
   };
 
   // Preset Date Filter Options
@@ -493,9 +485,13 @@ export default function PurchaseOrdersListPage() {
       invoiceDate: ord.orderDate?.split("T")[0] || new Date().toISOString().split("T")[0],
       dueDate: ord.validTill || undefined,
       status: ord.status,
-      placeOfSupply: ord.party?.stateCode
-        ? `${ord.party.stateCode}`
-        : currentCompany?.stateCode || "24 (Gujarat)",
+      placeOfSupply: ord.placeOfSupply
+        ? getStateDisplayName(ord.placeOfSupply)
+        : ord.party?.stateCode
+        ? getStateDisplayName(ord.party.stateCode)
+        : currentCompany?.stateCode
+        ? getStateDisplayName(currentCompany.stateCode)
+        : "Gujarat (24)",
       isB2B: !!ord.party?.gstin,
       taxableAmount: Number(ord.taxableAmount || 0),
       cgstAmount: Number(ord.cgstAmount || 0),
@@ -514,7 +510,7 @@ export default function PurchaseOrdersListPage() {
         name: ord.party?.name || "Vendor",
         phone: ord.party?.phone,
         gstin: ord.party?.gstin,
-        stateCode: ord.party?.stateCode,
+        stateCode: ord.party?.stateCode || (ord.placeOfSupply ? String(ord.placeOfSupply).slice(0, 2) : undefined),
         billingAddress: ord.party?.billingAddress,
         shippingAddress: ord.party?.shippingAddress,
       },

@@ -16,11 +16,14 @@ import {
   DocumentPaymentCard,
   DocumentBottomBar,
   PartySelectorCompact,
+  CleanNumberInput,
 } from "@/components/document-studio";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { SignatureModal } from "../../../../components/invoice/signature-modal";
 import { Modal } from "../../../../components/ui/modal";
 import { CustomCombobox, CustomSelect } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
+import { INDIAN_STATES, resolvePartyStateCode, getStateDisplayName } from "@billing/shared-types";
 import { InvoiceQrCode } from "../../components/invoice-barcode-qr";
 import {
   QuickSettingsModal,
@@ -73,12 +76,12 @@ interface ReturnItemLine {
   itemId?: string;
   name: string;
   hsn?: string;
-  quantity: number;
+  quantity: number | "";
   originalQuantity?: number;
-  unitPrice: number;
-  discount: number;
+  unitPrice: number | "";
+  discount: number | "";
   discountType: "%" | "₹";
-  taxRate: number;
+  taxRate: number | "";
   taxableAmount: number;
   taxAmount: number;
   totalAmount: number;
@@ -129,6 +132,7 @@ export default function CreatePurchaseReturnPage() {
 
   // Return details
   const [returnNumber, setReturnNumber] = useState<string>("1");
+  const [placeOfSupply, setPlaceOfSupply] = useState<string>("");
   const [returnDate, setReturnDate] = useState<string>(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
@@ -154,12 +158,12 @@ export default function CreatePurchaseReturnPage() {
 
   // Notes & Terms
   const [showNotesInput, setShowNotesInput] = useState(false);
-    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
   const [transportMode, setTransportMode] = useState("Road");
   const [vehicleNo, setVehicleNo] = useState("");
   const [ewayBillNo, setEwayBillNo] = useState("");
   const [dispatchDate, setDispatchDate] = useState("");
-const [notes, setNotes] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
   const [showTerms, setShowTerms] = useState(true);
   const [terms, setTerms] = useState<string>(
     "1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to [ENTER_YOUR_CITY_NAME] jurisdiction only",
@@ -213,7 +217,7 @@ const [notes, setNotes] = useState<string>("");
       try {
         const saved = localStorage.getItem("billing_debit_memo_quick_settings");
         if (saved) return { ...DEFAULT_PURCHASE_QUICK_SETTINGS, ...JSON.parse(saved) };
-      } catch {}
+      } catch { }
     }
     return {
       ...DEFAULT_PURCHASE_QUICK_SETTINGS,
@@ -232,7 +236,7 @@ const [notes, setNotes] = useState<string>("");
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem("billing_debit_memo_quick_settings", JSON.stringify(newSettings));
-      } catch {}
+      } catch { }
     }
     if (newSettings.enablePrefix && newSettings.invoicePrefix) {
       setReturnNumber(`${newSettings.invoicePrefix}${newSettings.invoiceSequence || "0003"}`);
@@ -254,7 +258,7 @@ const [notes, setNotes] = useState<string>("");
   const [manualRoundOff, setManualRoundOff] = useState<number>(0);
 
   // Payment
-  const [amountReceived, setAmountReceived] = useState<number>(0);
+  const [amountReceived, setAmountReceived] = useState<number | "">("");
   const [paymentMode, setPaymentMode] = useState<string>("Cash");
   const [isFullyPaid, setIsFullyPaid] = useState(false);
 
@@ -300,7 +304,7 @@ const [notes, setNotes] = useState<string>("");
         );
         setParties(list);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     apiClient
       .get("/masters/items")
@@ -320,7 +324,7 @@ const [notes, setNotes] = useState<string>("");
         }));
         setInventoryItems(mapped);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     apiClient
       .get("/purchases/debit-notes")
@@ -328,7 +332,7 @@ const [notes, setNotes] = useState<string>("");
         const list = extractList<any>(res);
         setReturnNumber(String(list.length + 1));
       })
-      .catch(() => {});
+      .catch(() => { });
 
     // Preload recent purchase invoices for instant linking and auto-fill
     setIsLoadingInvoices(true);
@@ -338,7 +342,7 @@ const [notes, setNotes] = useState<string>("");
         const list = extractList<any>(res);
         setInvoices(list);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setIsLoadingInvoices(false));
 
     // Load persisted Bank & Payment QR from company profile / localStorage
@@ -348,14 +352,14 @@ const [notes, setNotes] = useState<string>("");
         try {
           const parsed = JSON.parse(savedBank);
           setBankForm((prev) => ({ ...prev, ...parsed }));
-        } catch {}
+        } catch { }
       }
       const savedQr = localStorage.getItem("voucher_qr_details");
       if (savedQr) {
         try {
           const parsed = JSON.parse(savedQr);
           setQrForm((prev) => ({ ...prev, ...parsed }));
-        } catch {}
+        } catch { }
       }
     }
 
@@ -378,7 +382,7 @@ const [notes, setNotes] = useState<string>("");
           }));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Pre-fill form when editing an existing voucher
@@ -427,8 +431,8 @@ const [notes, setNotes] = useState<string>("");
               const taxable = Number(it.taxableAmount || qty * rate);
               const taxAmt =
                 Number(it.cgstAmount || 0) +
-                  Number(it.sgstAmount || 0) +
-                  Number(it.igstAmount || 0) || taxable * (taxR / 100);
+                Number(it.sgstAmount || 0) +
+                Number(it.igstAmount || 0) || taxable * (taxR / 100);
               const total = Number(it.totalAmount || taxable + taxAmt);
 
               return {
@@ -481,6 +485,8 @@ const [notes, setNotes] = useState<string>("");
   // When Party is picked
   const handleSelectParty = async (party: Party) => {
     setSelectedParty(party);
+    const st = resolvePartyStateCode(party, currentCompany?.stateCode);
+    if (st) setPlaceOfSupply(st);
     setIsPartySearchOpen(false);
     setSelectedInvoiceId("");
     setInvoiceSearchQuery("");
@@ -528,7 +534,7 @@ const [notes, setNotes] = useState<string>("");
         billingAddress: editPartyForm.billingAddress.trim() || undefined,
       };
 
-      await apiClient.put(`/masters/parties/${selectedParty.id}`, updatedData).catch(() => {});
+      await apiClient.put(`/masters/parties/${selectedParty.id}`, updatedData).catch(() => { });
 
       const updatedParty: Party = {
         ...selectedParty,
@@ -738,10 +744,10 @@ const [notes, setNotes] = useState<string>("");
         name: "",
         hsn: "",
         quantity: 1,
-        unitPrice: 0,
-        discount: 0,
+        unitPrice: "",
+        discount: "",
         discountType: "₹",
-        taxRate: 18,
+        taxRate: "",
         taxableAmount: 0,
         taxAmount: 0,
         totalAmount: 0,
@@ -904,9 +910,9 @@ const [notes, setNotes] = useState<string>("");
     if (!upi) return "";
     const payee = encodeURIComponent(
       qrForm.payeeName ||
-        currentCompany?.tradeName ||
-        currentCompany?.legalName ||
-        "Merchant",
+      currentCompany?.tradeName ||
+      currentCompany?.legalName ||
+      "Merchant",
     );
     const amt =
       calculations.finalTotal > 0
@@ -933,7 +939,7 @@ const [notes, setNotes] = useState<string>("");
         bankIfsc: bankForm.ifscCode.trim(),
         bankBranch: bankForm.branchName.trim(),
       })
-      .catch(() => {});
+      .catch(() => { });
     showToast("Bank account added to voucher!");
   };
 
@@ -952,7 +958,7 @@ const [notes, setNotes] = useState<string>("");
       .patch("/tenants/company", {
         upiVpa: qrForm.upiId.trim(),
       })
-      .catch(() => {});
+      .catch(() => { });
     showToast("Payment QR attached to voucher!");
   };
 
@@ -1119,7 +1125,13 @@ const [notes, setNotes] = useState<string>("");
                   invoiceNumber: returnNumber || "PR-001",
                   invoiceDate: returnDate,
                   paymentMode: paymentMode,
-                  placeOfSupply: "24 (Gujarat)",
+                  placeOfSupply: placeOfSupply
+                    ? getStateDisplayName(placeOfSupply)
+                    : selectedParty
+                      ? getStateDisplayName(resolvePartyStateCode(selectedParty, currentCompany?.stateCode))
+                      : currentCompany?.stateCode
+                        ? getStateDisplayName(currentCompany.stateCode)
+                        : "—",
                   taxableAmount: calculations.totalTaxable,
                   cgstAmount: calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : 0,
                   sgstAmount: calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : 0,
@@ -1238,12 +1250,15 @@ const [notes, setNotes] = useState<string>("");
                         const p = parties.find((party) => party.id === id);
                         if (p) {
                           setSelectedParty(p);
+                          const st = resolvePartyStateCode(p, currentCompany?.stateCode);
+                          if (st) setPlaceOfSupply(st);
                           setIsPartySearchOpen(false);
                         }
                       }}
                       onClearParty={() => {
                         setSelectedParty(null);
                         setPartySearchTerm("");
+                        setPlaceOfSupply("");
                       }}
                       onAddNew={() => setIsCreatePartyModalOpen(true)}
                       placeholder="Search vendor..."
@@ -1278,7 +1293,7 @@ const [notes, setNotes] = useState<string>("");
                   options: [
                     { label: "Direct Return (No Ref)", value: "" },
                     ...invoices.map((inv) => ({
-                      label: `${inv.vendorInvoiceNumber || inv.invoiceNumber || inv.id.slice(0, 8)} (${new Date(inv.invoiceDate || inv.createdAt).toLocaleDateString("en-IN")})`,
+                      label: `${inv.vendorInvoiceNumber || inv.invoiceNumber || inv.id.slice(0, 8)} (${formatDate(inv.invoiceDate || inv.createdAt)})`,
                       value: inv.id,
                     })),
                   ],
@@ -1286,191 +1301,195 @@ const [notes, setNotes] = useState<string>("");
                 {
                   id: "placeOfSupply",
                   label: "Place of Supply",
-                  type: "text",
-                  value: "Gujarat (24)",
+                  type: "combobox",
+                  value: placeOfSupply,
+                  onChange: (val: string) => setPlaceOfSupply(val),
+                  placeholder: "Select State...",
+                  options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                    value: code,
+                    label: `${st.name} (${code})`,
+                  })),
                 },
               ]}
             />
 
-            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
+            {/* 1. FULL WIDTH ITEMS & SERVICES TABLE */}
+            <DocumentItemsCard
+              title="Return Items & Services"
+              itemsCount={items.length}
+              totalQty={calculations.totalQty}
+              itemsTotal={calculations.finalTotal}
+              onImportItems={handleAddItem}
+              onAddItem={handleAddItem}
+              onAddBlankRow={handleAddItem}
+              addItemLabel="+ Add Item"
+            >
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 typo-table-th uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-3.5 text-center w-12">#</th>
+                    <th className="py-3 px-3.5 min-w-[280px]">Item / Description</th>
+                    <th className="py-3 px-3 text-center w-28 min-w-[105px]">HSN/SAC</th>
+                    <th className="py-3 px-3 text-right w-24 min-w-[95px]">Qty</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Rate (₹)</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Discount</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Tax (%)</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Amount (₹)</th>
+                    <th className="py-3 px-3 text-center w-14">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {items.map((row, idx) => (
+                    <tr key={row.id || idx} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
+                        {idx + 1}
+                      </td>
+
+                      <td className="py-3 px-3">
+                        <div className="space-y-1">
+                          <input
+                            type="text"
+                            value={row.name}
+                            onChange={(e) => updateItemLine(idx, "name", e.target.value)}
+                            placeholder="Type item name..."
+                            className="w-full text-[13px] py-1.5 px-2.5 font-normal text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#1677E8] h-10"
+                          />
+                          {inventoryItems.length > 0 && !row.name && (
+                            <CustomCombobox
+                              size="sm"
+                              placeholder="Choose from Catalog..."
+                              value=""
+                              onChange={(val: any) => {
+                                const itm = inventoryItems.find((it) => it.id === val);
+                                if (itm) handlePickInventoryItem(idx, itm);
+                              }}
+                              options={inventoryItems.map((it) => ({
+                                value: it.id,
+                                label: `${it.name} (₹${it.purchaseRate || it.purchasePrice || 0})`,
+                              }))}
+                              triggerClassName="rounded-lg border-dashed border-slate-200 text-slate-500"
+                            />
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-3">
+                        <input
+                          type="text"
+                          value={row.hsn || ""}
+                          onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
+                          placeholder="HSN"
+                          className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
+                        />
+                      </td>
+
+                      <td className="py-3 px-3">
+                        <CleanNumberInput
+                          value={row.quantity}
+                          onChange={(val) => updateItemLine(idx, "quantity", val)}
+                          placeholder="1"
+                          className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
+                        />
+                      </td>
+
+                      <td className="py-3 px-3">
+                        <CleanNumberInput
+                          value={row.unitPrice}
+                          onChange={(val) => updateItemLine(idx, "unitPrice", val)}
+                          placeholder="0.00"
+                          className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
+                        />
+                      </td>
+
+                      <td className="py-3 px-3">
+                        <CleanNumberInput
+                          value={row.discount}
+                          onChange={(val) => updateItemLine(idx, "discount", val)}
+                          placeholder="0"
+                          suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">{row.discountType}</span>}
+                          className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none"
+                          containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                        />
+                      </td>
+
+                      <td className="py-3 px-3">
+                        <CleanNumberInput
+                          value={row.taxRate}
+                          onChange={(val) => updateItemLine(idx, "taxRate", val)}
+                          placeholder="0"
+                          className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
+                        />
+                      </td>
+
+                      <td className="py-3 px-3 text-right typo-table-amount text-slate-900">
+                        ₹ {row.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+
+                      <td className="py-3 px-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => removeItemLine(idx)}
+                          className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                          title="Delete row"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </DocumentItemsCard>
+
+            {/* 2. BOTTOM WORKSPACE: NOTES & ADDITIONAL INFO (7 cols) + SUMMARY & PAYMENT (5 cols) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {/* Left Column (8 cols): Items Table + Notes & Additional Info */}
-              <div className="lg:col-span-8 space-y-5">
-                <DocumentItemsCard
-                  title="Return Items & Services"
-                  itemsCount={items.length}
-                  totalQty={calculations.totalQty}
-                  itemsTotal={calculations.finalTotal}
-                  onImportItems={handleAddItem}
-                  onAddItem={handleAddItem}
-                  onAddBlankRow={handleAddItem}
-                  addItemLabel="+ Add Item"
-                >
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 typo-table-th uppercase tracking-wider">
-                      <tr>
-                        <th className="py-3 px-3.5 text-center w-12">#</th>
-                        <th className="py-3 px-3.5">Item / Description</th>
-                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
-                        <th className="py-3 px-3 text-right w-24">Qty</th>
-                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
-                        <th className="py-3 px-3 text-right w-24">Discount</th>
-                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
-                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
-                        <th className="py-3 px-3 text-center w-16">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {items.map((row, idx) => (
-                        <tr key={row.id || idx} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
-                            {idx + 1}
-                          </td>
+              {/* Left Column (7 cols): Notes, Terms & Additional Information */}
+              <div className="lg:col-span-7 space-y-5">
+                <DocumentNotesAndTermsCard
+                  activeTab={activeNotesTab}
+                  onTabChange={setActiveNotesTab}
+                  notes={notes}
+                  onNotesChange={setNotes}
+                  terms={terms}
+                  onTermsChange={setTerms}
+                />
 
-                          <td className="py-3 px-3">
-                            <div className="space-y-1">
-                              <input
-                                type="text"
-                                value={row.name}
-                                onChange={(e) => updateItemLine(idx, "name", e.target.value)}
-                                placeholder="Type item name..."
-                                className="w-full text-[13px] py-1.5 px-2.5 font-normal text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#1677E8] h-10"
-                              />
-                              {inventoryItems.length > 0 && !row.name && (
-                                <CustomCombobox
-                                  size="sm"
-                                  placeholder="Choose from Catalog..."
-                                  value=""
-                                  onChange={(val: any) => {
-                                    const itm = inventoryItems.find((it) => it.id === val);
-                                    if (itm) handlePickInventoryItem(idx, itm);
-                                  }}
-                                  options={inventoryItems.map((it) => ({
-                                    value: it.id,
-                                    label: `${it.name} (₹${it.purchaseRate || it.purchasePrice || 0})`,
-                                  }))}
-                                  triggerClassName="rounded-lg border-dashed border-slate-200 text-slate-500"
-                                />
-                              )}
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-3">
-                            <input
-                              type="text"
-                              value={row.hsn || ""}
-                              onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
-                              placeholder="HSN"
-                              className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
-                            />
-                          </td>
-
-                          <td className="py-3 px-3">
-                            <input
-                              type="number"
-                              min="1"
-                              value={row.quantity}
-                              onChange={(e) => updateItemLine(idx, "quantity", Number(e.target.value) || 0)}
-                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
-                            />
-                          </td>
-
-                          <td className="py-3 px-3">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              value={row.unitPrice}
-                              onChange={(e) => updateItemLine(idx, "unitPrice", Number(e.target.value) || 0)}
-                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
-                            />
-                          </td>
-
-                          <td className="py-3 px-3">
-                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                              <input
-                                type="number"
-                                min="0"
-                                value={row.discount}
-                                onChange={(e) => updateItemLine(idx, "discount", Number(e.target.value) || 0)}
-                                className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
-                              />
-                              <span className="text-[10px] text-slate-400 font-bold ml-1">{row.discountType}</span>
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-3">
-                            <input
-                              type="number"
-                              value={row.taxRate}
-                              onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
-                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
-                            />
-                          </td>
-
-                          <td className="py-3 px-3 text-right typo-table-amount text-slate-900">
-                            ₹ {row.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-
-                          <td className="py-3 px-3 text-center">
-                            <button
-                              type="button"
-                              onClick={() => removeItemLine(idx)}
-                              className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
-                              title="Delete row"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </DocumentItemsCard>
-
-                {/* Side-by-side: Notes & Terms + Additional Information */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <DocumentNotesAndTermsCard
-                    activeTab={activeNotesTab}
-                    onTabChange={setActiveNotesTab}
-                    notes={notes}
-                    onNotesChange={setNotes}
-                    terms={terms}
-                    onTermsChange={setTerms}
-                  />
-
-                  <DocumentAdditionalInfoCard
-                    transportMode={transportMode}
-                    onTransportModeChange={setTransportMode}
-                    vehicleNo={vehicleNo}
-                    onVehicleNoChange={setVehicleNo}
-                    ewayBillNo={ewayBillNo}
-                    onEwayBillNoChange={setEwayBillNo}
-                    dispatchDate={dispatchDate}
-                    onDispatchDateChange={setDispatchDate}
-                  />
-                </div>
+                <DocumentAdditionalInfoCard
+                  transportMode={transportMode}
+                  onTransportModeChange={setTransportMode}
+                  vehicleNo={vehicleNo}
+                  onVehicleNoChange={setVehicleNo}
+                  ewayBillNo={ewayBillNo}
+                  onEwayBillNoChange={setEwayBillNo}
+                  dispatchDate={dispatchDate}
+                  onDispatchDateChange={setDispatchDate}
+                  freightAmount={additionalCharges}
+                  onFreightAmountChange={(val) => setAdditionalCharges(Number(val) || 0)}
+                />
               </div>
 
-              {/* Right Column (4 cols): Summary Card + Payment Adjustment Card */}
-              <div className="lg:col-span-4 space-y-5">
+              {/* Right Column (5 cols): Summary Card + Payment Adjustment Card */}
+              <div className="lg:col-span-5 space-y-5">
                 <DocumentSummaryCard
                   title={isDebitMemo ? "Debit Memo Summary" : "Return Summary"}
                   subtotal={calculations.totalTaxable}
                   discount={calculations.totalDiscount > 0 ? calculations.totalDiscount : undefined}
                   cgst={calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : undefined}
                   sgst={calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : undefined}
+                  customRows={Number(additionalCharges) > 0 ? [{ label: "Freight", value: Number(additionalCharges) }] : []}
                   roundOff={calculations.roundOffDiff !== 0 ? calculations.roundOffDiff : undefined}
                   grandTotal={calculations.finalTotal}
                 />
 
                 <DocumentPaymentCard
-                  amountReceived={isFullyPaid ? calculations.finalTotal : (Number(amountReceived) || 0)}
+                  isPurchase={true}
+                  amountLabel={isDebitMemo ? "Amount Paid" : "Refund Received"}
+                  amountReceived={isFullyPaid ? calculations.finalTotal : amountReceived}
                   onAmountReceivedChange={(val) => {
                     setIsFullyPaid(false);
-                    setAmountReceived(val === "" ? 0 : val);
+                    setAmountReceived(val === "" ? "" : val);
                   }}
                   paymentMode={paymentMode}
                   onPaymentModeChange={setPaymentMode}

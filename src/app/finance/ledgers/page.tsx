@@ -719,8 +719,12 @@ export default function FinanceLedgersPage() {
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.openingBalance}
-                onChange={(e) => setFormData({ ...formData, openingBalance: Number(e.target.value) })}
+                value={formData.openingBalance === 0 || formData.openingBalance === ("" as any) ? "" : formData.openingBalance}
+                onChange={(e) => setFormData({ ...formData, openingBalance: e.target.value === "" ? ("" as any) : Number(e.target.value) })}
+                onFocus={(e) => {
+                  if (e.target.value === "0") e.target.select();
+                }}
+                placeholder="0.00"
                 className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl tabular-nums font-normal text-slate-900 focus:bg-white focus:border-primary outline-none h-10"
               />
             </div>

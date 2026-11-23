@@ -11,6 +11,7 @@ import {
 } from "@/lib/automated-billing";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { X } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 export default function AutomatedBillingPage() {
   const router = useRouter();
@@ -441,7 +442,7 @@ export default function AutomatedBillingPage() {
 
                     {/* Next Run */}
                     <td className="py-3.5 px-4 tabular-nums text-gray-800">
-                      {schedule.nextRunAt ? new Date(schedule.nextRunAt).toLocaleDateString() : "—"}
+                      {schedule.nextRunAt ? formatDate(schedule.nextRunAt) : "—"}
                     </td>
 
                     {/* Last Run */}
@@ -449,7 +450,7 @@ export default function AutomatedBillingPage() {
                       {schedule.lastRunAt ? (
                         <div>
                           <span className="text-gray-700 block tabular-nums">
-                            {new Date(schedule.lastRunAt).toLocaleDateString()}
+                            {formatDate(schedule.lastRunAt)}
                           </span>
                           <span
                             className={`inline-block text-[10px] px-1.5 py-0.2 rounded font-semibold ${

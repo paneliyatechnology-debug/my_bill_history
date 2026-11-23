@@ -90,25 +90,10 @@ const navigationSections: NavSection[] = [
     name: "Parties",
     nameGujarati: "પાર્ટીઝ (ગ્રાહકો / વેપારીઓ)",
     group: "",
+    href: "/masters/parties",
     module: "parties",
     action: "view",
     icon: <Users className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    items: [
-      {
-        name: "All Parties",
-        nameGujarati: "બધી પાર્ટીઓ (ખાતાવહી)",
-        href: "/masters/parties",
-        module: "parties",
-        action: "view",
-      },
-      {
-        name: "Shared Ledger",
-        nameGujarati: "શેર્ડ લેજર (Live Sync)",
-        href: "/app/home/shared-ledger",
-        module: "parties",
-        action: "view_ledger",
-      },
-    ],
   },
   {
     id: "items",

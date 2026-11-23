@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
@@ -370,10 +372,10 @@ export default function ProductionOrdersPage() {
       sortable: true,
       cell: (order) => (
         <div className="text-xs text-slate-600">
-          <div>Start: {new Date(order.startDate).toLocaleDateString()}</div>
+          <div>Start: {formatDate(order.startDate)}</div>
           {order.completedDate && (
             <span className="text-[11px] text-emerald-600 block">
-              End: {new Date(order.completedDate).toLocaleDateString()}
+              End: {formatDate(order.completedDate)}
             </span>
           )}
         </div>
@@ -542,7 +544,7 @@ export default function ProductionOrdersPage() {
                 )}
                 <div>
                   <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "શરૂ તારીખ" : "Start Date"}</span>
-                  <span className="text-slate-600">{new Date(order.startDate).toLocaleDateString()}</span>
+                  <span className="text-slate-600">{formatDate(order.startDate)}</span>
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[10px]">BOM</span>
@@ -987,7 +989,7 @@ export default function ProductionOrdersPage() {
               <div>
                 <span className="text-slate-500 block">Start Date:</span>
                 <span className="font-medium text-slate-800">
-                  {new Date(selectedOrder.startDate).toLocaleDateString()}
+                  {formatDate(selectedOrder.startDate)}
                 </span>
               </div>
             </div>

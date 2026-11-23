@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -121,7 +123,7 @@ export default function SmsMarketingPage() {
     business_name: "JK ENTERPRISE",
     mobile_number: "9898990001",
     items: "all items",
-    valid_till: new Date(Date.now() + 7 * 86400000).toLocaleDateString("en-IN"),
+    valid_till: formatDate(new Date(Date.now() + 7 * 86400000)),
   });
 
   // Wizard Step 2: Party Selection

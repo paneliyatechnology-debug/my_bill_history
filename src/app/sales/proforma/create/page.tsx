@@ -18,7 +18,7 @@ import {
   DEFAULT_INVOICE_CUSTOMIZATION,
   loadInvoiceCustomization,
 } from "@/lib/invoice-theme";
-import { INDIAN_STATES } from "@billing/shared-types";
+import { INDIAN_STATES, resolvePartyStateCode, getStateDisplayName } from "@billing/shared-types";
 import { AlertTriangle, X, Printer, Package, ArrowLeft } from "lucide-react";
 import { CustomCombobox } from "@/components/ui/dropdown-system";
 import {
@@ -31,6 +31,7 @@ import {
   DocumentPaymentCard,
   DocumentBottomBar,
   PartySelectorCompact,
+  CleanNumberInput,
 } from "@/components/document-studio";
 
 interface PartyOption {
@@ -99,7 +100,7 @@ export default function CreateProformaInvoicePage() {
   }, []);
 
   // Form Fields
-  const [invoiceNumber, setInvoiceNumber] = useState("1");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -108,9 +109,7 @@ export default function CreateProformaInvoicePage() {
     new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0]
   );
   const [partyId, setPartyId] = useState("");
-  const [placeOfSupply, setPlaceOfSupply] = useState(
-    currentCompany?.stateCode || "24"
-  );
+  const [placeOfSupply, setPlaceOfSupply] = useState("");
   const [selectedWarehouseId, setSelectedWarehouseId] = useState("");
 
   // Items table rows
@@ -118,13 +117,13 @@ export default function CreateProformaInvoicePage() {
 
   // Notes, Terms & Conditions
   const [showNotes, setShowNotes] = useState(false);
-    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
   const [transportMode, setTransportMode] = useState("Road");
   const [vehicleNo, setVehicleNo] = useState("");
   const [ewayBillNo, setEwayBillNo] = useState("");
   const [dispatchDate, setDispatchDate] = useState("");
   const [paymentMode, setPaymentMode] = useState("Bank Transfer");
-const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState(
     `1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to ${currentCompany?.city || "AHMEDABAD"} jurisdiction only`
   );
@@ -200,7 +199,7 @@ const [notes, setNotes] = useState("");
         if (seqRes?.nextNumber) {
           setInvoiceNumber(String(seqRes.nextNumber));
         }
-      } catch {}
+      } catch { }
     } catch (err: any) {
       setError(err?.message || "Failed to load master data.");
     } finally {
@@ -340,7 +339,8 @@ const [notes, setNotes] = useState("");
 
   // Calculations
   const companyState = currentCompany?.stateCode || "24";
-  const isInterState = placeOfSupply !== companyState;
+  const posState = placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState);
+  const isInterState = posState !== companyState;
 
   let totalQuantity = 0;
   let totalTaxable = 0;
@@ -406,7 +406,7 @@ const [notes, setNotes] = useState("");
         invoiceDate: new Date(invoiceDate).toISOString(),
         dueDate: dueDate ? new Date(dueDate.includes("T") ? dueDate : `${dueDate}T00:00:00.000Z`).toISOString() : undefined,
         partyId: partyId || undefined,
-        placeOfSupply,
+        placeOfSupply: placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState) || "24",
         warehouseId: selectedWarehouseId || warehouses[0]?.id,
         notes: notes.trim() || undefined,
         termsAndConditions: terms.trim() || undefined,
@@ -459,7 +459,8 @@ const [notes, setNotes] = useState("");
       const created = res?.data || res;
       setParties((prev) => [created, ...prev]);
       setPartyId(created.id);
-      setPlaceOfSupply(created.stateCode || "24");
+      const st = resolvePartyStateCode(created, currentCompany?.stateCode);
+      if (st) setPlaceOfSupply(st);
       setIsAddPartyModalOpen(false);
       setNewPartyName("");
       setNewPartyPhone("");
@@ -471,7 +472,7 @@ const [notes, setNotes] = useState("");
     }
   };
 
-return (
+  return (
     <div className="min-h-screen bg-[#F6F8F7] pb-24 text-slate-800 font-sans">
       {/* =========================================================================
           TOP BAR: Compact Forest Teal Signature Enterprise Toolbar (Full-Width)
@@ -543,7 +544,13 @@ return (
                   invoiceDate: invoiceDate,
                   dueDate: dueDate,
                   paymentMode: "PROFORMA",
-                  placeOfSupply: placeOfSupply ? `State Code (${placeOfSupply})` : "Gujarat (24)",
+                  placeOfSupply: placeOfSupply
+                    ? getStateDisplayName(placeOfSupply)
+                    : selectedParty
+                      ? getStateDisplayName(resolvePartyStateCode(selectedParty, companyState))
+                      : currentCompany?.stateCode
+                        ? getStateDisplayName(currentCompany.stateCode)
+                        : "—",
                   taxableAmount: totalTaxable,
                   cgstAmount: totalCgst,
                   sgstAmount: totalSgst,
@@ -645,13 +652,17 @@ return (
                       onSelectParty={(id) => {
                         setPartyId(id);
                         const p = parties.find((party) => party.id === id);
-                        if (p?.stateCode) setPlaceOfSupply(p.stateCode);
+                        if (p) {
+                          const st = resolvePartyStateCode(p, currentCompany?.stateCode);
+                          if (st) setPlaceOfSupply(st);
+                        }
                         setIsPartyDropdownOpen(false);
                         setPartySearchQuery("");
                       }}
                       onClearParty={() => {
                         setPartyId("");
                         setPartySearchQuery("");
+                        setPlaceOfSupply("");
                       }}
                       onAddNew={() => {
                         setIsPartyDropdownOpen(false);
@@ -665,9 +676,9 @@ return (
                   id: "invoiceNumber",
                   label: "Proforma No.",
                   type: "text",
-                  value: invoiceNumber,
-                  onChange: setInvoiceNumber,
-                  placeholder: "PI-001",
+                  value: invoiceNumber || "Generating...",
+                  readOnly: true,
+                  placeholder: "Auto-generated",
                 },
                 {
                   id: "invoiceDate",
@@ -686,7 +697,7 @@ return (
                 {
                   id: "placeOfSupply",
                   label: "Place of Supply",
-                  type: "select",
+                  type: "combobox",
                   value: placeOfSupply,
                   onChange: setPlaceOfSupply,
                   options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
@@ -697,216 +708,204 @@ return (
               ]}
             />
 
-            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {/* Left Column (8 cols): Items & Services Table + Notes & Additional Info */}
-              <div className="lg:col-span-8 space-y-5">
-                <DocumentItemsCard
-                  title="Items & Services"
-                  itemsCount={rows.length}
-                  totalQty={totalQuantity}
-                  itemsTotal={grandTotal}
-                  onScanItem={() => setIsBarcodeOpen(true)}
-                  onImportItems={() => setIsAddItemsModalOpen(true)}
-                  onAddItem={() => setIsAddItemsModalOpen(true)}
-                  onAddBlankRow={() => {
-                    const newRow: ProformaItemRow = {
-                      id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-                      itemId: items[0]?.id || "",
-                      itemName: items[0]?.name || "",
-                      hsnCode: items[0]?.hsnCode || "1001",
-                      quantity: 1,
-                      unit: "PCS",
-                      unitPrice: items[0]?.retailPrice || 0,
-                      discountPercent: 0,
-                      taxRate: items[0]?.taxRate ?? 18,
-                    };
-                    setRows((prev) => [...prev, newRow]);
-                  }}
-                  addItemLabel="+ Add Item"
-                >
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
-                      <tr>
-                        <th className="py-3 px-3.5 text-center w-12">#</th>
-                        <th className="py-3 px-3.5">Item / Description</th>
-                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
-                        <th className="py-3 px-3 text-right w-24">Qty</th>
-                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
-                        <th className="py-3 px-3 text-right w-24">Discount</th>
-                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
-                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
-                        <th className="py-3 px-3 text-center w-16">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {rows.length === 0 ? (
-                        <tr>
-                          <td colSpan={9} className="py-12 text-center text-slate-400">
-                            <div className="max-w-xs mx-auto space-y-2">
-                              <Package className="w-8 h-8 text-slate-300 mx-auto" />
-                              <p className="font-bold text-slate-700">No items added yet</p>
-                              <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
+            {/* 1. FULL WIDTH ITEMS & SERVICES TABLE */}
+            <DocumentItemsCard
+              title="Items & Services"
+              itemsCount={rows.length}
+              totalQty={totalQuantity}
+              itemsTotal={grandTotal}
+              onScanItem={() => setIsBarcodeOpen(true)}
+              onImportItems={() => setIsAddItemsModalOpen(true)}
+              onAddItem={() => setIsAddItemsModalOpen(true)}
+              onAddBlankRow={() => {
+                const newRow: ProformaItemRow = {
+                  id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                  itemId: items[0]?.id || "",
+                  itemName: items[0]?.name || "",
+                  hsnCode: items[0]?.hsnCode || "1001",
+                  quantity: 1,
+                  unit: "PCS",
+                  unitPrice: items[0]?.retailPrice || 0,
+                  discountPercent: 0,
+                  taxRate: items[0]?.taxRate ?? 18,
+                };
+                setRows((prev) => [...prev, newRow]);
+              }}
+              addItemLabel="+ Add Item"
+            >
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-3.5 text-center w-12">#</th>
+                    <th className="py-3 px-3.5 min-w-[280px]">Item / Description</th>
+                    <th className="py-3 px-3 text-center w-28 min-w-[105px]">HSN/SAC</th>
+                    <th className="py-3 px-3 text-right w-24 min-w-[95px]">Qty</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Rate (₹)</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Discount</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Tax (%)</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Amount (₹)</th>
+                    <th className="py-3 px-3 text-center w-14">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-12 text-center text-slate-400">
+                        <div className="max-w-xs mx-auto space-y-2">
+                          <Package className="w-8 h-8 text-slate-300 mx-auto" />
+                          <p className="font-bold text-slate-700">No items added yet</p>
+                          <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
+                          <button
+                            type="button"
+                            onClick={() => setIsAddItemsModalOpen(true)}
+                            className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
+                          >
+                            + Add From Catalog
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    rows.map((row, idx) => {
+                      const q = Number(row.quantity) || 0;
+                      const rate = Number(row.unitPrice) || 0;
+                      const disc = Number(row.discountPercent) || 0;
+                      const gross = q * rate;
+                      const net = gross - (gross * disc) / 100;
+                      const lineTax = (net * row.taxRate) / 100;
+                      const lineTotal = net + lineTax;
+
+                      return (
+                        <tr key={row.id || `row-${idx}`} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
+                            {idx + 1}
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <CustomCombobox
+                                  size="sm"
+                                  value={row.itemId}
+                                  onChange={(val: any) => handleUpdateRow(row.id, "itemId", val)}
+                                  options={items.map((it) => ({
+                                    value: it.id,
+                                    label: it.name,
+                                    sublabel: `Stock: ${it.stockQuantity ?? 0}`,
+                                  }))}
+                                  placeholder="Select Item..."
+                                  triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
+                                />
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <input
+                              type="text"
+                              value={row.hsnCode}
+                              onChange={(e) => handleUpdateRow(row.id, "hsnCode", e.target.value)}
+                              className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
+                              placeholder="1001"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <CleanNumberInput
+                              value={row.quantity}
+                              onChange={(val) => handleUpdateRow(row.id, "quantity", val)}
+                              placeholder="1"
+                              className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none"
+                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <CleanNumberInput
+                              value={row.unitPrice}
+                              onChange={(val) => handleUpdateRow(row.id, "unitPrice", val)}
+                              placeholder="0.00"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <CleanNumberInput
+                              value={row.discountPercent}
+                              onChange={(val) => handleUpdateRow(row.id, "discountPercent", val)}
+                              placeholder="0"
+                              suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                              className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none"
+                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <CleanNumberInput
+                              value={row.taxRate}
+                              onChange={(val) => handleUpdateRow(row.id, "taxRate", val)}
+                              placeholder="0"
+                              suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                              className="w-full text-[13px] text-right tabular-nums font-normal bg-transparent focus:outline-none"
+                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
+                            ₹ {lineTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+
+                          <td className="py-3 px-3 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
                               <button
                                 type="button"
-                                onClick={() => setIsAddItemsModalOpen(true)}
-                                className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
+                                onClick={() => handleRemoveRow(row.id)}
+                                className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                                title="Delete row"
                               >
-                                + Add From Catalog
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
                               </button>
                             </div>
                           </td>
                         </tr>
-                      ) : (
-                        rows.map((row, idx) => {
-                          const q = Number(row.quantity) || 0;
-                          const rate = Number(row.unitPrice) || 0;
-                          const disc = Number(row.discountPercent) || 0;
-                          const gross = q * rate;
-                          const net = gross - (gross * disc) / 100;
-                          const lineTax = (net * row.taxRate) / 100;
-                          const lineTotal = net + lineTax;
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </DocumentItemsCard>
 
-                          return (
-                            <tr key={row.id || `row-${idx}`} className="hover:bg-slate-50/70 transition-colors">
-                              <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
-                                {idx + 1}
-                              </td>
+            {/* 2. BOTTOM WORKSPACE: NOTES & ADDITIONAL INFO (7 cols) + SUMMARY & PAYMENT (5 cols) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column (7 cols): Notes, Terms & Additional Information */}
+              <div className="lg:col-span-7 space-y-5">
+                <DocumentNotesAndTermsCard
+                  activeTab={activeNotesTab}
+                  onTabChange={setActiveNotesTab}
+                  notes={notes}
+                  onNotesChange={setNotes}
+                  terms={terms}
+                  onTermsChange={setTerms}
+                />
 
-                              <td className="py-3 px-3">
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <CustomCombobox
-                                      size="sm"
-                                      value={row.itemId}
-                                      onChange={(val: any) => handleUpdateRow(row.id, "itemId", val)}
-                                      options={items.map((it) => ({
-                                        value: it.id,
-                                        label: it.name,
-                                        sublabel: `Stock: ${it.stockQuantity ?? 0}`,
-                                      }))}
-                                      placeholder="Select Item..."
-                                      triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
-                                    />
-                                  </div>
-                                </div>
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <input
-                                  type="text"
-                                  value={row.hsnCode}
-                                  onChange={(e) => handleUpdateRow(row.id, "hsnCode", e.target.value)}
-                                  className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
-                                  placeholder="1001"
-                                />
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                                  <input
-                                    type="number"
-                                    min="0.001"
-                                    step="any"
-                                    value={row.quantity}
-                                    onChange={(e) => handleUpdateRow(row.id, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                                    className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none h-10"
-                                  />
-                                </div>
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="any"
-                                  value={row.unitPrice}
-                                  onChange={(e) => handleUpdateRow(row.id, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                                  className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
-                                />
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={row.discountPercent}
-                                    onChange={(e) => handleUpdateRow(row.id, "discountPercent", e.target.value === "" ? "" : Number(e.target.value))}
-                                    placeholder="0"
-                                    className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
-                                  />
-                                  <span className="text-[10px] text-slate-400">%</span>
-                                </div>
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                                  <input
-                                    type="number"
-                                    step="any"
-                                    value={row.taxRate}
-                                    onChange={(e) => handleUpdateRow(row.id, "taxRate", Number(e.target.value) || 0)}
-                                    placeholder="18"
-                                    className="w-full text-[13px] text-right tabular-nums font-normal bg-transparent focus:outline-none h-10"
-                                  />
-                                  <span className="text-[10px] text-slate-400">%</span>
-                                </div>
-                              </td>
-
-                              <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
-                                ₹ {lineTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </td>
-
-                              <td className="py-3 px-3 text-center">
-                                <div className="flex items-center justify-center gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveRow(row.id)}
-                                    className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
-                                    title="Delete row"
-                                  >
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </DocumentItemsCard>
-
-                {/* Side-by-side: Notes & Terms + Additional Information */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <DocumentNotesAndTermsCard
-                    activeTab={activeNotesTab}
-                    onTabChange={setActiveNotesTab}
-                    notes={notes}
-                    onNotesChange={setNotes}
-                    terms={terms}
-                    onTermsChange={setTerms}
-                  />
-
-                  <DocumentAdditionalInfoCard
-                    transportMode={transportMode}
-                    onTransportModeChange={setTransportMode}
-                    vehicleNo={vehicleNo}
-                    onVehicleNoChange={setVehicleNo}
-                    ewayBillNo={ewayBillNo}
-                    onEwayBillNoChange={setEwayBillNo}
-                    dispatchDate={dispatchDate}
-                    onDispatchDateChange={setDispatchDate}
-                  />
-                </div>
+                <DocumentAdditionalInfoCard
+                  transportMode={transportMode}
+                  onTransportModeChange={setTransportMode}
+                  vehicleNo={vehicleNo}
+                  onVehicleNoChange={setVehicleNo}
+                  ewayBillNo={ewayBillNo}
+                  onEwayBillNoChange={setEwayBillNo}
+                  dispatchDate={dispatchDate}
+                  onDispatchDateChange={setDispatchDate}
+                  freightAmount={additionalChargeAmount}
+                  onFreightAmountChange={setAdditionalChargeAmount}
+                />
               </div>
 
-              {/* Right Column (4 cols): Summary Card + Payment Details Card */}
-              <div className="lg:col-span-4 space-y-5">
+              {/* Right Column (5 cols): Summary Card + Payment Details Card */}
+              <div className="lg:col-span-5 space-y-5">
                 <DocumentSummaryCard
                   title="Proforma Summary"
                   subtotal={totalTaxable}
@@ -914,11 +913,14 @@ return (
                   cgst={!isInterState ? totalCgst : undefined}
                   sgst={!isInterState ? totalSgst : undefined}
                   igst={isInterState ? totalIgst : undefined}
+                  customRows={Number(additionalChargeAmount) > 0 ? [{ label: "Freight (", value: Number(additionalChargeAmount) }] : []}
                   roundOff={autoRoundOff ? (grandTotal - (totalTaxable + totalTax)) : undefined}
                   grandTotal={grandTotal}
                 />
 
                 <DocumentPaymentCard
+                  isPurchase={false}
+                  amountLabel="Advance Received"
                   amountReceived={paymentAmountReceived}
                   onAmountReceivedChange={(val) => setPaymentAmountReceived(val === "" ? "" : val)}
                   paymentMode={paymentMode}
@@ -1148,7 +1150,13 @@ return (
           invoiceNumber,
           invoiceDate,
           paymentMode: "PROFORMA / ESTIMATE",
-          placeOfSupply: placeOfSupply ? `State Code (${placeOfSupply})` : "Gujarat (24)",
+          placeOfSupply: placeOfSupply
+            ? getStateDisplayName(placeOfSupply)
+            : selectedParty
+              ? getStateDisplayName(resolvePartyStateCode(selectedParty, companyState))
+              : currentCompany?.stateCode
+                ? getStateDisplayName(currentCompany.stateCode)
+                : "—",
           partyName: selectedParty?.name || "Cash / Direct Customer",
           partyGstin: selectedParty?.gstin,
           partyPhone: selectedParty?.phone,
@@ -1159,7 +1167,7 @@ return (
               : undefined),
           companyName: currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook",
           companyGstin: currentCompany?.gstin || "24AAAAA0000A1Z5",
-          companyState: currentCompany?.stateCode ? `State Code (${currentCompany.stateCode})` : "Gujarat (24)",
+          companyState: currentCompany?.stateCode ? getStateDisplayName(currentCompany.stateCode) : "—",
           notes,
           termsAndConditions: terms,
           items: rows.map((r) => ({

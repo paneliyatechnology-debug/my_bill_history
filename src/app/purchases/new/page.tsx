@@ -18,8 +18,9 @@ import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { AddItemsModal, CatalogItem } from "@/components/invoice/add-items-modal";
 import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
 import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
-import { INDIAN_STATES } from "@billing/shared-types";
+import { INDIAN_STATES, resolvePartyStateCode, getStateDisplayName } from "@billing/shared-types";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 import {
   ItemStepModal,
   ItemFormData,
@@ -56,6 +57,7 @@ import {
   DocumentPaymentCard,
   DocumentBottomBar,
   PartySelectorCompact,
+  CleanNumberInput,
 } from "@/components/document-studio";
 
 interface SupplierOption {
@@ -296,27 +298,14 @@ function NewPurchaseInvoiceContent() {
         const saved = localStorage.getItem(purchaseStorageKey);
         if (saved) {
           const parsed = JSON.parse(saved);
+          parsed.enablePrefix = false;
+          parsed.invoicePrefix = "";
+          parsed.invoiceSequence = "";
           const merged: QuickSettingsConfig = { ...DEFAULT_PURCHASE_QUICK_SETTINGS, ...parsed };
           setQuickSettings(merged);
 
-          // Apply prefix and sequence dynamically
-          if (merged.enablePrefix && merged.invoicePrefix) {
-            const seqNo = `${merged.invoicePrefix}${merged.invoiceSequence || "0014"}`;
-            setPurchaseInvoiceNumber(seqNo);
-            setVendorInvoiceNumber((prev) => (prev && prev.trim() ? prev : seqNo));
-          } else if (merged.invoiceSequence) {
-            setPurchaseInvoiceNumber(merged.invoiceSequence);
-            setVendorInvoiceNumber((prev) => (prev && prev.trim() ? prev : merged.invoiceSequence));
-          }
-
           if (typeof merged.enableDueDate === "boolean") {
             setShowDueDateField(merged.enableDueDate);
-          }
-        } else {
-          if (DEFAULT_PURCHASE_QUICK_SETTINGS.enablePrefix && DEFAULT_PURCHASE_QUICK_SETTINGS.invoicePrefix) {
-            const seqNo = `${DEFAULT_PURCHASE_QUICK_SETTINGS.invoicePrefix}${DEFAULT_PURCHASE_QUICK_SETTINGS.invoiceSequence}`;
-            setPurchaseInvoiceNumber(seqNo);
-            setVendorInvoiceNumber((prev) => (prev && prev.trim() ? prev : seqNo));
           }
         }
       } catch (e) {
@@ -343,16 +332,6 @@ function NewPurchaseInvoiceContent() {
       }
     }
 
-    // Apply prefix and sequence dynamically
-    if (newSettings.enablePrefix && newSettings.invoicePrefix) {
-      const seqNo = `${newSettings.invoicePrefix}${newSettings.invoiceSequence || "0014"}`;
-      setPurchaseInvoiceNumber(seqNo);
-      setVendorInvoiceNumber((prev) => (prev && prev !== purchaseInvoiceNumber ? prev : seqNo));
-    } else if (newSettings.invoiceSequence) {
-      setPurchaseInvoiceNumber(newSettings.invoiceSequence);
-      setVendorInvoiceNumber((prev) => (prev && prev !== purchaseInvoiceNumber ? prev : newSettings.invoiceSequence));
-    }
-
     // Apply Due Date toggle
     setShowDueDateField(newSettings.enableDueDate);
 
@@ -376,9 +355,7 @@ function NewPurchaseInvoiceContent() {
   );
   const [dueDate, setDueDate] = useState("");
   const [warehouseId, setWarehouseId] = useState("");
-  const [placeOfSupply, setPlaceOfSupply] = useState(
-    currentCompany?.stateCode || "24"
-  );
+  const [placeOfSupply, setPlaceOfSupply] = useState("");
   const [itcEligibility, setITC] = useState("INPUT");
   const [showNotes, setShowNotes] = useState(false);
   const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
@@ -490,36 +467,11 @@ function NewPurchaseInvoiceContent() {
 
       if (compRes) {
         setCompanyProfile(compRes);
-        if (compRes.stateCode) {
-          setPlaceOfSupply(compRes.stateCode);
-        }
       }
 
       // Dynamic Bill Counter & Sequence
       const totalPurchases = purchasesRes?.items?.length ?? (Array.isArray(purchasesRes) ? purchasesRes.length : 0);
       setTotalBillsRecorded(totalPurchases);
-      const currentYear = new Date().getFullYear().toString().slice(-2);
-      const defaultSeq = (totalPurchases + 1).toString().padStart(4, "0");
-
-      let resolvedInvoiceNo = "";
-      if (typeof window !== "undefined") {
-        try {
-          const saved = localStorage.getItem(purchaseStorageKey);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (parsed.enablePrefix && parsed.invoicePrefix) {
-              resolvedInvoiceNo = `${parsed.invoicePrefix}${parsed.invoiceSequence || defaultSeq}`;
-            } else if (parsed.invoiceSequence) {
-              resolvedInvoiceNo = parsed.invoiceSequence;
-            }
-          }
-        } catch { }
-      }
-      if (!resolvedInvoiceNo) {
-        resolvedInvoiceNo = `PUR-${currentYear}-${defaultSeq}`;
-      }
-      setPurchaseInvoiceNumber(resolvedInvoiceNo);
-      setVendorInvoiceNumber((prev) => (prev && prev.trim() ? prev : resolvedInvoiceNo));
 
       // Dynamic Terms with company name
       const compName = compRes?.tradeName || compRes?.legalName || currentCompany?.tradeName || "Godown";
@@ -549,8 +501,9 @@ function NewPurchaseInvoiceContent() {
         const matched = supplierList.find((s) => s.id === preselectedSupplierId);
         if (matched) {
           setPartyId(matched.id);
-          if (matched.stateCode) {
-            setPlaceOfSupply(matched.stateCode);
+          const st = resolvePartyStateCode(matched, compRes?.stateCode || currentCompany?.stateCode);
+          if (st) {
+            setPlaceOfSupply(st);
           }
         }
       }
@@ -564,8 +517,9 @@ function NewPurchaseInvoiceContent() {
             if (clone.partyId) {
               setPartyId(clone.partyId);
               const matched = supplierList.find((s) => s.id === clone.partyId);
-              if (matched?.stateCode) {
-                setPlaceOfSupply(matched.stateCode);
+              const st = resolvePartyStateCode(matched, compRes?.stateCode || currentCompany?.stateCode);
+              if (st) {
+                setPlaceOfSupply(st);
               }
             }
             if (clone.placeOfSupply) setPlaceOfSupply(clone.placeOfSupply);
@@ -623,8 +577,9 @@ function NewPurchaseInvoiceContent() {
     setShowPartyDropdown(false);
     setIsDirty(true);
     const supp = suppliers.find((s) => s.id === newPartyId);
-    if (supp?.stateCode) {
-      setPlaceOfSupply(supp.stateCode);
+    if (supp) {
+      const st = resolvePartyStateCode(supp, companyState);
+      if (st) setPlaceOfSupply(st);
     }
   };
 
@@ -783,7 +738,7 @@ function NewPurchaseInvoiceContent() {
     // Additional charges calculation
     let addChargeVal = 0;
     let addChargeTax = 0;
-    if (showAdditionalCharges && additionalChargeAmount) {
+    if (additionalChargeAmount) {
       addChargeVal = Number(additionalChargeAmount) || 0;
       addChargeTax = (addChargeVal * (Number(additionalChargeGstRate) || 0)) / 100;
       totalTaxable += addChargeVal;
@@ -809,6 +764,7 @@ function NewPurchaseInvoiceContent() {
       totalIgst,
       totalTax,
       totalQuantity,
+      additionalChargeAmount: addChargeVal,
       roundOff,
       grandTotal: roundedGrandTotal,
     };
@@ -830,7 +786,7 @@ function NewPurchaseInvoiceContent() {
     if (paymentStatus === "PAID_FULL") {
       setPaidAmount(totals.grandTotal);
     } else if (paymentStatus === "UNPAID_CREDIT") {
-      setPaidAmount(0);
+      setPaidAmount("");
     }
   }, [paymentStatus, totals.grandTotal]);
 
@@ -933,7 +889,9 @@ function NewPurchaseInvoiceContent() {
         primaryUomId,
         taxRate: Number(taxRate) || 0,
         purchaseRate: Number(rate) || 0,
+        purchasePrice: Number(rate) || 0,
         retailPrice: Number(rate) || 0,
+        salesPrice: Number(rate) || 0,
       });
 
       if (created?.id) {
@@ -1477,8 +1435,9 @@ function NewPurchaseInvoiceContent() {
       if (res?.id) {
         setSuppliers((prev) => [res, ...prev]);
         setPartyId(res.id);
-        if (res.stateCode) {
-          setPlaceOfSupply(res.stateCode);
+        const st = resolvePartyStateCode(res, companyState);
+        if (st) {
+          setPlaceOfSupply(st);
         }
         setIsAddSupplierModalOpen(false);
         setNewSupplierName("");
@@ -1529,9 +1488,11 @@ function NewPurchaseInvoiceContent() {
       conversionFactor: data.conversionFactor ? Number(data.conversionFactor) : undefined,
       categoryId: data.categoryId || undefined,
       taxRate: Number(data.taxRate) || 0,
-      retailPrice: Number(data.retailPrice) || 0,
-      mrp: Number(data.mrp) || Number(data.retailPrice) || 0,
-      purchaseRate: Number(data.purchaseRate) || 0,
+      retailPrice: Number(data.retailPrice) || Number(data.purchaseRate) || 0,
+      salesPrice: Number(data.retailPrice) || Number(data.purchaseRate) || 0,
+      mrp: Number(data.mrp) || Number(data.retailPrice) || Number(data.purchaseRate) || 0,
+      purchaseRate: Number(data.purchaseRate) || Number(data.retailPrice) || 0,
+      purchasePrice: Number(data.purchaseRate) || Number(data.retailPrice) || 0,
       wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
       minStockLevel: data.enableLowStockWarning ? (Number(data.minStockLevel) || 0) : 0,
       openingStock: data.type === "PRODUCT" ? Number(data.openingStock) || 0 : 0,
@@ -1649,16 +1610,17 @@ function NewPurchaseInvoiceContent() {
       return;
     }
 
-    // Auto-fallback sequence number if vendor invoice number was left blank
-    const finalBillNumber = (
-      vendorInvoiceNumber.trim() ||
-      purchaseInvoiceNumber ||
-      `PUR-${new Date().getFullYear().toString().slice(-2)}-${String((totalBillsRecorded || 0) + 1).padStart(4, "0")}`
-    ).trim();
-
+    // Inward Purchase Invoice must have vendor's manually entered bill number (no auto-sequence)
     if (!vendorInvoiceNumber.trim()) {
-      setVendorInvoiceNumber(finalBillNumber);
+      setError(
+        lang === "gu"
+          ? "કૃપા કરીને વેપારીનું બિલ નંબર (Supplier Bill No.) દાખલ કરો."
+          : "Please enter the supplier's bill / invoice number."
+      );
+      return;
     }
+
+    const finalBillNumber = vendorInvoiceNumber.trim();
 
     setIsSubmitting(true);
 
@@ -1716,9 +1678,14 @@ function NewPurchaseInvoiceContent() {
         vendorInvoiceNumber: finalBillNumber,
         invoiceDate: formatIsoDate(invoiceDate) || new Date().toISOString(),
         dueDate: formatIsoDate(dueDate),
-        placeOfSupply,
+        placeOfSupply: placeOfSupply || (selectedSupplier ? resolvePartyStateCode(selectedSupplier, companyState) : companyState) || "24",
         warehouseId: warehouseId || undefined,
         itcEligibility,
+        paidAmount: effectivePaidAmount,
+        paymentMode,
+        paidFromAccountId: payAccountId || undefined,
+        paymentDate: formatIsoDate(paymentDate) || formatIsoDate(invoiceDate) || new Date().toISOString(),
+        paymentReference: payReference || undefined,
         items: validRows.map((r) => {
           const qty = Number(r.quantity);
           const rate = Number(r.unitPrice);
@@ -1744,9 +1711,10 @@ function NewPurchaseInvoiceContent() {
 
       const res: any = await apiClient.post("/purchases/invoices", payload);
       const savedInvoiceId = res?.id || res?.purchaseInvoice?.id;
+      const backendPaid = Number(res?.paidAmount || res?.purchaseInvoice?.paidAmount || 0);
 
-      // Settlement if paid
-      if (savedInvoiceId && effectivePaidAmount > 0) {
+      // Fallback settlement if backend did not auto-settle the paidAmount
+      if (savedInvoiceId && effectivePaidAmount > 0 && backendPaid < effectivePaidAmount) {
         try {
           await apiClient.post(
             `/purchases/${savedInvoiceId}/payments`,
@@ -1787,16 +1755,8 @@ function NewPurchaseInvoiceContent() {
             localStorage.setItem(purchaseStorageKey, JSON.stringify(updatedSettings));
           } catch { }
         }
-        if (updatedSettings.enablePrefix && updatedSettings.invoicePrefix) {
-          setPurchaseInvoiceNumber(`${updatedSettings.invoicePrefix}${nextSeq}`);
-        } else if (updatedSettings.invoiceSequence) {
-          setPurchaseInvoiceNumber(nextSeq);
-        } else {
-          const newCount = totalBillsRecorded + 1;
-          setTotalBillsRecorded(newCount);
-          const currentYear = new Date().getFullYear().toString().slice(-2);
-          setPurchaseInvoiceNumber(`PUR-${currentYear}-${(newCount + 1).toString().padStart(4, "0")}`);
-        }
+        setPurchaseInvoiceNumber("");
+        setVendorInvoiceNumber("");
         const firstItem = items[0];
         setRows([
           {
@@ -2176,7 +2136,13 @@ function NewPurchaseInvoiceContent() {
                   invoiceNumber: vendorInvoiceNumber || "PB-DRAFT-001",
                   invoiceDate: invoiceDate || new Date().toISOString().split("T")[0],
                   dueDate: dueDate || undefined,
-                  placeOfSupply: placeOfSupply || "24",
+                  placeOfSupply: placeOfSupply
+                    ? getStateDisplayName(placeOfSupply)
+                    : selectedSupplier
+                      ? getStateDisplayName(resolvePartyStateCode(selectedSupplier, companyState))
+                      : currentCompany?.stateCode
+                        ? getStateDisplayName(currentCompany.stateCode)
+                        : "—",
                   taxableAmount: totals.totalTaxable,
                   cgstAmount: !isInterState ? totals.totalCgst : 0,
                   sgstAmount: !isInterState ? totals.totalSgst : 0,
@@ -2532,6 +2498,7 @@ function NewPurchaseInvoiceContent() {
                               setPartyId("");
                               setPartySearchTerm("");
                               setShowPartyDropdown(false);
+                              setPlaceOfSupply("");
                             }}
                             className="w-6 h-6 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center text-xs shrink-0 cursor-pointer"
                             title="Change supplier"
@@ -2623,10 +2590,10 @@ function NewPurchaseInvoiceContent() {
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-xs font-semibold text-slate-700">
-                          {lang === "gu" ? "સપ્લાયર બિલ નં." : "Supplier Bill No."}
+                          {lang === "gu" ? "સપ્લાયર બિલ નં." : "Supplier Bill No."} <span className="text-rose-500">*</span>
                         </label>
                         <span className="text-[10px] text-slate-400 font-normal">
-                          {lang === "gu" ? "(ઓટો ક્રમ અથવા વેન્ડર બિલ નં.)" : "(Auto-sequence or Vendor Bill #)"}
+                          {lang === "gu" ? "(વેપારીનું બિલ નંબર દાખલ કરો)" : "(Enter vendor bill number)"}
                         </span>
                       </div>
                       <div className="relative">
@@ -2642,22 +2609,9 @@ function NewPurchaseInvoiceContent() {
                             setVendorInvoiceNumber(e.target.value);
                             setIsDirty(true);
                           }}
-                          placeholder={purchaseInvoiceNumber || "e.g. PUR-26-0001"}
-                          className="w-full h-10 pl-9 pr-20 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs font-mono"
+                          placeholder="e.g. BILL-9821 or INV/2026/088"
+                          className="w-full h-10 pl-9 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs font-mono"
                         />
-                        {purchaseInvoiceNumber && vendorInvoiceNumber !== purchaseInvoiceNumber && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setVendorInvoiceNumber(purchaseInvoiceNumber);
-                              setIsDirty(true);
-                            }}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-[10px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
-                            title={lang === "gu" ? "ઓટો ક્રમ લાગુ કરો" : "Reset to auto-sequence"}
-                          >
-                            {lang === "gu" ? "ઓટો ક્રમ" : "Auto Seq"}
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -2669,22 +2623,16 @@ function NewPurchaseInvoiceContent() {
                       <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
                         Purchase Date <span className="text-rose-500">*</span>
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </span>
-                        <input
-                          type="date"
-                          value={invoiceDate}
-                          onChange={(e) => {
-                            setInvoiceDate(e.target.value);
-                            setIsDirty(true);
-                          }}
-                          className="w-full h-10 pl-9 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs cursor-pointer"
-                        />
-                      </div>
+                      <CustomDatePicker
+                        value={invoiceDate}
+                        onChange={(val) => {
+                          setInvoiceDate(val);
+                          setIsDirty(true);
+                        }}
+                        placeholder="DD/MM/YYYY"
+                        size="md"
+                        triggerClassName="rounded-xl border-slate-200 h-10"
+                      />
                     </div>
 
                     {/* Due Date */}
@@ -2692,23 +2640,16 @@ function NewPurchaseInvoiceContent() {
                       <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
                         Due Date
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </span>
-                        <input
-                          type="date"
-                          value={dueDate}
-                          onChange={(e) => {
-                            setDueDate(e.target.value);
-                            setIsDirty(true);
-                          }}
-                          placeholder="mm/dd/yyyy"
-                          className="w-full h-10 pl-9 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs cursor-pointer"
-                        />
-                      </div>
+                      <CustomDatePicker
+                        value={dueDate}
+                        onChange={(val) => {
+                          setDueDate(val);
+                          setIsDirty(true);
+                        }}
+                        placeholder="DD/MM/YYYY"
+                        size="md"
+                        triggerClassName="rounded-xl border-slate-200 h-10"
+                      />
                     </div>
 
                     {/* Place of Supply */}
@@ -2941,8 +2882,10 @@ function NewPurchaseInvoiceContent() {
                                 type="number"
                                 min="0.001"
                                 step="any"
-                                value={row.quantity}
+                                value={row.quantity === 0 || row.quantity === "" ? "" : row.quantity}
                                 onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
+                                onFocus={(e) => e.target.select()}
+                                placeholder="1"
                                 className="w-full text-xs h-9 px-2 text-center tabular-nums font-semibold text-slate-800 bg-white border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none shadow-2xs"
                               />
                             </td>
@@ -2955,8 +2898,9 @@ function NewPurchaseInvoiceContent() {
                                   type="number"
                                   min="0"
                                   step="any"
-                                  value={row.unitPrice}
+                                  value={row.unitPrice === 0 || row.unitPrice === "" ? "" : row.unitPrice}
                                   onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
+                                  onFocus={(e) => e.target.select()}
                                   placeholder="0.00"
                                   className="w-full text-xs h-9 pl-6 pr-2.5 text-right tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
                                 />
@@ -2965,39 +2909,26 @@ function NewPurchaseInvoiceContent() {
 
                             {/* Discount */}
                             <td className="py-2.5 px-2 w-24">
-                              <div className="relative flex items-center">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={row.discountValue}
-                                  onChange={(e) => handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))}
-                                  placeholder="0"
-                                  className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
-                                />
-                                <span className="absolute right-2 text-[10px] text-slate-400 font-bold pointer-events-none">%</span>
-                              </div>
+                              <CleanNumberInput
+                                value={row.discountValue}
+                                onChange={(val) => handleRowChange(idx, "discountValue", val)}
+                                placeholder="0"
+                                suffix={<span className="absolute right-2 text-[10px] text-slate-400 font-bold pointer-events-none">%</span>}
+                                className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                                containerClassName="relative flex items-center"
+                              />
                             </td>
 
                             {/* Tax (%) */}
                             <td className="py-2.5 px-2 w-28">
-                              <div className="relative flex items-center">
-                                <input
-                                  type="text"
-                                  inputMode="decimal"
-                                  value={row.taxRate !== undefined && row.taxRate !== null ? row.taxRate : ""}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
-                                      handleRowChange(idx, "taxRate", val);
-                                    }
-                                  }}
-                                  placeholder="0"
-                                  className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
-                                />
-                                <span className="absolute right-2 text-[10px] text-slate-400 font-bold pointer-events-none">
-                                  %
-                                </span>
-                              </div>
+                              <CleanNumberInput
+                                value={row.taxRate}
+                                onChange={(val) => handleRowChange(idx, "taxRate", val)}
+                                placeholder="0"
+                                suffix={<span className="absolute right-2 text-[10px] text-slate-400 font-bold pointer-events-none">%</span>}
+                                className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                                containerClassName="relative flex items-center"
+                              />
                             </td>
 
                             {/* Amount (₹) */}
@@ -3067,8 +2998,8 @@ function NewPurchaseInvoiceContent() {
                         type="button"
                         onClick={() => setActiveDetailsTab("notes")}
                         className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${activeDetailsTab === "notes"
-                            ? "text-[#1677E8] border-b-2 border-[#1677E8]"
-                            : "text-slate-500 hover:text-slate-700"
+                          ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                          : "text-slate-500 hover:text-slate-700"
                           }`}
                       >
                         <FileText className="w-3.5 h-3.5" strokeWidth={1.75} />
@@ -3078,8 +3009,8 @@ function NewPurchaseInvoiceContent() {
                         type="button"
                         onClick={() => setActiveDetailsTab("terms")}
                         className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${activeDetailsTab === "terms"
-                            ? "text-[#1677E8] border-b-2 border-[#1677E8]"
-                            : "text-slate-500 hover:text-slate-700"
+                          ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                          : "text-slate-500 hover:text-slate-700"
                           }`}
                       >
                         <FileSpreadsheet className="w-3.5 h-3.5" strokeWidth={1.75} />
@@ -3089,8 +3020,8 @@ function NewPurchaseInvoiceContent() {
                         type="button"
                         onClick={() => setActiveDetailsTab("info")}
                         className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${activeDetailsTab === "info"
-                            ? "text-[#1677E8] border-b-2 border-[#1677E8]"
-                            : "text-slate-500 hover:text-slate-700"
+                          ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                          : "text-slate-500 hover:text-slate-700"
                           }`}
                       >
                         <HelpCircle className="w-3.5 h-3.5" strokeWidth={1.75} />
@@ -3100,8 +3031,8 @@ function NewPurchaseInvoiceContent() {
                         type="button"
                         onClick={() => setActiveDetailsTab("attachments")}
                         className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${activeDetailsTab === "attachments"
-                            ? "text-[#1677E8] border-b-2 border-[#1677E8]"
-                            : "text-slate-500 hover:text-slate-700"
+                          ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                          : "text-slate-500 hover:text-slate-700"
                           }`}
                       >
                         <Paperclip className="w-3.5 h-3.5" strokeWidth={1.75} />
@@ -3141,7 +3072,7 @@ function NewPurchaseInvoiceContent() {
                     )}
 
                     {activeDetailsTab === "info" && (
-                      <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <div>
                           <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
                             Transport Mode
@@ -3168,7 +3099,7 @@ function NewPurchaseInvoiceContent() {
                             value={vehicleNo}
                             onChange={(e) => setVehicleNo(e.target.value)}
                             placeholder="GJ-01-AB-1234"
-                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none uppercase"
                           />
                         </div>
                         <div>
@@ -3187,12 +3118,35 @@ function NewPurchaseInvoiceContent() {
                           <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
                             Dispatch Date
                           </label>
-                          <input
-                            type="date"
+                          <CustomDatePicker
+                            size="sm"
                             value={dispatchDate}
-                            onChange={(e) => setDispatchDate(e.target.value)}
-                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                            onChange={(val) => setDispatchDate(val)}
+                            placeholder="DD/MM/YYYY"
+                            triggerClassName="rounded-xl border-slate-200 h-9"
                           />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                            Freight
+                          </label>
+                          <div className="relative flex items-center">
+                            <span className="absolute left-2.5 text-xs text-slate-400 font-bold pointer-events-none">₹</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="any"
+                              value={additionalChargeAmount === 0 || additionalChargeAmount === "" ? "" : additionalChargeAmount}
+                              onChange={(e) => {
+                                const v = e.target.value === "" ? "" : Number(e.target.value);
+                                setAdditionalChargeAmount(v);
+                                if (v !== "") setShowAdditionalCharges(true);
+                              }}
+                              onFocus={(e) => e.target.select()}
+                              placeholder="0.00"
+                              className="w-full h-9 pl-6 pr-2 text-xs text-right tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                            />
+                          </div>
                         </div>
                       </div>
                     )}
@@ -3308,6 +3262,15 @@ function NewPurchaseInvoiceContent() {
                         )
                       )}
 
+                      {totals.additionalChargeAmount > 0 && (
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span>Freight</span>
+                          <span className="font-semibold tabular-nums text-slate-800">
+                            {formatInr(totals.additionalChargeAmount)}
+                          </span>
+                        </div>
+                      )}
+
                       {totals.roundOff !== 0 && (
                         <div className="flex items-center justify-between text-slate-500 text-[11px]">
                           <span>Round Off</span>
@@ -3348,10 +3311,30 @@ function NewPurchaseInvoiceContent() {
                             type="number"
                             min="0"
                             step="any"
-                            value={paymentStatus === "PAID_FULL" ? totals.grandTotal : paidAmount}
+                            value={
+                              paymentStatus === "PAID_FULL"
+                                ? (totals.grandTotal > 0 ? totals.grandTotal : "")
+                                : (paidAmount === 0 || paidAmount === "" ? "" : paidAmount)
+                            }
                             onChange={(e) => {
-                              setPaymentStatus("PARTIAL_PAID");
-                              setPaidAmount(e.target.value === "" ? 0 : Number(e.target.value));
+                              const val = e.target.value;
+                              if (val === "" || val === "0") {
+                                setPaidAmount("");
+                                setPaymentStatus("UNPAID_CREDIT");
+                              } else {
+                                const num = Number(val);
+                                setPaidAmount(num);
+                                if (totals.grandTotal > 0 && num >= totals.grandTotal) {
+                                  setPaymentStatus("PAID_FULL");
+                                } else {
+                                  setPaymentStatus("PARTIAL_PAID");
+                                }
+                              }
+                            }}
+                            onFocus={(e) => {
+                              if (e.target.value === "0") {
+                                e.target.select();
+                              }
                             }}
                             placeholder="0.00"
                             className="w-full h-10 pl-7 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs tabular-nums"
@@ -3376,7 +3359,18 @@ function NewPurchaseInvoiceContent() {
                       </label>
                       <CustomSelect
                         value={paymentMode}
-                        onChange={(val: any) => setPaymentMode(val)}
+                        onChange={(val: any) => {
+                          setPaymentMode(val);
+                          if (cashBankAccounts.length > 0) {
+                            if (val === "CASH") {
+                              const cashAcc = cashBankAccounts.find((a: any) => a.isCashLedger || /cash/i.test(a.name || ""));
+                              if (cashAcc) setPayAccountId(cashAcc.id);
+                            } else {
+                              const bankAcc = cashBankAccounts.find((a: any) => a.isBankLedger || /bank/i.test(a.name || ""));
+                              if (bankAcc) setPayAccountId(bankAcc.id);
+                            }
+                          }
+                        }}
                         options={[
                           { value: "CASH", label: "Cash" },
                           { value: "BANK_TRANSFER", label: "Bank Transfer" },
@@ -3386,6 +3380,23 @@ function NewPurchaseInvoiceContent() {
                         triggerClassName="rounded-xl border-slate-200"
                       />
                     </div>
+
+                    {effectivePaidAmount > 0 && cashBankAccounts.length > 0 && (
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                          Paid From Account
+                        </label>
+                        <CustomSelect
+                          value={payAccountId || cashBankAccounts[0]?.id}
+                          onChange={(val: any) => setPayAccountId(val)}
+                          options={cashBankAccounts.map((acc: any) => ({
+                            value: acc.id,
+                            label: acc.name,
+                          }))}
+                          triggerClassName="rounded-xl border-slate-200"
+                        />
+                      </div>
+                    )}
 
                     <div className="py-2.5 px-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[#1677E8] flex items-center justify-center gap-1.5 text-xs font-bold shadow-2xs">
                       <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -3677,8 +3688,6 @@ function NewPurchaseInvoiceContent() {
           initialTab={quickSettingsTab}
           voucherType="purchase"
           voucherTitle={lang === "gu" ? "ખરીદી બિલ વિગતો (Purchase Details)" : "Purchase Invoice Details"}
-          prefixLabel={lang === "gu" ? "ખરીદી પ્રીફિક્સ" : "Purchase Prefix"}
-          prefixPlaceholder="e.g. PUR-26-"
           storageKey={purchaseStorageKey}
           onSave={handleSaveQuickSettings}
         />
@@ -3754,8 +3763,14 @@ function NewPurchaseInvoiceContent() {
           }}
           onSubmit={handleCreateItemStep}
           initialData={
-            activeItemRowIdx !== null && rows[activeItemRowIdx]?.itemName
-              ? { name: rows[activeItemRowIdx].itemName }
+            activeItemRowIdx !== null && rows[activeItemRowIdx]
+              ? {
+                name: rows[activeItemRowIdx].itemName || "",
+                purchaseRate: rows[activeItemRowIdx].unitPrice || "",
+                retailPrice: rows[activeItemRowIdx].unitPrice || "",
+                taxRate: rows[activeItemRowIdx].taxRate || 18,
+                hsnCode: rows[activeItemRowIdx].hsnCode || "1001",
+              }
               : undefined
           }
           units={units}

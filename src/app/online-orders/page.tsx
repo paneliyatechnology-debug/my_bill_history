@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -1061,11 +1063,7 @@ export default function OnlineOrdersPage() {
                             </span>
                           </div>
                           <div className="text-[11px] text-slate-500 mt-0.5">
-                            {new Date(order.orderDate).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}{" "}
+                            {formatDate(order.orderDate)}{" "}
                             •{" "}
                             {new Date(order.orderDate).toLocaleTimeString("en-IN", {
                               hour: "2-digit",

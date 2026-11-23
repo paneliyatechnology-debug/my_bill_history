@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate as globalFormatDate, formatDayMonth } from "@/lib/date-utils";
+
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
@@ -33,20 +35,12 @@ export function formatDateDisplay(dateStr?: string) {
     const d = parseInt(parts[2], 10);
     const dateObj = new Date(y, m, d);
     if (!isNaN(dateObj.getTime())) {
-      return dateObj.toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+      return globalFormatDate(dateObj);
     }
   }
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return globalFormatDate(d);
 }
 
 export function GreetingBanner({

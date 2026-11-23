@@ -15,7 +15,7 @@ import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoic
 import { InvoiceLivePreviewModal } from "@/components/invoice/invoice-live-preview-modal";
 import { DEFAULT_INVOICE_CUSTOMIZATION } from "@/lib/invoice-theme";
 import { Edit3, Eye, Settings, X, Printer, AlertTriangle, Package, ArrowLeft } from "lucide-react";
-import { INDIAN_STATES } from "@billing/shared-types";
+import { INDIAN_STATES, resolvePartyStateCode, getStateDisplayName } from "@billing/shared-types";
 import { CustomCombobox } from "@/components/ui/dropdown-system";
 import {
   DocumentHeaderCard,
@@ -26,6 +26,7 @@ import {
   DocumentSummaryCard,
   DocumentBottomBar,
   PartySelectorCompact,
+  CleanNumberInput,
 } from "@/components/document-studio";
 
 interface PartyOption {
@@ -87,14 +88,12 @@ export default function CreateDeliveryChallanPage() {
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
 
   // Form Fields
-  const [challanNumber, setChallanNumber] = useState("1");
+  const [challanNumber, setChallanNumber] = useState("");
   const [challanDate, setChallanDate] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [partyId, setPartyId] = useState("");
-  const [placeOfSupply, setPlaceOfSupply] = useState(
-    currentCompany?.stateCode || "24"
-  );
+  const [placeOfSupply, setPlaceOfSupply] = useState("");
   const [selectedWarehouseId, setSelectedWarehouseId] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [transporterName, setTransporterName] = useState("");
@@ -105,10 +104,10 @@ export default function CreateDeliveryChallanPage() {
 
   // Notes, Terms & Conditions
   const [showNotes, setShowNotes] = useState(false);
-    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
   const [transportMode, setTransportMode] = useState("Road");
   const [dispatchDate, setDispatchDate] = useState("");
-const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState(
     `1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to ${currentCompany?.city || "AHMEDABAD"} jurisdiction only`
   );
@@ -181,11 +180,14 @@ const [notes, setNotes] = useState("");
 
       // Fetch next sequence
       try {
-        const nextRes: any = await apiClient.get("/sales/challans/next-number").catch(() => null);
+        const nextRes: any = await apiClient
+          .get("/sales/challans/next-number")
+          .catch(() => apiClient.get("/invoices/next-number?category=DELIVERY_CHALLAN"))
+          .catch(() => null);
         if (nextRes?.nextNumber) {
           setChallanNumber(String(nextRes.nextNumber));
         }
-      } catch {}
+      } catch { }
     } catch (err: any) {
       setError(err?.message || "Failed to load master data.");
     } finally {
@@ -340,7 +342,8 @@ const [notes, setNotes] = useState("");
 
   // Calculations
   const companyState = currentCompany?.stateCode || "24";
-  const isInterState = placeOfSupply !== companyState;
+  const posState = placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState);
+  const isInterState = posState !== companyState;
 
   let totalQuantity = 0;
   let totalTaxable = 0;
@@ -410,7 +413,7 @@ const [notes, setNotes] = useState("");
         challanType: "JOB_WORK",
         partyId: partyId || undefined,
         warehouseId: selectedWarehouseId || warehouses[0]?.id,
-        placeOfSupply,
+        placeOfSupply: placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState) || "24",
         vehicleNumber: vehicleNumber.trim() || undefined,
         transporterName: transporterName.trim() || undefined,
         eWayBillNumber: eWayBillNumber.trim() || undefined,
@@ -462,7 +465,8 @@ const [notes, setNotes] = useState("");
       const created = res?.data || res;
       setParties((prev) => [created, ...prev]);
       setPartyId(created.id);
-      setPlaceOfSupply(created.stateCode || "24");
+      const st = resolvePartyStateCode(created, currentCompany?.stateCode);
+      if (st) setPlaceOfSupply(st);
       setIsAddPartyModalOpen(false);
       setNewPartyName("");
       setNewPartyPhone("");
@@ -498,11 +502,10 @@ const [notes, setNotes] = useState("");
             <button
               type="button"
               onClick={() => setViewMode("edit")}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                viewMode === "edit"
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${viewMode === "edit"
                   ? "bg-white text-blue-600 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
-              }`}
+                }`}
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Edit Mode</span>
@@ -510,11 +513,10 @@ const [notes, setNotes] = useState("");
             <button
               type="button"
               onClick={() => setViewMode("preview")}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                viewMode === "preview"
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${viewMode === "preview"
                   ? "bg-white text-blue-600 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
-              }`}
+                }`}
             >
               <Eye className="w-3.5 h-3.5" />
               <span>Preview Mode</span>
@@ -634,7 +636,13 @@ const [notes, setNotes] = useState("");
                   invoiceNumber: challanNumber || "DC-001",
                   invoiceDate: challanDate,
                   paymentMode: "DELIVERY CHALLAN",
-                  placeOfSupply: placeOfSupply ? `State Code (${placeOfSupply})` : "Gujarat (24)",
+                  placeOfSupply: placeOfSupply
+                    ? getStateDisplayName(placeOfSupply)
+                    : selectedParty
+                      ? getStateDisplayName(resolvePartyStateCode(selectedParty, companyState))
+                      : currentCompany?.stateCode
+                        ? getStateDisplayName(currentCompany.stateCode)
+                        : "—",
                   taxableAmount: totalTaxable,
                   cgstAmount: totalCgst,
                   sgstAmount: totalSgst,
@@ -724,95 +732,96 @@ const [notes, setNotes] = useState("");
               title={lang === "gu" ? "ડિલિવરી ચલણ" : "Delivery Challan"}
               subtitle={lang === "gu" ? "ડિલિવરી ચલણ બનાવો અને મેનેજ કરો" : "Create and manage your delivery challan"}
               status="Draft"
-          onPreview={() => setViewMode("preview")}
-          onPrint={() => window.print()}
-          onSave={() => handleSubmit(false)}
-          onSaveAsDraft={() => handleSubmit(true)}
-          isSaving={isSubmitting}
-          saveButtonLabel="Save Challan"
-          moreMenuItems={[
-            { label: "Quick Settings", onClick: () => { setQuickSettingsTab("invoice"); setIsQuickSettingsOpen(true); } },
-            { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
-            { label: "Authorized Signature", onClick: () => setIsSignatureModalOpen(true) },
-          ]}
-        />
+              onPreview={() => setViewMode("preview")}
+              onPrint={() => window.print()}
+              onSave={() => handleSubmit(false)}
+              onSaveAsDraft={() => handleSubmit(true)}
+              isSaving={isSubmitting}
+              saveButtonLabel="Save Challan"
+              moreMenuItems={[
+                { label: "Quick Settings", onClick: () => { setQuickSettingsTab("invoice"); setIsQuickSettingsOpen(true); } },
+                { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
+                { label: "Authorized Signature", onClick: () => setIsSignatureModalOpen(true) },
+              ]}
+            />
 
-        {/* 5-COLUMN DOCUMENT INFO STRIP */}
-        <DocumentInfoStrip
-          fields={[
-            {
-              id: "customer",
-              label: "Customer / Recipient",
-              required: true,
-              type: "custom",
-              customRender: (
-                <PartySelectorCompact
-                  selectedParty={selectedParty}
-                  searchTerm={partySearchQuery}
-                  onSearchChange={setPartySearchQuery}
-                  isOpen={isPartyDropdownOpen}
-                  onOpenChange={setIsPartyDropdownOpen}
-                  filteredParties={filteredParties}
-                  onSelectParty={(id) => {
-                    setPartyId(id);
-                    const p = parties.find((party) => party.id === id);
-                    if (p?.stateCode) setPlaceOfSupply(p.stateCode);
-                    setIsPartyDropdownOpen(false);
-                    setPartySearchQuery("");
-                  }}
-                  onClearParty={() => {
-                    setPartyId("");
-                    setPartySearchQuery("");
-                  }}
-                  onAddNew={() => {
-                    setIsPartyDropdownOpen(false);
-                    setIsAddPartyModalOpen(true);
-                  }}
-                  placeholder="Search customer..."
-                />
-              ),
-            },
-            {
-              id: "challanNumber",
-              label: "Challan No.",
-              type: "text",
-              value: challanNumber,
-              onChange: setChallanNumber,
-              placeholder: "DC-001",
-            },
-            {
-              id: "challanDate",
-              label: "Challan Date",
-              type: "date",
-              value: challanDate,
-              onChange: setChallanDate,
-            },
-            {
-              id: "placeOfSupply",
-              label: "Place of Supply",
-              type: "select",
-              value: placeOfSupply,
-              onChange: setPlaceOfSupply,
-              options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
-                label: `${st.name} (${code})`,
-                value: code,
-              })),
-            },
-            {
-              id: "transporterName",
-              label: "Transporter Name",
-              type: "text",
-              value: transporterName,
-              onChange: setTransporterName,
-              placeholder: "e.g. V-Trans / Self",
-            },
-          ]}
-        />
+            {/* 5-COLUMN DOCUMENT INFO STRIP */}
+            <DocumentInfoStrip
+              fields={[
+                {
+                  id: "customer",
+                  label: "Customer / Recipient",
+                  required: true,
+                  type: "custom",
+                  customRender: (
+                    <PartySelectorCompact
+                      selectedParty={selectedParty}
+                      searchTerm={partySearchQuery}
+                      onSearchChange={setPartySearchQuery}
+                      isOpen={isPartyDropdownOpen}
+                      onOpenChange={setIsPartyDropdownOpen}
+                      filteredParties={filteredParties}
+                      onSelectParty={(id) => {
+                        setPartyId(id);
+                        const p = parties.find((party) => party.id === id);
+                        if (p) {
+                          const st = resolvePartyStateCode(p, currentCompany?.stateCode);
+                          if (st) setPlaceOfSupply(st);
+                        }
+                        setIsPartyDropdownOpen(false);
+                        setPartySearchQuery("");
+                      }}
+                      onClearParty={() => {
+                        setPartyId("");
+                        setPartySearchQuery("");
+                        setPlaceOfSupply("");
+                      }}
+                      onAddNew={() => {
+                        setIsPartyDropdownOpen(false);
+                        setIsAddPartyModalOpen(true);
+                      }}
+                      placeholder="Search customer..."
+                    />
+                  ),
+                },
+                {
+                  id: "challanNumber",
+                  label: "Challan No.",
+                  type: "text",
+                  value: challanNumber || "Generating...",
+                  readOnly: true,
+                  placeholder: "Auto-generated",
+                },
+                {
+                  id: "challanDate",
+                  label: "Challan Date",
+                  type: "date",
+                  value: challanDate,
+                  onChange: setChallanDate,
+                },
+                {
+                  id: "placeOfSupply",
+                  label: "Place of Supply",
+                  type: "combobox",
+                  value: placeOfSupply,
+                  onChange: setPlaceOfSupply,
+                  options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                    label: `${st.name} (${code})`,
+                    value: code,
+                  })),
+                },
+                {
+                  id: "transporterName",
+                  label: "Transporter Name",
+                  type: "text",
+                  value: transporterName,
+                  onChange: setTransporterName,
+                  placeholder: "e.g. V-Trans / Self",
+                },
+              ]}
+            />
 
-        {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          {/* Left Column (8 cols): Items & Services Table + Notes & Additional Info */}
-          <div className="lg:col-span-8 space-y-5">
+            {/* 1. FULL WIDTH ITEMS & SERVICES TABLE */}
             <DocumentItemsCard
               title="Items & Goods for Delivery"
               itemsCount={rows.length}
@@ -841,14 +850,14 @@ const [notes, setNotes] = useState("");
                 <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-3.5 text-center w-12">#</th>
-                    <th className="py-3 px-3.5">Item / Description</th>
-                    <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
-                    <th className="py-3 px-3 text-right w-24">Qty</th>
-                    <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
-                    <th className="py-3 px-3 text-right w-24">Discount</th>
-                    <th className="py-3 px-3 text-right w-24">Tax (%)</th>
-                    <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
-                    <th className="py-3 px-3 text-center w-16">Action</th>
+                    <th className="py-3 px-3.5 min-w-[280px]">Item / Description</th>
+                    <th className="py-3 px-3 text-center w-28 min-w-[105px]">HSN/SAC</th>
+                    <th className="py-3 px-3 text-right w-24 min-w-[95px]">Qty</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Rate (₹)</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Discount</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Tax (%)</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Amount (₹)</th>
+                    <th className="py-3 px-3 text-center w-14">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -914,56 +923,44 @@ const [notes, setNotes] = useState("");
                           </td>
 
                           <td className="py-3 px-3">
-                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                              <input
-                                type="number"
-                                min="0.001"
-                                step="any"
-                                value={row.quantity}
-                                onChange={(e) => handleUpdateRow(row.id, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                                className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none h-10"
-                              />
-                            </div>
+                            <CleanNumberInput
+                              value={row.quantity}
+                              onChange={(val) => handleUpdateRow(row.id, "quantity", val)}
+                              placeholder="1"
+                              className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none"
+                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                            />
                           </td>
 
                           <td className="py-3 px-3">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
+                            <CleanNumberInput
                               value={row.unitPrice}
-                              onChange={(e) => handleUpdateRow(row.id, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
+                              onChange={(val) => handleUpdateRow(row.id, "unitPrice", val)}
+                              placeholder="0.00"
                               className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
                             />
                           </td>
 
                           <td className="py-3 px-3">
-                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={row.discountPercent}
-                                onChange={(e) => handleUpdateRow(row.id, "discountPercent", e.target.value === "" ? "" : Number(e.target.value))}
-                                placeholder="0"
-                                className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
-                              />
-                              <span className="text-[10px] text-slate-400">%</span>
-                            </div>
+                            <CleanNumberInput
+                              value={row.discountPercent}
+                              onChange={(val) => handleUpdateRow(row.id, "discountPercent", val)}
+                              placeholder="0"
+                              suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                              className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none"
+                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                            />
                           </td>
 
                           <td className="py-3 px-3">
-                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                              <input
-                                type="number"
-                                step="any"
-                                value={row.taxRate}
-                                onChange={(e) => handleUpdateRow(row.id, "taxRate", Number(e.target.value) || 0)}
-                                placeholder="18"
-                                className="w-full text-[13px] text-right tabular-nums font-normal bg-transparent focus:outline-none h-10"
-                              />
-                              <span className="text-[10px] text-slate-400">%</span>
-                            </div>
+                            <CleanNumberInput
+                              value={row.taxRate}
+                              onChange={(val) => handleUpdateRow(row.id, "taxRate", val)}
+                              placeholder="0"
+                              suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                              className="w-full text-[13px] text-right tabular-nums font-normal bg-transparent focus:outline-none"
+                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                            />
                           </td>
 
                           <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
@@ -992,57 +989,61 @@ const [notes, setNotes] = useState("");
               </table>
             </DocumentItemsCard>
 
-            {/* Side-by-side: Notes & Terms + Additional Information */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <DocumentNotesAndTermsCard
-                activeTab={activeNotesTab}
-                onTabChange={setActiveNotesTab}
-                notes={notes}
-                onNotesChange={setNotes}
-                terms={terms}
-                onTermsChange={setTerms}
-              />
+            {/* 2. BOTTOM WORKSPACE: NOTES & ADDITIONAL INFO (7 cols) + SUMMARY (5 cols) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column (7 cols): Notes, Terms & Additional Information */}
+              <div className="lg:col-span-7 space-y-5">
+                <DocumentNotesAndTermsCard
+                  activeTab={activeNotesTab}
+                  onTabChange={setActiveNotesTab}
+                  notes={notes}
+                  onNotesChange={setNotes}
+                  terms={terms}
+                  onTermsChange={setTerms}
+                />
 
-              <DocumentAdditionalInfoCard
-                transportMode={transportMode}
-                onTransportModeChange={setTransportMode}
-                vehicleNo={vehicleNumber}
-                onVehicleNoChange={setVehicleNumber}
-                ewayBillNo={eWayBillNumber}
-                onEwayBillNoChange={setEWayBillNumber}
-                dispatchDate={dispatchDate}
-                onDispatchDateChange={setDispatchDate}
-              />
+                <DocumentAdditionalInfoCard
+                  transportMode={transportMode}
+                  onTransportModeChange={setTransportMode}
+                  vehicleNo={vehicleNumber}
+                  onVehicleNoChange={setVehicleNumber}
+                  ewayBillNo={eWayBillNumber}
+                  onEwayBillNoChange={setEWayBillNumber}
+                  dispatchDate={dispatchDate}
+                  onDispatchDateChange={setDispatchDate}
+                  freightAmount={additionalChargeAmount}
+                  onFreightAmountChange={setAdditionalChargeAmount}
+                />
+              </div>
+
+              {/* Right Column (5 cols): Summary Card */}
+              <div className="lg:col-span-5 space-y-5">
+                <DocumentSummaryCard
+                  title="Challan Valuation Summary"
+                  subtotal={totalTaxable}
+                  discount={Number(overallDiscountAmount) > 0 ? Number(overallDiscountAmount) : undefined}
+                  cgst={!isInterState ? totalCgst : undefined}
+                  sgst={!isInterState ? totalSgst : undefined}
+                  igst={isInterState ? totalIgst : undefined}
+                  customRows={Number(additionalChargeAmount) > 0 ? [{ label: "Freight", value: Number(additionalChargeAmount) }] : []}
+                  roundOff={autoRoundOff ? (grandTotal - (totalTaxable + totalTax)) : undefined}
+                  grandTotal={grandTotal}
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Right Column (4 cols): Summary Card */}
-          <div className="lg:col-span-4 space-y-5">
-            <DocumentSummaryCard
-              title="Challan Valuation Summary"
-              subtotal={totalTaxable}
-              discount={Number(overallDiscountAmount) > 0 ? Number(overallDiscountAmount) : undefined}
-              cgst={!isInterState ? totalCgst : undefined}
-              sgst={!isInterState ? totalSgst : undefined}
-              igst={isInterState ? totalIgst : undefined}
-              roundOff={autoRoundOff ? (grandTotal - (totalTaxable + totalTax)) : undefined}
-              grandTotal={grandTotal}
+            {/* STICKY BOTTOM ACTION BAR */}
+            <DocumentBottomBar
+              totalItems={rows.length}
+              totalAmount={grandTotal}
+              onSaveAsDraft={() => handleSubmit(true)}
+              onSave={() => handleSubmit(false)}
+              isSaving={isSubmitting}
+              saveButtonLabel="Save Challan"
+              backHref="/sales/delivery-challan"
             />
           </div>
-        </div>
-
-        {/* STICKY BOTTOM ACTION BAR */}
-        <DocumentBottomBar
-          totalItems={rows.length}
-          totalAmount={grandTotal}
-          onSaveAsDraft={() => handleSubmit(true)}
-          onSave={() => handleSubmit(false)}
-          isSaving={isSubmitting}
-          saveButtonLabel="Save Challan"
-          backHref="/sales/delivery-challan"
-        />
-        </div>
-      )}
+        )}
       </main>
 
       {/* 3. MODALS */}
@@ -1248,14 +1249,20 @@ const [notes, setNotes] = useState("");
           invoiceNumber: challanNumber,
           invoiceDate: challanDate,
           paymentMode: "DELIVERY_CHALLAN",
-          placeOfSupply: placeOfSupply ? `State Code (${placeOfSupply})` : "Gujarat (24)",
+          placeOfSupply: placeOfSupply
+            ? getStateDisplayName(placeOfSupply)
+            : selectedParty
+              ? getStateDisplayName(resolvePartyStateCode(selectedParty, companyState))
+              : currentCompany?.stateCode
+                ? getStateDisplayName(currentCompany.stateCode)
+                : "—",
           partyName: selectedParty?.name || "Cash / Direct Customer",
           partyGstin: selectedParty?.gstin,
           partyPhone: selectedParty?.phone,
           partyAddress: selectedParty?.address,
           companyName: currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook",
           companyGstin: currentCompany?.gstin || "24AAAAA0000A1Z5",
-          companyState: currentCompany?.stateCode ? `State Code (${currentCompany.stateCode})` : "Gujarat (24)",
+          companyState: currentCompany?.stateCode ? getStateDisplayName(currentCompany.stateCode) : "—",
           notes,
           termsAndConditions: terms,
           items: rows.map((r) => ({

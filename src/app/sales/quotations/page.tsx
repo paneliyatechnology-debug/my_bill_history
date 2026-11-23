@@ -11,6 +11,7 @@ import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/sc
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { Phone, AlertTriangle, X, ShieldAlert } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 interface QuotationItem {
   id: string;
@@ -327,8 +328,8 @@ export default function QuotationsPage() {
       const statusLabel = isConverted ? "Converted" : q.status === "CANCELLED" ? "Cancelled" : "Open Quote";
       return [
         `"${q.invoiceNumber || ""}"`,
-        q.invoiceDate ? new Date(q.invoiceDate).toLocaleDateString("en-GB") : "",
-        q.dueDate ? new Date(q.dueDate).toLocaleDateString("en-GB") : "",
+        q.invoiceDate ? formatDate(q.invoiceDate) : "",
+        q.dueDate ? formatDate(q.dueDate) : "",
         `"${(q.party?.name || "").replace(/"/g, '""')}"`,
         `"${q.party?.phone || ""}"`,
         q.grandTotal || 0,
@@ -642,17 +643,11 @@ export default function QuotationsPage() {
                       {/* Date & Validity */}
                       <td className="px-4 py-3 whitespace-nowrap typo-table-td text-[#182230]">
                         <div>
-                          {q.invoiceDate
-                            ? new Date(q.invoiceDate).toLocaleDateString("en-GB", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })
-                            : "—"}
+                          {formatDate(q.invoiceDate, "—")}
                         </div>
                         {q.dueDate && (
                           <div className="typo-card-desc text-slate-400 mt-0.5">
-                            Valid till: {new Date(q.dueDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
+                            Valid till: {formatDate(q.dueDate)}
                           </div>
                         )}
                       </td>

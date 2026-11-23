@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDayMonth } from "@/lib/date-utils";
+
 import React, { useMemo } from "react";
 import { useAuth } from "../../context/auth-context";
 
@@ -34,10 +36,7 @@ export function SalesVsPurchaseChart({
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(today.getDate() - i);
-      const label = d.toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-      });
+      const label = formatDayMonth(d);
 
       days.push({
         date: d.toISOString().split("T")[0],

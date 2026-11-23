@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
@@ -396,7 +398,7 @@ export default function StockTransfersPage() {
       sortable: true,
       cell: (tr) => (
         <span className="text-xs text-slate-600 whitespace-nowrap">
-          {new Date(tr.transferDate).toLocaleDateString("en-IN")}
+          {formatDate(tr.transferDate)}
         </span>
       ),
     },
@@ -573,7 +575,7 @@ export default function StockTransfersPage() {
                 <StatusBadge status={tr.status} />
               </div>
               <div className="text-xs text-slate-500">
-                {new Date(tr.transferDate).toLocaleDateString("en-IN")}
+                {formatDate(tr.transferDate)}
               </div>
               <div className="text-xs font-medium text-slate-800">
                 {tr.fromWarehouse?.name || "From"} → {tr.toWarehouse?.name || "To"}

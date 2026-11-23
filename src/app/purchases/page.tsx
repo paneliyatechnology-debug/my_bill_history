@@ -21,6 +21,8 @@ import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { Check, X, Camera, Phone, ShieldAlert } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 interface PurchaseInvoice {
   id: string;
@@ -90,17 +92,7 @@ const DATE_PRESET_LABELS: Record<DateRangePreset, { en: string; gu: string }> = 
 };
 
 function formatDisplayDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const day = d.getDate();
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const month = months[d.getMonth()];
-    const year = d.getFullYear();
-    return `${day} ${month} ${year}`;
-  } catch {
-    return dateStr;
-  }
+  return formatDate(dateStr);
 }
 
 function calculateDueIn(dueDateStr?: string, invoiceDateStr?: string, isPaid?: boolean): { text: string; isOverdue: boolean; isDueToday: boolean } {
@@ -211,7 +203,11 @@ export default function PurchasesPage() {
       try {
         const saved = localStorage.getItem(purchaseStorageKey);
         if (saved) {
-          setQuickSettings({ ...DEFAULT_PURCHASE_QUICK_SETTINGS, ...JSON.parse(saved) });
+          const parsed = JSON.parse(saved);
+          parsed.enablePrefix = false;
+          parsed.invoicePrefix = "";
+          parsed.invoiceSequence = "";
+          setQuickSettings({ ...DEFAULT_PURCHASE_QUICK_SETTINGS, ...parsed });
         }
       } catch (e) {
         console.error("Failed to load quick settings", e);
@@ -868,19 +864,21 @@ export default function PurchasesPage() {
                 {/* Custom Date Pickers */}
                 {dateRangePreset === "CUSTOM" && (
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <input
-                      type="date"
-                      value={customStartDate}
-                      onChange={(e) => setCustomStartDate(e.target.value)}
-                      className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs tabular-nums"
-                    />
+                    <div className="w-36">
+                      <CustomDatePicker
+                        size="sm"
+                        value={customStartDate}
+                        onChange={(val) => setCustomStartDate(val)}
+                      />
+                    </div>
                     <span className="text-xs text-slate-400">to</span>
-                    <input
-                      type="date"
-                      value={customEndDate}
-                      onChange={(e) => setCustomEndDate(e.target.value)}
-                      className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs tabular-nums"
-                    />
+                    <div className="w-36">
+                      <CustomDatePicker
+                        size="sm"
+                        value={customEndDate}
+                        onChange={(val) => setCustomEndDate(val)}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -1328,8 +1326,6 @@ export default function PurchasesPage() {
         settings={quickSettings}
         voucherType="purchase"
         voucherTitle="Purchase Bill Settings"
-        prefixLabel="Purchase Prefix"
-        prefixPlaceholder="e.g. PUR-26-"
         storageKey={purchaseStorageKey}
         onSave={(newSettings) => {
           setQuickSettings(newSettings);
@@ -1385,16 +1381,15 @@ export default function PurchasesPage() {
                 />
               </label>
 
-              <label className="text-slate-600 font-semibold">
-                Payment Date *
-                <input
-                  type="date"
-                  required
-                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#1677E8] focus:outline-none"
+              <div>
+                <label className="text-slate-600 font-semibold text-xs mb-1 block">
+                  Payment Date *
+                </label>
+                <CustomDatePicker
                   value={payDate}
-                  onChange={(e) => setPayDate(e.target.value)}
+                  onChange={(val) => setPayDate(val)}
                 />
-              </label>
+              </div>
 
               <div>
                 <label className="text-slate-600 font-semibold text-xs mb-1 block">

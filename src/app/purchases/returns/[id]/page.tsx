@@ -11,7 +11,9 @@ import {
   DynamicInvoiceData,
   DynamicCompanyData,
 } from "@/components/invoice/dynamic-themed-invoice";
+import { getStateDisplayName } from "@/shared-types";
 import { Palette, X } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 export default function PurchaseReturnViewPage() {
   const params = useParams();
@@ -142,9 +144,7 @@ export default function PurchaseReturnViewPage() {
   const returnNumber = data?.returnNumber || data?.voucherNumber || returnId?.slice(0, 8);
   const grandTotal = Number(data?.grandTotal || data?.totalAmount || 0);
   const party = data?.party || data?.purchaseInvoice?.party || {};
-  const formattedDate = data?.returnDate
-    ? new Date(data.returnDate).toLocaleDateString("en-GB")
-    : "—";
+  const formattedDate = formatDate(data?.returnDate, "—");
 
   const downloadPdf = async () => {
     const element = document.getElementById("printable-purchase-return");
@@ -307,11 +307,13 @@ export default function PurchaseReturnViewPage() {
     invoiceNumber: returnNumber,
     invoiceDate: returnDateIso,
     status: "ISSUED",
-    placeOfSupply: party.stateCode
-      ? `${party.stateCode} (${party.state || "State"})`
+    placeOfSupply: data?.placeOfSupply
+      ? getStateDisplayName(data.placeOfSupply)
+      : party.stateCode
+      ? getStateDisplayName(party.stateCode)
       : currentCompany?.stateCode
-      ? `${currentCompany.stateCode} (${(currentCompany as any).state || "Gujarat"})`
-      : "24 (Gujarat)",
+      ? getStateDisplayName(currentCompany.stateCode)
+      : "Gujarat (24)",
     isB2B: !!party.gstin,
     taxableAmount: Number(data?.taxableAmount || 0),
     cgstAmount: Number(data?.cgstAmount || 0),

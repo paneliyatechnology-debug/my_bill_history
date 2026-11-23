@@ -577,6 +577,114 @@ export const INDIAN_STATES: Record<
 };
 
 /**
+ * Resolves a 2-digit Indian GST state code dynamically from a party object (Customer/Supplier)
+ * Checks: explicit stateCode -> first 2 digits of GSTIN -> billingAddress stateCode -> fallback
+ */
+export function resolvePartyStateCode(party: any, fallback: string = ""): string {
+  if (!party) return fallback;
+
+  // 1. Explicit stateCode on party
+  if (party.stateCode && String(party.stateCode).trim()) {
+    const raw = String(party.stateCode).trim();
+    const clean = raw.padStart(2, "0");
+    if (INDIAN_STATES[clean]) return clean;
+    // Check if stateCode was a name e.g. "Bihar"
+    const byName = Object.entries(INDIAN_STATES).find(
+      ([, val]) => val.name.toLowerCase() === raw.toLowerCase()
+    );
+    if (byName) return byName[0];
+  }
+
+  // 2. GSTIN first 2 digits
+  if (party.gstin && String(party.gstin).trim().length >= 2) {
+    const code = String(party.gstin).trim().slice(0, 2);
+    if (INDIAN_STATES[code]) return code;
+  }
+
+  // 3. Explicit state / stateName on party
+  if (party.state || party.stateName) {
+    const rawState = String(party.state || party.stateName).trim().toLowerCase();
+    const byName = Object.entries(INDIAN_STATES).find(
+      ([code, val]) => val.name.toLowerCase() === rawState || code === rawState
+    );
+    if (byName) return byName[0];
+  }
+
+  // 4. Billing Address object or string
+  const addr = party.billingAddress || party.address;
+  if (addr) {
+    if (typeof addr === "object") {
+      if (addr.stateCode) {
+        const s = String(addr.stateCode).trim().padStart(2, "0");
+        if (INDIAN_STATES[s]) return s;
+      }
+      if (addr.state) {
+        const s = String(addr.state).trim().toLowerCase();
+        const byName = Object.entries(INDIAN_STATES).find(
+          ([code, val]) => val.name.toLowerCase() === s || code === s
+        );
+        if (byName) return byName[0];
+      }
+    } else if (typeof addr === "string") {
+      const lowerAddr = addr.toLowerCase();
+      const byName = Object.entries(INDIAN_STATES).find(
+        ([, val]) => lowerAddr.includes(val.name.toLowerCase())
+      );
+      if (byName) return byName[0];
+    }
+  }
+
+  // 5. Shipping Address object or string
+  const shipAddr = party.shippingAddress;
+  if (shipAddr) {
+    if (typeof shipAddr === "object") {
+      if (shipAddr.stateCode) {
+        const s = String(shipAddr.stateCode).trim().padStart(2, "0");
+        if (INDIAN_STATES[s]) return s;
+      }
+      if (shipAddr.state) {
+        const s = String(shipAddr.state).trim().toLowerCase();
+        const byName = Object.entries(INDIAN_STATES).find(
+          ([code, val]) => val.name.toLowerCase() === s || code === s
+        );
+        if (byName) return byName[0];
+      }
+    } else if (typeof shipAddr === "string") {
+      const lowerAddr = shipAddr.toLowerCase();
+      const byName = Object.entries(INDIAN_STATES).find(
+        ([, val]) => lowerAddr.includes(val.name.toLowerCase())
+      );
+      if (byName) return byName[0];
+    }
+  }
+
+  return fallback;
+}
+
+/**
+ * Returns formatted state name and code, e.g. "Gujarat (24)" or "Bihar (10)"
+ */
+export function getStateDisplayName(code?: string | null): string {
+  if (!code) return "";
+  const trimmed = String(code).trim();
+  if (trimmed.includes("(") && trimmed.includes(")")) {
+    return trimmed;
+  }
+  const clean = trimmed.padStart(2, "0");
+  const state = INDIAN_STATES[clean];
+  if (state) {
+    return `${state.name} (${clean})`;
+  }
+  const byName = Object.entries(INDIAN_STATES).find(
+    ([, val]) => val.name.toLowerCase() === trimmed.toLowerCase()
+  );
+  if (byName) {
+    return `${byName[1].name} (${byName[0]})`;
+  }
+  return code;
+}
+
+/**
  * Financial Summary KPI Card Data for Dashboard
  */
 export interface FinancialSummaryDto {
@@ -757,3 +865,7 @@ export interface ImportJobDto {
   createdAt: string;
   updatedAt: string;
 }
+
+// Global Date Standardization Exports
+export * from "../lib/date-utils";
+

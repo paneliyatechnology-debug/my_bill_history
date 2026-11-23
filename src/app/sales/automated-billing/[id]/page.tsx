@@ -10,6 +10,7 @@ import {
   formatCurrency,
 } from "@/lib/automated-billing";
 import { X } from "lucide-react";
+import { formatDate, formatDateTime } from "@/lib/date-utils";
 
 export default function AutomatedBillingDetailPage() {
   const params = useParams();
@@ -299,13 +300,13 @@ export default function AutomatedBillingDetailPage() {
                 <div>
                   <span className="text-gray-400 block text-[10px] uppercase font-semibold">Next Run Date</span>
                   <span className="tabular-nums font-bold text-emerald-800">
-                    {schedule.nextRunAt ? new Date(schedule.nextRunAt).toLocaleDateString() : "—"}
+                    {schedule.nextRunAt ? formatDate(schedule.nextRunAt) : "—"}
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-400 block text-[10px] uppercase font-semibold">Start Date</span>
                   <span className="tabular-nums text-gray-700">
-                    {new Date(schedule.startDate).toLocaleDateString()}
+                    {formatDate(schedule.startDate)}
                   </span>
                 </div>
               </div>
@@ -402,10 +403,10 @@ export default function AutomatedBillingDetailPage() {
                   runs.map((run) => (
                     <tr key={run.id} className="hover:bg-gray-50/50">
                       <td className="py-3 px-4 tabular-nums text-gray-700">
-                        {new Date(run.scheduledFor).toLocaleDateString()}
+                        {formatDate(run.scheduledFor)}
                       </td>
                       <td className="py-3 px-4 tabular-nums text-gray-600 text-[11px]">
-                        {new Date(run.createdAt).toLocaleString()}
+                        {formatDateTime(run.createdAt)}
                       </td>
                       <td className="py-3 px-3 text-gray-700 font-medium">
                         {run.triggeredBy === "MANUAL_RUN_NOW"

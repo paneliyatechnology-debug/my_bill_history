@@ -471,9 +471,9 @@ export function CustomThemeStudio() {
                       ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-300">
+                <tbody className="bg-white">
                   {sampleItems.map((item) => (
-                    <tr key={item.sno} className="hover:bg-slate-50/60">
+                    <tr key={item.sno} className="hover:bg-slate-50/60 align-top">
                       {columns.find((c) => c.id === "sno" && c.enabled) && (
                         <td className="py-2.5 px-2.5 text-center font-bold text-slate-700">
                           {item.sno}
@@ -505,22 +505,30 @@ export function CustomThemeStudio() {
                         </td>
                       )}
                       {columns.find((c) => c.id === "rate" && c.enabled) && (
-                        <td className="py-2.5 px-2.5 border-l border-slate-900 font-semibold text-slate-900">
+                        <td className="py-2.5 px-2.5 border-l border-slate-900 font-semibold text-slate-900 whitespace-nowrap">
                           {item.rate}
                         </td>
                       )}
                       {columns.find((c) => c.id === "disc" && c.enabled) && (
-                        <td className="py-2.5 px-2.5 border-l border-slate-900 text-slate-700">
+                        <td className="py-2.5 px-2.5 border-l border-slate-900 text-slate-700 whitespace-nowrap">
                           {item.disc}
                         </td>
                       )}
                       {columns.find((c) => c.id === "amount" && c.enabled) && (
-                        <td className="py-2.5 px-2.5 border-l border-slate-900 font-bold text-slate-950 text-right">
+                        <td className="py-2.5 px-2.5 border-l border-slate-900 font-bold text-slate-950 text-right whitespace-nowrap">
                           {item.amount}
                         </td>
                       )}
                     </tr>
                   ))}
+                  {/* Spacer row to stretch vertical lines down with NO horizontal lines */}
+                  <tr className="h-full">
+                    {columns.filter((c) => c.enabled).map((c, i) => (
+                      <td key={`spacer-${c.id}`} className={`py-1 px-2.5 ${i !== 0 ? "border-l border-slate-900" : ""}`}>
+                        &nbsp;
+                      </td>
+                    ))}
+                  </tr>
                   {/* Tax Lines */}
                   <tr className="border-t border-slate-900 text-[10px]">
                     <td colSpan={columns.filter((c) => c.enabled).length - 1} className="py-1 px-2.5 text-right font-medium text-slate-600">

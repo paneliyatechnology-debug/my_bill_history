@@ -9,6 +9,8 @@ import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/sc
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { Check, X, AlertTriangle } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 type DateRangePreset =
   | "ALL"
@@ -61,14 +63,7 @@ export interface PaymentOutRow {
 }
 
 function formatPaymentDate(value?: string): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDate(value, "—");
 }
 
 function isoDate(date: Date): string {
@@ -619,20 +614,16 @@ export default function PaymentOutPage() {
                   <div className="border-t border-[#E2E8E5] p-3 space-y-2 bg-[#F6F7F1] rounded-b-xl">
                     <div>
                       <label className="block text-[10px] font-medium text-[#5A6B66] mb-0.5">Start Date</label>
-                      <input
-                        type="date"
+                      <CustomDatePicker
                         value={customStartDate}
-                        onChange={(e) => setCustomStartDate(e.target.value)}
-                        className="w-full rounded-lg border border-[#E2E8F0] bg-white px-2 py-1 text-[13px] text-[#182230] focus:border-[#1677E8] focus:outline-none h-10"
+                        onChange={(val) => setCustomStartDate(val)}
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] font-medium text-[#5A6B66] mb-0.5">End Date</label>
-                      <input
-                        type="date"
+                      <CustomDatePicker
                         value={customEndDate}
-                        onChange={(e) => setCustomEndDate(e.target.value)}
-                        className="w-full rounded-lg border border-[#E2E8F0] bg-white px-2 py-1 text-[13px] text-[#182230] focus:border-[#1677E8] focus:outline-none h-10"
+                        onChange={(val) => setCustomEndDate(val)}
                       />
                     </div>
                     <button

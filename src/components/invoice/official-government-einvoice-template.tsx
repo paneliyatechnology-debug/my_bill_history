@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import QRCode from "qrcode";
 import { formatInr } from "@/components/design-system/tokens";
+import { formatDate } from "@/lib/date-utils";
 
 export interface OfficialGovernmentEInvoiceProps {
   invoice: any;
@@ -316,14 +317,8 @@ export function OfficialGovernmentEInvoiceTemplate({
         </div>
         <div className="p-2">
           <div className="text-[10px] font-bold text-slate-500 uppercase">Invoice Date</div>
-          <div className="font-bold text-slate-900">
-            {invoice.invoiceDate
-              ? new Date(invoice.invoiceDate).toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "—"}
+          <div className="font-bold text-slate-900 tabular-nums">
+            {formatDate(invoice.invoiceDate, "—")}
           </div>
         </div>
         <div className="p-2">
@@ -428,7 +423,7 @@ export function OfficialGovernmentEInvoiceTemplate({
               <th className="py-2 px-2 text-right w-24">Total (₹)</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-300 text-[11px]">
+          <tbody className="text-[11px]">
             {items.map((it: any, idx: number) => {
               const qty = Number(it.quantity || 1);
               const rate = Number(it.unitPrice || 0);
@@ -441,7 +436,7 @@ export function OfficialGovernmentEInvoiceTemplate({
               const hsn = it.hsnCode || it.hsn || "—";
 
               return (
-                <tr key={it.id || idx} className="hover:bg-slate-50/50">
+                <tr key={it.id || idx} className="hover:bg-slate-50/50 align-top">
                   <td className="py-2 px-1.5 text-center font-bold text-slate-500 border-r border-slate-300">
                     {idx + 1}
                   </td>
@@ -457,13 +452,13 @@ export function OfficialGovernmentEInvoiceTemplate({
                   <td className="py-2 px-1.5 text-center font-semibold text-slate-600 border-r border-slate-300 uppercase">
                     {unit}
                   </td>
-                  <td className="py-2 px-2 text-right font-mono text-slate-800 border-r border-slate-300">
+                  <td className="py-2 px-2 text-right font-mono text-slate-800 border-r border-slate-300 whitespace-nowrap">
                     {formatInr(rate)}
                   </td>
-                  <td className="py-2 px-2 text-right font-mono font-bold text-slate-900 border-r border-slate-300">
+                  <td className="py-2 px-2 text-right font-mono font-bold text-slate-900 border-r border-slate-300 whitespace-nowrap">
                     {formatInr(taxable)}
                   </td>
-                  <td className="py-2 px-2 text-right font-mono text-slate-700 border-r border-slate-300">
+                  <td className="py-2 px-2 text-right font-mono text-slate-700 border-r border-slate-300 whitespace-nowrap">
                     {cgst > 0 ? (
                       <div>
                         <div>{formatInr(cgst)}</div>
@@ -473,7 +468,7 @@ export function OfficialGovernmentEInvoiceTemplate({
                       "—"
                     )}
                   </td>
-                  <td className="py-2 px-2 text-right font-mono text-slate-700 border-r border-slate-300">
+                  <td className="py-2 px-2 text-right font-mono text-slate-700 border-r border-slate-300 whitespace-nowrap">
                     {sgst > 0 ? (
                       <div>
                         <div>{formatInr(sgst)}</div>
@@ -484,7 +479,7 @@ export function OfficialGovernmentEInvoiceTemplate({
                     )}
                   </td>
                   {igstAmount > 0 && (
-                    <td className="py-2 px-2 text-right font-mono text-slate-700 border-r border-slate-300">
+                    <td className="py-2 px-2 text-right font-mono text-slate-700 border-r border-slate-300 whitespace-nowrap">
                       {igst > 0 ? (
                         <div>
                           <div>{formatInr(igst)}</div>
@@ -495,12 +490,26 @@ export function OfficialGovernmentEInvoiceTemplate({
                       )}
                     </td>
                   )}
-                  <td className="py-2 px-2 text-right font-mono font-semibold text-slate-950">
+                  <td className="py-2 px-2 text-right font-mono font-semibold text-slate-950 whitespace-nowrap">
                     {formatInr(total)}
                   </td>
                 </tr>
               );
             })}
+            {/* Spacer row to stretch vertical lines down to the total footer with NO horizontal lines */}
+            <tr className="h-full">
+              <td className="py-1 px-1.5 border-r border-slate-300">&nbsp;</td>
+              <td className="py-1 px-2 border-r border-slate-300">&nbsp;</td>
+              <td className="py-1 px-1.5 border-r border-slate-300">&nbsp;</td>
+              <td className="py-1 px-1.5 border-r border-slate-300">&nbsp;</td>
+              <td className="py-1 px-1.5 border-r border-slate-300">&nbsp;</td>
+              <td className="py-1 px-2 border-r border-slate-300">&nbsp;</td>
+              <td className="py-1 px-2 border-r border-slate-300">&nbsp;</td>
+              <td className="py-1 px-2 border-r border-slate-300">&nbsp;</td>
+              <td className="py-1 px-2 border-r border-slate-300">&nbsp;</td>
+              {igstAmount > 0 && <td className="py-1 px-2 border-r border-slate-300">&nbsp;</td>}
+              <td className="py-1 px-2">&nbsp;</td>
+            </tr>
           </tbody>
           {/* TOTALS FOOTER ROW */}
           <tfoot>

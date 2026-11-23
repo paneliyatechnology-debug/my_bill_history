@@ -7,6 +7,8 @@ import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { X, Search } from "lucide-react";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 interface PartyOption {
   id: string;
@@ -54,14 +56,7 @@ function formatInr(val: number | string): string {
 }
 
 function formatPaymentDate(value?: string): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDate(value, "—");
 }
 
 function invoiceBalance(inv: any): number {
@@ -857,9 +852,12 @@ function CreatePaymentInForm() {
                   type="number"
                   min="0"
                   step="0.01"
-                  value={amountReceived}
+                  value={amountReceived === "0" ? "" : amountReceived}
                   onChange={(e) => handleAmountReceivedChange(e.target.value)}
-                  placeholder="0"
+                  onFocus={(e) => {
+                    if (e.target.value === "0") e.target.select();
+                  }}
+                  placeholder="0.00"
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
                 />
               </div>
@@ -875,9 +873,12 @@ function CreatePaymentInForm() {
                   type="number"
                   min="0"
                   step="0.01"
-                  value={paymentInDiscount}
+                  value={paymentInDiscount === "0" ? "" : paymentInDiscount}
                   onChange={(e) => setPaymentInDiscount(e.target.value)}
-                  placeholder="0"
+                  onFocus={(e) => {
+                    if (e.target.value === "0") e.target.select();
+                  }}
+                  placeholder="0.00"
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
                 />
               </div>
@@ -893,14 +894,10 @@ function CreatePaymentInForm() {
               <label className="block text-[12px] font-medium text-slate-600 mb-1">
                 Payment Date <span className="text-rose-500">*</span>
               </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={voucherDate}
-                  onChange={(e) => setVoucherDate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
-                />
-              </div>
+              <CustomDatePicker
+                value={voucherDate}
+                onChange={(val) => setVoucherDate(val)}
+              />
             </div>
 
             <div>
@@ -1172,9 +1169,12 @@ function CreatePaymentInForm() {
                               type="number"
                               min="0"
                               max={inv.balanceAmount}
-                              value={inv.discount}
+                              value={inv.discount === "0" ? "" : inv.discount}
                               onChange={(e) => updateInvoiceDiscount(inv.id, e.target.value)}
-                              placeholder="0"
+                              onFocus={(e) => {
+                                if (e.target.value === "0") e.target.select();
+                              }}
+                              placeholder="0.00"
                               className="w-16 rounded border border-slate-200 px-1 py-0.5 text-[13px] text-right h-10"
                             />
                             <button
@@ -1212,8 +1212,12 @@ function CreatePaymentInForm() {
                               min="0"
                               max={inv.balanceAmount}
                               step="0.01"
-                              value={inv.settle}
+                              value={inv.settle === "0" ? "" : inv.settle}
                               onChange={(e) => updateInvoiceSettle(inv.id, e.target.value)}
+                              onFocus={(e) => {
+                                if (e.target.value === "0") e.target.select();
+                              }}
+                              placeholder="0.00"
                               className="w-24 rounded border border-slate-200 px-1.5 py-0.5 text-[13px] font-normal text-right text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                             />
                           </div>

@@ -8,6 +8,9 @@ import { apiClient, extractList } from "../../../../../lib/api-client";
 import { getPartyItemPrice } from "../../../../../lib/party-item-pricing";
 import { Pencil, Save, AlertTriangle, Check, X } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { CleanNumberInput } from "@/components/ui/clean-number-input";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
+import { DocumentAdditionalInfoCard } from "@/components/document-studio/document-lower-sections";
 
 interface PartyOption {
   id: string;
@@ -68,6 +71,13 @@ export default function EditInvoicePage() {
   const [notes, setNotes] = useState("");
   const [isTaxInclusive, setIsTaxInclusive] = useState(false);
 
+  // Additional Shipping & Freight Fields
+  const [freightAmount, setFreightAmount] = useState<number | "">("");
+  const [transportMode, setTransportMode] = useState("Road");
+  const [vehicleNo, setVehicleNo] = useState("");
+  const [ewayBillNo, setEwayBillNo] = useState("");
+  const [dispatchDate, setDispatchDate] = useState("");
+
   const [rows, setRows] = useState<InvoiceItemRow[]>([]);
 
   const fetchInvoiceAndData = useCallback(async () => {
@@ -106,6 +116,36 @@ export default function EditInvoicePage() {
         setPlaceOfSupply(invRes.placeOfSupply || currentCompany?.stateCode || "24");
         setNotes(invRes.notes || "");
         setExistingPaidAmount(Number(invRes.paidAmount || 0));
+
+        const shipAddr: any = invRes.shippingAddress || {};
+        const loadedFreight = Number(
+          invRes.freightAmount ??
+          invRes.freight ??
+          shipAddr.freightAmount ??
+          shipAddr.freight ??
+          (invRes.additionalCharges
+            ? Array.isArray(invRes.additionalCharges)
+              ? invRes.additionalCharges.reduce((a: number, b: any) => a + (Number(b.amount) || 0), 0)
+              : invRes.additionalCharges
+            : 0)
+        );
+        setFreightAmount(loadedFreight > 0 ? loadedFreight : "");
+        if (shipAddr.vehicleNo || (invRes as any).vehicleNumber) {
+          setVehicleNo(shipAddr.vehicleNo || (invRes as any).vehicleNumber || "");
+        }
+        if (shipAddr.transportMode) {
+          setTransportMode(shipAddr.transportMode);
+        }
+        if (shipAddr.ewayBillNo || (invRes as any).ewayBillNo) {
+          setEwayBillNo(shipAddr.ewayBillNo || (invRes as any).ewayBillNo || "");
+        }
+        if (shipAddr.dispatchDate) {
+          setDispatchDate(
+            shipAddr.dispatchDate.includes("T")
+              ? shipAddr.dispatchDate.split("T")[0]
+              : shipAddr.dispatchDate,
+          );
+        }
 
         if (Array.isArray(invRes.items) && invRes.items.length > 0) {
           setRows(
@@ -259,10 +299,11 @@ export default function EditInvoicePage() {
     }
   });
 
+  const freightVal = Number(freightAmount) || 0;
   const totalTax = totalCgst + totalSgst + totalIgst;
-  const rawTotal = totalTaxable + totalTax;
+  const rawTotal = totalTaxable + totalTax + freightVal;
   const grandTotal = Math.round(rawTotal);
-  const roundOff = grandTotal - rawTotal;
+  const roundOff = Number((grandTotal - rawTotal).toFixed(2));
   const pendingBalance = Math.max(0, grandTotal - existingPaidAmount);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -287,6 +328,17 @@ export default function EditInvoicePage() {
       paymentMode,
       placeOfSupply,
       notes,
+      additionalCharges: freightVal > 0 ? [{ name: "Freight", amount: freightVal }] : [],
+      freightAmount: freightVal > 0 ? freightVal : 0,
+      vehicleNumber: vehicleNo || undefined,
+      shippingAddress: {
+        freight: freightVal,
+        freightAmount: freightVal,
+        ...(vehicleNo ? { vehicleNo } : {}),
+        ...(transportMode ? { transportMode } : {}),
+        ...(ewayBillNo ? { ewayBillNo } : {}),
+        ...(dispatchDate ? { dispatchDate } : {}),
+      },
       items: rows.map((r) => ({
         itemId: r.itemId,
         hsnCode: r.hsnCode,
@@ -392,7 +444,25 @@ export default function EditInvoicePage() {
           {lang === "gu" ? "૧. ગ્રાહક અને બિલિંગ વિગતો" : "1. Customer & Invoice Details"}
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
+              {lang === "gu" ? "બિલ નંબર (Invoice No.)" : "Invoice No."}
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                readOnly
+                tabIndex={-1}
+                value={invoiceNumber}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-mono font-semibold text-slate-800 cursor-default select-all focus:outline-none h-10 tabular-nums"
+              />
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-slate-200/70 px-1.5 py-0.5 rounded pointer-events-none">
+                Fixed
+              </span>
+            </div>
+          </div>
+
           <div>
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "ગ્રાહક (Customer / Party) *" : "Customer / Party *"}
@@ -430,11 +500,11 @@ export default function EditInvoicePage() {
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "તારીખ (Invoice Date)" : "Invoice Date"}
             </label>
-            <input
-              type="date"
+            <CustomDatePicker
               value={invoiceDate}
-              onChange={(e) => setInvoiceDate(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none tabular-nums h-10"
+              onChange={(val) => setInvoiceDate(val)}
+              placeholder="DD/MM/YYYY"
+              triggerClassName="rounded-lg border-slate-300 h-10"
             />
           </div>
 
@@ -442,11 +512,11 @@ export default function EditInvoicePage() {
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "મુદત તારીખ (Due Date)" : "Due Date"}
             </label>
-            <input
-              type="date"
+            <CustomDatePicker
               value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none tabular-nums h-10"
+              onChange={(val) => setDueDate(val)}
+              placeholder="DD/MM/YYYY"
+              triggerClassName="rounded-lg border-slate-300 h-10"
             />
           </div>
 
@@ -606,30 +676,25 @@ export default function EditInvoicePage() {
                       />
                     </td>
                     <td className="py-2 px-3">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
+                      <CleanNumberInput
                         value={row.discountPercent}
-                        onChange={(e) => handleRowChange(idx, "discountPercent", e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-[13px] tabular-nums text-right focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
+                        onChange={(val) => handleRowChange(idx, "discountPercent", val)}
+                        placeholder="0"
+                        suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                        className="w-full text-[13px] tabular-nums text-right focus:outline-none bg-transparent"
+                        containerClassName="px-2 py-1.5 border border-slate-300 rounded-lg h-10 focus-within:ring-2 focus-within:ring-primary/20"
                       />
                     </td>
                     <td className="py-2 px-3">
-                      <div className="relative flex items-center min-w-[70px]">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0"
-                          max="100"
-                          list="gst-rates-edit-table"
-                          value={row.taxRate}
-                          onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
-                          placeholder="0"
-                          className="w-full px-2 py-1.5 pr-4 border border-slate-300 rounded-lg text-[13px] tabular-nums text-right focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
-                        />
-                        <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
-                      </div>
+                      <CleanNumberInput
+                        value={row.taxRate}
+                        onChange={(val) => handleRowChange(idx, "taxRate", val)}
+                        placeholder="0"
+                        list="gst-rates-edit-table"
+                        suffix={<span className="text-[11px] font-bold text-slate-400 pointer-events-none ml-1">%</span>}
+                        className="w-full text-[13px] tabular-nums text-right focus:outline-none bg-transparent"
+                        containerClassName="relative flex items-center min-w-[70px] px-2 py-1.5 border border-slate-300 rounded-lg h-10 focus-within:ring-2 focus-within:ring-primary/20"
+                      />
                       <datalist id="gst-rates-edit-table">
                         <option value="0">0% (None)</option>
                         <option value="0.1">0.1%</option>
@@ -665,7 +730,21 @@ export default function EditInvoicePage() {
         </div>
       </div>
 
-      {/* 4. Calculation Summary Card */}
+      {/* 4. Additional Shipping & Freight Info */}
+      <DocumentAdditionalInfoCard
+        transportMode={transportMode}
+        onTransportModeChange={setTransportMode}
+        vehicleNo={vehicleNo}
+        onVehicleNoChange={setVehicleNo}
+        ewayBillNo={ewayBillNo}
+        onEwayBillNoChange={setEwayBillNo}
+        dispatchDate={dispatchDate}
+        onDispatchDateChange={setDispatchDate}
+        freightAmount={freightAmount}
+        onFreightAmountChange={setFreightAmount}
+      />
+
+      {/* 5. Calculation Summary Card */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle flex flex-col md:flex-row items-start justify-between gap-6">
         <div className="space-y-2 text-xs text-slate-500 max-w-sm">
           <p className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">
@@ -713,6 +792,13 @@ export default function EditInvoicePage() {
             <span>Total GST Tax:</span>
             <span className="tabular-nums text-slate-900">₹{totalTax.toFixed(2)}</span>
           </div>
+
+          {freightVal > 0 && (
+            <div className="flex justify-between text-slate-700 font-medium">
+              <span>Freight:</span>
+              <span className="tabular-nums text-slate-900">₹{freightVal.toFixed(2)}</span>
+            </div>
+          )}
 
           {roundOff !== 0 && (
             <div className="flex justify-between text-slate-700">

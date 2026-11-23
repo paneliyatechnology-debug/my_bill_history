@@ -24,7 +24,7 @@ import {
   getActiveThemePreset,
 } from "@/lib/invoice-theme";
 import { getPartyItemPrice } from "../../../../lib/party-item-pricing";
-import { INDIAN_STATES } from "@/shared-types";
+import { INDIAN_STATES, resolvePartyStateCode, getStateDisplayName } from "@/shared-types";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import {
   DocumentHeaderCard,
@@ -36,6 +36,7 @@ import {
   DocumentPaymentCard,
   DocumentBottomBar,
   PartySelectorCompact,
+  CleanNumberInput,
 } from "@/components/document-studio";
 import {
   Zap,
@@ -197,7 +198,7 @@ export default function NewInvoicePage() {
   const [partyId, setPartyId] = useState("");
   const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false);
   const [partySearchTerm, setPartySearchTerm] = useState("");
-  const [invoiceNumber, setInvoiceNumber] = useState("2");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -213,19 +214,18 @@ export default function NewInvoicePage() {
     return d.toISOString().split("T")[0];
   });
 
-  const [placeOfSupply, setPlaceOfSupply] = useState(
-    currentCompany?.stateCode || "24"
-  );
+  const [placeOfSupply, setPlaceOfSupply] = useState("");
   const [isTaxInclusive, setIsTaxInclusive] = useState(false);
 
   // Bottom Add-ons
   const [showNotes, setShowNotes] = useState(false);
-    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
   const [transportMode, setTransportMode] = useState("Road");
   const [vehicleNo, setVehicleNo] = useState("");
   const [ewayBillNo, setEwayBillNo] = useState("");
   const [dispatchDate, setDispatchDate] = useState("");
-const [notes, setNotes] = useState("");
+  const [freightAmount, setFreightAmount] = useState<number | "">("");
+  const [notes, setNotes] = useState("");
   const [termsAndConditions, setTermsAndConditions] = useState(
     "1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to [ENTER_YOUR_CITY_NAME] jurisdiction only"
   );
@@ -246,7 +246,7 @@ const [notes, setNotes] = useState("");
 
   // Payments
   const [paymentMode, setPaymentMode] = useState("CASH");
-  const [amountReceived, setAmountReceived] = useState<number | "">(0);
+  const [amountReceived, setAmountReceived] = useState<number | "">("");
   const [isFullyPaid, setIsFullyPaid] = useState(false);
 
   // Split Payment Modal State
@@ -320,22 +320,11 @@ const [notes, setNotes] = useState("");
           const merged: QuickSettingsConfig = { ...DEFAULT_QUICK_SETTINGS, ...parsed };
           setQuickSettings(merged);
 
-          // Apply prefix and sequence dynamically
-          if (merged.enablePrefix && merged.invoicePrefix) {
-            setInvoiceNumber(`${merged.invoicePrefix}${merged.invoiceSequence || "0001"}`);
-          } else if (merged.invoiceSequence) {
-            setInvoiceNumber(merged.invoiceSequence);
-          }
-
           if (typeof merged.enableDueDate === "boolean") {
             setShowDueDate(merged.enableDueDate);
           }
           if (typeof merged.isTaxInclusive === "boolean") {
             setIsTaxInclusive(merged.isTaxInclusive);
-          }
-        } else {
-          if (DEFAULT_QUICK_SETTINGS.enablePrefix && DEFAULT_QUICK_SETTINGS.invoicePrefix) {
-            setInvoiceNumber(`${DEFAULT_QUICK_SETTINGS.invoicePrefix}${DEFAULT_QUICK_SETTINGS.invoiceSequence}`);
           }
         }
       }
@@ -364,13 +353,6 @@ const [notes, setNotes] = useState("");
       console.error("Error saving quick settings to localStorage:", e);
     }
 
-    // Apply prefix and sequence
-    if (newSettings.enablePrefix && newSettings.invoicePrefix) {
-      setInvoiceNumber(`${newSettings.invoicePrefix}${newSettings.invoiceSequence || "0001"}`);
-    } else if (newSettings.invoiceSequence) {
-      setInvoiceNumber(newSettings.invoiceSequence);
-    }
-
     // Apply Due Date toggle
     setShowDueDate(newSettings.enableDueDate);
 
@@ -389,10 +371,11 @@ const [notes, setNotes] = useState("");
     setIsLoading(true);
     setError(null);
     try {
-      const [partiesRes, itemsRes, unitsRes]: any = await Promise.all([
+      const [partiesRes, itemsRes, unitsRes, nextNumRes]: any = await Promise.all([
         apiClient.get("/masters/parties", { type: "CUSTOMER", limit: 500 }),
         apiClient.get("/masters/items", { limit: 500 }),
         apiClient.get("/masters/units").catch(() => []),
+        apiClient.get(`/invoices/next-number?category=${category}`).catch(() => null),
       ]);
       const pList = extractList<PartyOption>(partiesRes).filter(
         (p) => p.type === "CUSTOMER" || p.type === "BOTH" || (!p.type && (p as any).isCustomer),
@@ -402,6 +385,9 @@ const [notes, setNotes] = useState("");
       setParties(pList);
       setItems(iList);
       setUnits(uList);
+      if (nextNumRes?.nextNumber) {
+        setInvoiceNumber(nextNumRes.nextNumber);
+      }
 
       // Keep form BLANK by default (Exact MyBillBook standard - do not auto-select party or items)
       // Check if duplicating an existing invoice from dashboard
@@ -414,8 +400,8 @@ const [notes, setNotes] = useState("");
             if (cloneData.partyId || cloneData.party?.id) {
               setPartyId(cloneData.partyId || cloneData.party?.id);
             }
-            if (cloneData.party?.stateCode || cloneData.placeOfSupply) {
-              setPlaceOfSupply(cloneData.party?.stateCode || cloneData.placeOfSupply);
+            if (cloneData.party || cloneData.placeOfSupply) {
+              setPlaceOfSupply(cloneData.placeOfSupply || resolvePartyStateCode(cloneData.party));
             }
             if (Array.isArray(cloneData.items) && cloneData.items.length > 0) {
               const clonedRows: InvoiceItemRow[] = cloneData.items.map((it: any) => ({
@@ -480,6 +466,20 @@ const [notes, setNotes] = useState("");
     }
   }, [tenantContext.companyId, fetchData]);
 
+  // Synchronize next sequential invoice number whenever category changes
+  useEffect(() => {
+    if (tenantContext?.companyId) {
+      apiClient
+        .get<{ nextNumber: string }>(`/invoices/next-number?category=${category}`)
+        .then((res) => {
+          if (res?.nextNumber) {
+            setInvoiceNumber(res.nextNumber);
+          }
+        })
+        .catch(() => { });
+    }
+  }, [category, tenantContext?.companyId]);
+
   const selectedParty = parties.find((p) => p.id === partyId);
 
   const filteredParties = useMemo(() => {
@@ -498,8 +498,9 @@ const [notes, setNotes] = useState("");
     setIsPartyDropdownOpen(false);
     setPartySearchTerm("");
     const selected = parties.find((p) => p.id === id);
-    if (selected?.stateCode) {
-      setPlaceOfSupply(selected.stateCode);
+    if (selected) {
+      const st = resolvePartyStateCode(selected, currentCompany?.stateCode);
+      if (st) setPlaceOfSupply(st);
     }
 
     // Automatically recalculate item prices in existing rows according to the selected party's prices
@@ -621,7 +622,8 @@ const [notes, setNotes] = useState("");
 
   // Statutory GST tax calculations
   const companyState = currentCompany?.stateCode || "24";
-  const isInterState = placeOfSupply !== companyState;
+  const posState = placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState);
+  const isInterState = posState !== companyState;
 
   let totalTaxable = 0;
   let totalCgst = 0;
@@ -664,6 +666,8 @@ const [notes, setNotes] = useState("");
   // Calculate Additional Charges + Taxes
   let totalAdditionalCharges = 0;
   let additionalChargesTax = 0;
+  const freightVal = Number(freightAmount) || 0;
+  totalAdditionalCharges += freightVal;
   additionalCharges.forEach((c) => {
     const amt = Number(c.amount) || 0;
     totalAdditionalCharges += amt;
@@ -1075,7 +1079,7 @@ const [notes, setNotes] = useState("");
       } else {
         throw new Error(
           finalRecord?.errorMessage ||
-            "AI could not extract structured fields from this document. Please verify the document is legible."
+          "AI could not extract structured fields from this document. Please verify the document is legible."
         );
       }
     } catch (err: any) {
@@ -1267,10 +1271,10 @@ const [notes, setNotes] = useState("");
         invoiceDate: formatIsoDate(invoiceDate) || new Date().toISOString(),
         dueDate: formatIsoDate(dueDate),
         paymentMode: resolvedPaymentMode,
-        placeOfSupply,
+        placeOfSupply: placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState) || "24",
         notes: notes.trim() || undefined,
         termsAndConditions: termsAndConditions.trim() || undefined,
-        additionalCharges: totalAdditionalCharges,
+        additionalCharges: totalAdditionalCharges > 0 ? [{ name: "Freight", amount: totalAdditionalCharges }] : [],
         overallDiscount: discValue,
         items: rows.map((r) => ({
           itemId: r.itemId || items[0]?.id,
@@ -1285,7 +1289,13 @@ const [notes, setNotes] = useState("");
         poDate: quickSettings.enablePoDetails && poDate ? new Date(poDate).toISOString() : undefined,
         vehicleNumber: (quickSettings.enableVehicleDetails && vehicleNumber) || undefined,
         ewayBillNumber: (quickSettings.enableEwayBill && ewayBillNumber) || undefined,
-        shippingAddress: (quickSettings.showShippingAddress && shippingAddress) ? { address: shippingAddress } : undefined,
+        shippingAddress: {
+          ...((quickSettings.showShippingAddress && shippingAddress) ? { address: shippingAddress } : {}),
+          ...(freightVal > 0 ? { freight: freightVal, freightAmount: freightVal } : {}),
+          ...(vehicleNo || vehicleNumber ? { vehicleNo: vehicleNo || vehicleNumber } : {}),
+          ...(transportMode ? { transportMode } : {}),
+        },
+        freightAmount: freightVal > 0 ? freightVal : undefined,
       };
 
       const res: any = await apiClient.post(
@@ -1316,18 +1326,21 @@ const [notes, setNotes] = useState("");
         if (typeof window !== "undefined") {
           localStorage.setItem(`billing_quick_settings_${companyKey}`, JSON.stringify(updatedSettings));
         }
-      } catch {}
+      } catch { }
 
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("refresh-notifications"));
       }
 
       if (isSaveAndNew) {
-        if (updatedSettings.enablePrefix && updatedSettings.invoicePrefix) {
-          setInvoiceNumber(`${updatedSettings.invoicePrefix}${nextSeq}`);
-        } else {
-          setInvoiceNumber(nextSeq);
-        }
+        apiClient
+          .get<{ nextNumber: string }>(`/invoices/next-number?category=${category}`)
+          .then((nextRes) => {
+            if (nextRes?.nextNumber) {
+              setInvoiceNumber(nextRes.nextNumber);
+            }
+          })
+          .catch(() => { });
         setRows([]);
         setPartyId("");
         setPoNumber("");
@@ -1338,7 +1351,7 @@ const [notes, setNotes] = useState("");
         setContactPersonName("");
         setContactPersonPhone("");
         setCustomFieldValues({});
-        setAmountReceived(0);
+        setAmountReceived("");
         setIsFullyPaid(false);
         setUploadedFile(null);
         setToastMessage("Invoice created successfully! Ready for next invoice.");
@@ -1438,7 +1451,7 @@ const [notes, setNotes] = useState("");
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
             <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200">
-              
+
               {/* Drawer Header */}
               <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-orange-50/60 to-amber-50/60 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -1447,7 +1460,7 @@ const [notes, setNotes] = useState("");
                   </div>
                   <div>
                     <h2 className="text-sm font-semibold text-[#182230]">
-                       AI Bill Scanner
+                      AI Bill Scanner
                     </h2>
                     <p className="text-[11px] text-slate-500">
                       Extract items, GST & totals automatically
@@ -1567,11 +1580,10 @@ const [notes, setNotes] = useState("");
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
-                      isDragOver
+                    className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${isDragOver
                         ? "border-orange-500 bg-orange-100/70 scale-[1.01]"
                         : "border-orange-300 bg-orange-50/40 hover:bg-orange-50/80 hover:border-orange-400"
-                    }`}
+                      }`}
                   >
                     <input
                       ref={fileInputRef}
@@ -1598,11 +1610,10 @@ const [notes, setNotes] = useState("");
                     type="button"
                     disabled={!uploadedFile || isAiProcessing}
                     onClick={() => executeAiScan()}
-                    className={`w-full py-2.5 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 ${
-                      !uploadedFile || isAiProcessing
+                    className={`w-full py-2.5 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 ${!uploadedFile || isAiProcessing
                         ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                         : "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-orange-500/20 active:scale-95 cursor-pointer"
-                    }`}
+                      }`}
                   >
                     {isAiProcessing ? (
                       <>
@@ -1659,7 +1670,7 @@ const [notes, setNotes] = useState("");
           MAIN APPLICATION CANVAS
           ========================================================================= */}
       <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
-        
+
         {/* Validation or API Error Banner */}
         {error && (
           <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-semibold text-rose-800 flex items-center justify-between shadow-xs">
@@ -1760,7 +1771,13 @@ const [notes, setNotes] = useState("");
                   invoiceDate: invoiceDate,
                   dueDate: dueDate,
                   paymentMode: paymentMode,
-                  placeOfSupply: INDIAN_STATES[placeOfSupply]?.name ? `${INDIAN_STATES[placeOfSupply].name} (${placeOfSupply})` : placeOfSupply || "Gujarat (24)",
+                  placeOfSupply: placeOfSupply
+                    ? getStateDisplayName(placeOfSupply)
+                    : selectedParty
+                      ? getStateDisplayName(resolvePartyStateCode(selectedParty, companyState))
+                      : currentCompany?.stateCode
+                        ? getStateDisplayName(currentCompany.stateCode)
+                        : "—",
                   taxableAmount: totalTaxable,
                   cgstAmount: totalCgst,
                   sgstAmount: totalSgst,
@@ -1869,6 +1886,7 @@ const [notes, setNotes] = useState("");
                       onClearParty={() => {
                         setPartyId("");
                         setPartySearchTerm("");
+                        setPlaceOfSupply("");
                       }}
                       onAddNew={() => setIsCreatePartyModalOpen(true)}
                       placeholder="Search customer..."
@@ -1879,9 +1897,9 @@ const [notes, setNotes] = useState("");
                   id: "invoiceNumber",
                   label: "Invoice No.",
                   type: "text",
-                  value: invoiceNumber,
-                  onChange: setInvoiceNumber,
-                  placeholder: "INV-26-27-0048",
+                  value: invoiceNumber || "Generating...",
+                  readOnly: true,
+                  placeholder: "Auto-generated",
                 },
                 {
                   id: "invoiceDate",
@@ -1900,7 +1918,7 @@ const [notes, setNotes] = useState("");
                 {
                   id: "placeOfSupply",
                   label: "Place of Supply",
-                  type: "select",
+                  type: "combobox",
                   value: placeOfSupply,
                   onChange: setPlaceOfSupply,
                   options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
@@ -1911,205 +1929,196 @@ const [notes, setNotes] = useState("");
               ]}
             />
 
-            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {/* Left Column (8 cols): Items & Services Table + Notes & Additional Info */}
-              <div className="lg:col-span-8 space-y-5">
-                <DocumentItemsCard
-                  title="Items & Services"
-                  itemsCount={rows.length}
-                  totalQty={totalQty}
-                  itemsTotal={itemsSubtotal}
-                  onScanItem={() => setShowAiPanel(true)}
-                  onImportItems={() => setIsAddItemsModalOpen(true)}
-                  onAddItem={() => setIsAddItemsModalOpen(true)}
-                  onAddBlankRow={handleAddBlankRow}
-                  addItemLabel="+ Add Item"
-                >
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 typo-table-th uppercase tracking-wider">
-                      <tr>
-                        <th className="py-3 px-3.5 text-center w-12">#</th>
-                        <th className="py-3 px-3.5">Item / Description</th>
-                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
-                        <th className="py-3 px-3 text-right w-24">Qty</th>
-                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
-                        <th className="py-3 px-3 text-right w-24">Discount</th>
-                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
-                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
-                        <th className="py-3 px-3 text-center w-16">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {rows.length === 0 ? (
-                        <tr>
-                          <td colSpan={9} className="py-12 text-center text-slate-400">
-                            <div className="max-w-xs mx-auto space-y-2">
-                              <Package className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                              <p className="typo-empty-heading text-slate-700">No items added yet</p>
-                              <p className="typo-empty-desc text-slate-400">Add an item from catalog or enter details below</p>
+            {/* 1. FULL WIDTH ITEMS & SERVICES TABLE */}
+            <DocumentItemsCard
+              title="Items & Services"
+              itemsCount={rows.length}
+              totalQty={totalQty}
+              itemsTotal={itemsSubtotal}
+              onScanItem={() => setShowAiPanel(true)}
+              onImportItems={() => setIsAddItemsModalOpen(true)}
+              onAddItem={() => setIsAddItemsModalOpen(true)}
+              onAddBlankRow={handleAddBlankRow}
+              addItemLabel="+ Add Item"
+            >
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 typo-table-th uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-3.5 text-center w-12">#</th>
+                    <th className="py-3 px-3.5 min-w-[280px]">Item / Description</th>
+                    <th className="py-3 px-3 text-center w-28 min-w-[105px]">HSN/SAC</th>
+                    <th className="py-3 px-3 text-right w-24 min-w-[95px]">Qty</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Rate (₹)</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Discount</th>
+                    <th className="py-3 px-3 text-right w-28 min-w-[105px]">Tax (%)</th>
+                    <th className="py-3 px-3 text-right w-36 min-w-[130px]">Amount (₹)</th>
+                    <th className="py-3 px-3 text-center w-14">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-12 text-center text-slate-400">
+                        <div className="max-w-xs mx-auto space-y-2">
+                          <Package className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                          <p className="typo-empty-heading text-slate-700">No items added yet</p>
+                          <p className="typo-empty-desc text-slate-400">Add an item from catalog or enter details below</p>
+                          <button
+                            type="button"
+                            onClick={() => setIsAddItemsModalOpen(true)}
+                            className="h-9 px-3 bg-[#0F172A] text-white rounded-xl typo-btn-primary shadow-2xs cursor-pointer"
+                          >
+                            + Add From Catalog
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    rows.map((row, idx) => {
+                      const qty = Number(row.quantity) || 0;
+                      const rate = Number(row.unitPrice) || 0;
+                      const disc = Number(row.discountPercent) || 0;
+                      const gross = qty * rate;
+                      const grossAfterDisc = gross - (gross * disc) / 100;
+                      const effectiveTaxRate = row.taxRate || 0;
+                      const lineTotal = isTaxInclusive
+                        ? grossAfterDisc
+                        : grossAfterDisc + (grossAfterDisc * effectiveTaxRate) / 100;
+
+                      return (
+                        <tr key={row.rowId || `row-${idx}`} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 px-3 text-center text-slate-400 typo-tabular text-[11px]">
+                            {idx + 1}
+                          </td>
+
+                          <td className="py-3 px-3.5 min-w-[280px]">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <CustomCombobox
+                                  size="sm"
+                                  value={row.itemId}
+                                  onChange={(val: any) => handleItemSelect(idx, val)}
+                                  options={items.map((it) => ({
+                                    value: it.id,
+                                    label: it.name,
+                                    sublabel: `Stock: ${it.stockQuantity ?? 0}`,
+                                  }))}
+                                  placeholder="Select Item..."
+                                  triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
+                                />
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-3 w-28 min-w-[105px]">
+                            <input
+                              type="text"
+                              value={row.hsnCode}
+                              onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
+                              className="w-full typo-invoice-no py-1.5 px-2 text-center bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
+                              placeholder="6205"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3 w-24 min-w-[95px]">
+                            <CleanNumberInput
+                              value={row.quantity}
+                              onChange={(val) => handleRowChange(idx, "quantity", val)}
+                              placeholder="1"
+                              className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none"
+                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3 w-36 min-w-[130px]">
+                            <div className="relative flex items-center">
+                              <span className="absolute left-2.5 text-xs text-slate-400 font-medium pointer-events-none">₹</span>
+                              <CleanNumberInput
+                                value={row.unitPrice}
+                                onChange={(val) => handleRowChange(idx, "unitPrice", val)}
+                                placeholder="0.00"
+                                className="w-full typo-input py-1.5 pl-6 pr-2 text-right typo-tabular bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
+                              />
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-3 w-28 min-w-[105px]">
+                            <CleanNumberInput
+                              value={row.discountPercent}
+                              onChange={(val) => handleRowChange(idx, "discountPercent", val)}
+                              placeholder="0"
+                              suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                              className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none"
+                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3 w-28 min-w-[105px]">
+                            <CleanNumberInput
+                              value={row.taxRate}
+                              onChange={(val) => handleRowChange(idx, "taxRate", val)}
+                              placeholder="0"
+                              suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                              className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none"
+                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3 text-right typo-table-amount text-slate-900 w-36 min-w-[130px] whitespace-nowrap">
+                            ₹ {lineTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+
+                          <td className="py-3 px-3 text-center w-14">
+                            <div className="flex items-center justify-center gap-1.5">
                               <button
                                 type="button"
-                                onClick={() => setIsAddItemsModalOpen(true)}
-                                className="h-9 px-3 bg-[#0F172A] text-white rounded-xl typo-btn-primary shadow-2xs cursor-pointer"
+                                onClick={() => handleRemoveRow(idx)}
+                                className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                                title="Delete row"
                               >
-                                + Add From Catalog
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
                               </button>
                             </div>
                           </td>
                         </tr>
-                      ) : (
-                        rows.map((row, idx) => {
-                          const qty = Number(row.quantity) || 0;
-                          const rate = Number(row.unitPrice) || 0;
-                          const disc = Number(row.discountPercent) || 0;
-                          const gross = qty * rate;
-                          const grossAfterDisc = gross - (gross * disc) / 100;
-                          const effectiveTaxRate = row.taxRate || 0;
-                          const lineTotal = isTaxInclusive
-                            ? grossAfterDisc
-                            : grossAfterDisc + (grossAfterDisc * effectiveTaxRate) / 100;
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </DocumentItemsCard>
 
-                          return (
-                            <tr key={row.rowId || `row-${idx}`} className="hover:bg-slate-50/70 transition-colors">
-                              <td className="py-3 px-3 text-center text-slate-400 typo-tabular text-[11px]">
-                                {idx + 1}
-                              </td>
+            {/* 2. BOTTOM WORKSPACE: NOTES & ADDITIONAL INFO (7 cols) + SUMMARY & PAYMENT (5 cols) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column (7 cols): Notes, Terms & Additional Information */}
+              <div className="lg:col-span-7 space-y-5">
+                <DocumentNotesAndTermsCard
+                  activeTab={activeNotesTab}
+                  onTabChange={setActiveNotesTab}
+                  notes={notes}
+                  onNotesChange={setNotes}
+                  terms={termsAndConditions}
+                  onTermsChange={setTermsAndConditions}
+                />
 
-                              <td className="py-3 px-3">
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <CustomCombobox
-                                      size="sm"
-                                      value={row.itemId}
-                                      onChange={(val: any) => handleItemSelect(idx, val)}
-                                      options={items.map((it) => ({
-                                        value: it.id,
-                                        label: it.name,
-                                        sublabel: `Stock: ${it.stockQuantity ?? 0}`,
-                                      }))}
-                                      placeholder="Select Item..."
-                                      triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
-                                    />
-                                  </div>
-                                </div>
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <input
-                                  type="text"
-                                  value={row.hsnCode}
-                                  onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                                  className="w-full typo-invoice-no py-1.5 px-2 text-center bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
-                                  placeholder="6205"
-                                />
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                                  <input
-                                    type="number"
-                                    min="0.001"
-                                    step="any"
-                                    value={row.quantity}
-                                    onChange={(e) => handleRowChange(idx, "quantity", e.target.value)}
-                                    className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none h-10"
-                                  />
-                                </div>
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="any"
-                                  value={row.unitPrice}
-                                  onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value)}
-                                  className="w-full typo-input py-1.5 px-2 text-right typo-tabular bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
-                                />
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={row.discountPercent}
-                                    onChange={(e) => handleRowChange(idx, "discountPercent", e.target.value)}
-                                    placeholder="0"
-                                    className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none h-10"
-                                  />
-                                  <span className="text-[10px] text-slate-400">%</span>
-                                </div>
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                                  <input
-                                    type="number"
-                                    step="any"
-                                    value={row.taxRate}
-                                    onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
-                                    placeholder="5"
-                                    className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none h-10"
-                                  />
-                                  <span className="text-[10px] text-slate-400">%</span>
-                                </div>
-                              </td>
-
-                              <td className="py-3 px-3 text-right typo-table-amount text-slate-900">
-                                ₹ {lineTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </td>
-
-                              <td className="py-3 px-3 text-center">
-                                <div className="flex items-center justify-center gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveRow(idx)}
-                                    className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
-                                    title="Delete row"
-                                  >
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </DocumentItemsCard>
-
-                {/* Side-by-side: Notes & Terms + Additional Information */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <DocumentNotesAndTermsCard
-                    activeTab={activeNotesTab}
-                    onTabChange={setActiveNotesTab}
-                    notes={notes}
-                    onNotesChange={setNotes}
-                    terms={termsAndConditions}
-                    onTermsChange={setTermsAndConditions}
-                  />
-
-                  <DocumentAdditionalInfoCard
-                    transportMode={transportMode}
-                    onTransportModeChange={setTransportMode}
-                    vehicleNo={vehicleNo}
-                    onVehicleNoChange={setVehicleNo}
-                    ewayBillNo={ewayBillNo}
-                    onEwayBillNoChange={setEwayBillNo}
-                    dispatchDate={dispatchDate}
-                    onDispatchDateChange={setDispatchDate}
-                  />
-                </div>
+                <DocumentAdditionalInfoCard
+                  transportMode={transportMode}
+                  onTransportModeChange={setTransportMode}
+                  vehicleNo={vehicleNo}
+                  onVehicleNoChange={setVehicleNo}
+                  ewayBillNo={ewayBillNo}
+                  onEwayBillNoChange={setEwayBillNo}
+                  dispatchDate={dispatchDate}
+                  onDispatchDateChange={setDispatchDate}
+                  freightAmount={freightAmount}
+                  onFreightAmountChange={setFreightAmount}
+                />
               </div>
 
-              {/* Right Column (4 cols): Summary Card + Payment Details Card */}
-              <div className="lg:col-span-4 space-y-5">
+              {/* Right Column (5 cols): Summary Card + Payment Details Card */}
+              <div className="lg:col-span-5 space-y-5">
                 <DocumentSummaryCard
                   title="Invoice Summary"
                   subtotal={itemsSubtotal}
@@ -2117,16 +2126,19 @@ const [notes, setNotes] = useState("");
                   cgst={!isInterState ? totalCgst : undefined}
                   sgst={!isInterState ? totalSgst : undefined}
                   igst={isInterState ? totalIgst : undefined}
+                  customRows={freightVal > 0 ? [{ label: "Freight", value: freightVal }] : []}
                   roundOff={roundOff}
                   grandTotal={roundedGrandTotal}
                   amountInWords={numberToWordsINR(roundedGrandTotal)}
                 />
 
                 <DocumentPaymentCard
+                  isPurchase={false}
+                  amountLabel="Amount Received"
                   amountReceived={isFullyPaid ? roundedGrandTotal : amountReceived}
                   onAmountReceivedChange={(val) => {
                     setIsFullyPaid(false);
-                    setAmountReceived(val === "" ? 0 : val);
+                    setAmountReceived(val === "" ? "" : val);
                   }}
                   paymentMode={paymentMode}
                   onPaymentModeChange={setPaymentMode}
@@ -2168,7 +2180,7 @@ const [notes, setNotes] = useState("");
       {isCreatePartyModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            
+
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
               <h2 className="text-[15px] font-semibold text-[#182230]">Create New Party</h2>
@@ -2183,17 +2195,16 @@ const [notes, setNotes] = useState("");
 
             {/* Body: Left Tabs + Right Form */}
             <div className="flex-1 overflow-hidden flex">
-              
+
               {/* Left Navigation Column */}
               <div className="w-56 bg-slate-50 border-r border-slate-200 p-3 space-y-1">
                 <button
                   type="button"
                   onClick={() => setPartyModalTab("basic")}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors ${
-                    partyModalTab === "basic"
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors ${partyModalTab === "basic"
                       ? "bg-blue-50 text-blue-700"
                       : "text-slate-600 hover:bg-slate-100"
-                  }`}
+                    }`}
                 >
                   <User className="w-3.5 h-3.5" />
                   <span>Basic Details *</span>
@@ -2201,11 +2212,10 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => setPartyModalTab("address")}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors ${
-                    partyModalTab === "address"
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors ${partyModalTab === "address"
                       ? "bg-blue-50 text-blue-700"
                       : "text-slate-600 hover:bg-slate-100"
-                  }`}
+                    }`}
                 >
                   <MapPin className="w-3.5 h-3.5" />
                   <span>Address</span>
@@ -2218,11 +2228,10 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => setPartyModalTab("credit")}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors ${
-                    partyModalTab === "credit"
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors ${partyModalTab === "credit"
                       ? "bg-blue-50 text-blue-700 font-bold"
                       : "text-slate-600 hover:bg-slate-100"
-                  }`}
+                    }`}
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   <span>Credit Settings</span>
@@ -2230,11 +2239,10 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => setPartyModalTab("contact")}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors ${
-                    partyModalTab === "contact"
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors ${partyModalTab === "contact"
                       ? "bg-blue-50 text-blue-700 font-bold"
                       : "text-slate-600 hover:bg-slate-100"
-                  }`}
+                    }`}
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>Contact Person Details</span>
@@ -2242,11 +2250,10 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => setPartyModalTab("bank")}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors ${
-                    partyModalTab === "bank"
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors ${partyModalTab === "bank"
                       ? "bg-blue-50 text-blue-700 font-bold"
                       : "text-slate-600 hover:bg-slate-100"
-                  }`}
+                    }`}
                 >
                   <Building2 className="w-3.5 h-3.5" />
                   <span>Party Bank Account</span>
@@ -2254,11 +2261,10 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => setPartyModalTab("custom")}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors ${
-                    partyModalTab === "custom"
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors ${partyModalTab === "custom"
                       ? "bg-blue-50 text-blue-700 font-bold"
                       : "text-slate-600 hover:bg-slate-100"
-                  }`}
+                    }`}
                 >
                   <Tag className="w-3.5 h-3.5" />
                   <span>Custom Fields</span>
@@ -2280,11 +2286,10 @@ const [notes, setNotes] = useState("");
                             onClick={() =>
                               setPartyFormData({ ...partyFormData, type: "CUSTOMER" })
                             }
-                            className={`flex-1 p-2.5 rounded-xl border flex items-center justify-between cursor-pointer font-bold ${
-                              partyFormData.type === "CUSTOMER"
+                            className={`flex-1 p-2.5 rounded-xl border flex items-center justify-between cursor-pointer font-bold ${partyFormData.type === "CUSTOMER"
                                 ? "bg-blue-50/60 border-blue-600 text-blue-700"
                                 : "bg-white border-slate-200 text-slate-700"
-                            }`}
+                              }`}
                           >
                             <span>Customer</span>
                             <span className="w-3.5 h-3.5 rounded-full border-2 border-blue-600 flex items-center justify-center">
@@ -2297,11 +2302,10 @@ const [notes, setNotes] = useState("");
                             onClick={() =>
                               setPartyFormData({ ...partyFormData, type: "SUPPLIER" })
                             }
-                            className={`flex-1 p-2.5 rounded-xl border flex items-center justify-between cursor-pointer font-bold ${
-                              partyFormData.type === "SUPPLIER"
+                            className={`flex-1 p-2.5 rounded-xl border flex items-center justify-between cursor-pointer font-bold ${partyFormData.type === "SUPPLIER"
                                 ? "bg-blue-50/60 border-blue-600 text-blue-700"
                                 : "bg-white border-slate-200 text-slate-700"
-                            }`}
+                              }`}
                           >
                             <span>Supplier</span>
                             <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-400 flex items-center justify-center">
@@ -2426,13 +2430,17 @@ const [notes, setNotes] = useState("");
                             <span className="text-slate-400 font-bold">₹</span>
                             <input
                               type="number"
-                              value={partyFormData.openingBalance}
+                              value={partyFormData.openingBalance === 0 ? "" : partyFormData.openingBalance}
                               onChange={(e) =>
                                 setPartyFormData({
                                   ...partyFormData,
-                                  openingBalance: Number(e.target.value) || 0,
+                                  openingBalance: e.target.value === "" ? 0 : Number(e.target.value),
                                 })
                               }
+                              onFocus={(e) => {
+                                if (e.target.value === "0") e.target.select();
+                              }}
+                              placeholder="0.00"
                               className="w-full text-[13px] bg-transparent tabular-nums font-normal focus:outline-none h-10"
                             />
                           </div>
@@ -2525,13 +2533,16 @@ const [notes, setNotes] = useState("");
                       <input
                         type="number"
                         placeholder="0 (Unlimited)"
-                        value={partyFormData.creditLimit}
+                        value={partyFormData.creditLimit === 0 ? "" : partyFormData.creditLimit}
                         onChange={(e) =>
                           setPartyFormData({
                             ...partyFormData,
-                            creditLimit: Number(e.target.value) || 0,
+                            creditLimit: e.target.value === "" ? 0 : Number(e.target.value),
                           })
                         }
+                        onFocus={(e) => {
+                          if (e.target.value === "0") e.target.select();
+                        }}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-[13px] font-normal h-10"
                       />
                     </div>
@@ -2542,13 +2553,16 @@ const [notes, setNotes] = useState("");
                       <input
                         type="number"
                         placeholder="30"
-                        value={partyFormData.creditDays}
+                        value={partyFormData.creditDays === 0 ? "" : partyFormData.creditDays}
                         onChange={(e) =>
                           setPartyFormData({
                             ...partyFormData,
-                            creditDays: Number(e.target.value) || 0,
+                            creditDays: e.target.value === "" ? 0 : Number(e.target.value),
                           })
                         }
+                        onFocus={(e) => {
+                          if (e.target.value === "0") e.target.select();
+                        }}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-[13px] font-normal h-10"
                       />
                     </div>
@@ -2719,20 +2733,24 @@ const [notes, setNotes] = useState("");
                     {sr.mode === "CASH"
                       ? "Cash"
                       : sr.mode === "UPI_QR"
-                      ? "UPI"
-                      : "Bank Transfer"}
+                        ? "UPI"
+                        : "Bank Transfer"}
                   </span>
                   <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 flex-1">
                     <span className="text-slate-400 font-bold text-xs">₹</span>
                     <input
                       type="number"
                       min="0"
-                      value={sr.amount}
+                      value={!sr.amount ? "" : sr.amount}
                       onChange={(e) => {
                         const updated = [...splitRows];
-                        updated[idx].amount = Number(e.target.value) || 0;
+                        updated[idx].amount = e.target.value === "" ? 0 : Number(e.target.value);
                         setSplitRows(updated);
                       }}
+                      onFocus={(e) => {
+                        if (e.target.value === "0") e.target.select();
+                      }}
+                      placeholder="0.00"
                       className="w-full text-[13px] bg-transparent tabular-nums font-normal focus:outline-none h-10"
                     />
                   </div>
@@ -2817,7 +2835,7 @@ const [notes, setNotes] = useState("");
           partyAddress: selectedParty?.address,
           companyName: currentCompany?.tradeName || currentCompany?.legalName || "MODI CHAI",
           companyGstin: currentCompany?.gstin || "24AAAAA0000A1Z5",
-          companyState: currentCompany?.stateCode ? `Gujarat (${currentCompany.stateCode})` : "Gujarat (24)",
+          companyState: currentCompany?.stateCode ? getStateDisplayName(currentCompany.stateCode) : "—",
           notes,
           items: rows.map((r) => {
             const it = items.find((i) => i.id === r.itemId);

@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   Calendar,
@@ -356,12 +358,7 @@ export function DashboardWelcomeBanner({
   const displayName = userName ? userName.split(" ")[0] : "";
 
   const todayHumanStr = useMemo(() => {
-    return new Date().toLocaleDateString("en-IN", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    return formatDate(new Date());
   }, []);
 
   const daysRemaining = useMemo(() => {

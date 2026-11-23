@@ -304,7 +304,8 @@ function ExtraInvoiceFields({ state }: { state: InvoiceStudioState }) {
 
 function ItemCells(props: { state: InvoiceStudioState; item: Item; align?: "tally" | "open"; showTax?: boolean }) {
   const { state, item } = props;
-  const td = props.align === "tally" ? "border border-slate-800 px-1.5 py-1.5" : "py-2 px-2";
+  const td = props.align === "tally" ? "border-r border-slate-800 px-1.5 py-1.5" : "py-2 px-2";
+  const lastTd = props.align === "tally" ? "px-1.5 py-1.5" : "py-2 px-2";
   return (
     <>
       {state.showHsn && <td className={`${td} text-center font-mono text-[10px]`}>{item.hsn}</td>}
@@ -327,10 +328,10 @@ function ItemCells(props: { state: InvoiceStudioState; item: Item; align?: "tall
           {col.sampleValue}
         </td>
       ))}
-      {state.showPricePerItem && <td className={`${td} text-right`}>{item.rate}</td>}
-      {state.showDiscount && <td className={`${td} text-right`}>{item.disc}</td>}
-      {state.showTax && (props.align !== "tally" || props.showTax) && <td className={`${td} text-right`}>{item.tax}</td>}
-      <td className={`${td} text-right font-semibold`}>{item.amount}</td>
+      {state.showPricePerItem && <td className={`${td} text-right whitespace-nowrap`}>{item.rate}</td>}
+      {state.showDiscount && <td className={`${td} text-right whitespace-nowrap`}>{item.disc}</td>}
+      {state.showTax && (props.align !== "tally" || props.showTax) && <td className={`${td} text-right whitespace-nowrap`}>{item.tax}</td>}
+      <td className={`${lastTd} text-right font-semibold whitespace-nowrap`}>{item.amount}</td>
     </>
   );
 }
@@ -338,7 +339,10 @@ function ItemCells(props: { state: InvoiceStudioState; item: Item; align?: "tall
 function ItemHeaders(props: { state: InvoiceStudioState; tally?: boolean; showTax?: boolean }) {
   const { state } = props;
   const th = props.tally
-    ? "border border-slate-800 px-1.5 py-1.5 font-bold text-[10px]"
+    ? "border-r border-slate-800 px-1.5 py-1.5 font-bold text-[10px]"
+    : "py-2 px-2 font-bold text-[10px] uppercase tracking-wide";
+  const lastTh = props.tally
+    ? "px-1.5 py-1.5 font-bold text-[10px]"
     : "py-2 px-2 font-bold text-[10px] uppercase tracking-wide";
   return (
     <>
@@ -353,10 +357,10 @@ function ItemHeaders(props: { state: InvoiceStudioState; tally?: boolean; showTa
           {col.name}
         </th>
       ))}
-      {state.showPricePerItem && <th className={`${th} text-right`}>RATE</th>}
-      {state.showDiscount && <th className={`${th} text-right`}>DISC.</th>}
-      {state.showTax && (!props.tally || props.showTax) && <th className={`${th} text-right`}>TAX</th>}
-      <th className={`${th} text-right`}>{props.tally ? "AMOUNT" : "AMOUNT"}</th>
+      {state.showPricePerItem && <th className={`${th} text-right whitespace-nowrap`}>RATE</th>}
+      {state.showDiscount && <th className={`${th} text-right whitespace-nowrap`}>DISC.</th>}
+      {state.showTax && (!props.tally || props.showTax) && <th className={`${th} text-right whitespace-nowrap`}>TAX</th>}
+      <th className={`${lastTh} text-right whitespace-nowrap`}>{props.tally ? "AMOUNT" : "AMOUNT"}</th>
     </>
   );
 }
@@ -428,7 +432,6 @@ function StylishInvoice(props: {
         </div>
         <div>
           <span className="opacity-80">Invoice Date:</span> <b>17/01/2023</b>
-          {state.showTimeOnInvoice && <span className="ml-1 opacity-80">11:30 AM</span>}
         </div>
         <div>
           <span className="opacity-80">Due Date:</span> <b>16/02/2023</b>
@@ -543,7 +546,6 @@ function LuxuryInvoice(props: {
         <div>
           <div className="text-slate-500">Invoice Date</div>
           <b>17/01/2023</b>
-          {state.showTimeOnInvoice && <div className="text-[10px] text-slate-500">11:30 AM</div>}
         </div>
         <div>
           <div className="text-slate-500">Due Date</div>
@@ -623,6 +625,7 @@ function TallyInvoice(props: {
   const compact = variant === "compact";
   const lineTax = gst || lite || compact;
   const box = lite ? "border border-slate-300" : "border border-slate-800";
+  const boxR = lite ? "border-r border-slate-300" : "border-r border-slate-800";
   const headBg = book || lite ? "#f4f4f5" : color;
   const headFg = book || lite ? "#111" : "#fff";
   const emptyRows = variant === "tally" || variant === "tallybook" ? (compact ? 2 : 4) : 0;
@@ -653,7 +656,6 @@ function TallyInvoice(props: {
             <div>
               <div className="font-bold">Invoice Date</div>
               17/01/2023
-              {state.showTimeOnInvoice && <div>11:30 AM</div>}
             </div>
             <div>
               <div className="font-bold">Due Date</div>
@@ -682,17 +684,17 @@ function TallyInvoice(props: {
         onClick={() => props.onFocus("item-table", "item-table")}
       >
         <thead>
-          <tr style={{ background: headBg, color: headFg }}>
-            <th className={`${box} px-1 py-1`}>S.NO.</th>
-            <th className={`${box} px-1 py-1 text-left`}>ITEMS</th>
+          <tr className={`border-b ${box}`} style={{ background: headBg, color: headFg }}>
+            <th className={`${boxR} px-1 py-1`}>S.NO.</th>
+            <th className={`${boxR} px-1 py-1 text-left`}>ITEMS</th>
             <ItemHeaders state={state} tally showTax={lineTax} />
           </tr>
         </thead>
         <tbody>
           {props.items.map((item, i) => (
-            <tr key={item.name}>
-              <td className={`${box} px-1 py-1.5 text-center`}>{i + 1}</td>
-              <td className={`${box} px-1 py-1.5`}>
+            <tr key={item.name} className="align-top">
+              <td className={`${boxR} px-1 py-1.5 text-center`}>{i + 1}</td>
+              <td className={`${boxR} px-1 py-1.5`}>
                 <div>{item.name}</div>
                 {state.showItemDescription && <div className="text-[10px] text-slate-500">{item.desc}</div>}
               </td>
@@ -700,43 +702,43 @@ function TallyInvoice(props: {
             </tr>
           ))}
           {Array.from({ length: emptyRows }).map((_, i) => (
-            <tr key={`empty-${i}`}>
-              <td className={`${box} h-6`} />
-              <td className={box} />
-              {state.showHsn && <td className={box} />}
-              {state.showQuantity && <td className={box} />}
-              {state.enableFreeItemQuantity && <td className={box} />}
-              {state.showBatchNo && <td className={box} />}
-              {state.showExpDate && <td className={box} />}
-              {state.showMfgDate && <td className={box} />}
+            <tr key={`empty-${i}`} className="h-6">
+              <td className={`${boxR} px-1 py-1`}>&nbsp;</td>
+              <td className={`${boxR} px-1 py-1`}>&nbsp;</td>
+              {state.showHsn && <td className={`${boxR} px-1 py-1`}>&nbsp;</td>}
+              {state.showQuantity && <td className={`${boxR} px-1 py-1`}>&nbsp;</td>}
+              {state.enableFreeItemQuantity && <td className={`${boxR} px-1 py-1`}>&nbsp;</td>}
+              {state.showBatchNo && <td className={`${boxR} px-1 py-1`}>&nbsp;</td>}
+              {state.showExpDate && <td className={`${boxR} px-1 py-1`}>&nbsp;</td>}
+              {state.showMfgDate && <td className={`${boxR} px-1 py-1`}>&nbsp;</td>}
               {state.itemCustomColumns.map((col) => (
-                <td key={col.id} className={box} />
+                <td key={col.id} className={`${boxR} px-1 py-1`}>&nbsp;</td>
               ))}
-              {state.showPricePerItem && <td className={box} />}
-              {state.showDiscount && <td className={box} />}
-              {lineTax && state.showTax && <td className={box} />}
-              <td className={box} />
+              {state.showPricePerItem && <td className={`${boxR} px-1 py-1`}>&nbsp;</td>}
+              {state.showDiscount && <td className={`${boxR} px-1 py-1`}>&nbsp;</td>}
+              {lineTax && state.showTax && <td className={`${boxR} px-1 py-1`}>&nbsp;</td>}
+              <td className="px-1 py-1">&nbsp;</td>
             </tr>
           ))}
           {state.showTax && (
             <>
-              <tr>
-                <td className={`${box} px-1 py-1 text-right`} colSpan={99}>
+              <tr className={`border-t ${box}`}>
+                <td className="px-1 py-1 text-right" colSpan={99}>
                   CGST + SGST @5% &nbsp;&nbsp; 90.00
                 </td>
               </tr>
               <tr>
-                <td className={`${box} px-1 py-1 text-right`} colSpan={99}>
+                <td className="px-1 py-1 text-right" colSpan={99}>
                   CGST + SGST @18% &nbsp;&nbsp; 1,672.46
                 </td>
               </tr>
             </>
           )}
-          <tr className="font-bold">
-            <td className={`${box} px-1 py-1`} colSpan={2}>
+          <tr className={`font-bold border-t ${box}`}>
+            <td className={`${boxR} px-1 py-1`} colSpan={2}>
               TOTAL
             </td>
-            <td className={`${box} px-1 py-1 text-right`} colSpan={99}>
+            <td className="px-1 py-1 text-right" colSpan={99}>
               Qty 4 &nbsp;&nbsp; ₹ 12,853.89
             </td>
           </tr>
@@ -807,6 +809,14 @@ function Totals({ state, gold }: { state: InvoiceStudioState; gold?: string }) {
         <div className="flex justify-between">
           <span>Taxable Amount</span>
           <span>₹ 11,091.43</span>
+        </div>
+        <div className="flex justify-between text-slate-600">
+          <span>Freight</span>
+          <span>₹ 0.00</span>
+        </div>
+        <div className="flex justify-between text-slate-600">
+          <span>Discount</span>
+          <span>₹ 0.00</span>
         </div>
         {state.showTax && (
           <>
@@ -1344,9 +1354,8 @@ export function FestiveBackgroundSvg({
           />
         ) : null}
         <div
-          className={`fallback-watermark-text ${
-            companyLogoUrl ? "hidden" : "block"
-          } text-[44px] font-bold tracking-widest text-slate-300/40 uppercase select-none -rotate-12 text-center max-w-[85%] leading-tight`}
+          className={`fallback-watermark-text ${companyLogoUrl ? "hidden" : "block"
+            } text-[44px] font-bold tracking-widest text-slate-300/40 uppercase select-none -rotate-12 text-center max-w-[85%] leading-tight`}
         >
           {companyName || "COMPANY LOGO"}
         </div>
@@ -1557,10 +1566,7 @@ function FestivalInvoice(props: {
                 </div>
                 <div className="flex justify-between py-0.5">
                   <span className="font-semibold text-slate-800">Invoice Date:</span>
-                  <span className="font-bold text-slate-950">
-                    17/01/2023
-                    {state.showTimeOnInvoice && <span className="text-[10px] font-normal text-slate-600"> 11:30 AM</span>}
-                  </span>
+                  <span className="font-bold text-slate-950">17/01/2023</span>
                 </div>
                 <div className="flex justify-between py-0.5">
                   <span className="font-semibold text-slate-800">Due Date:</span>
@@ -1628,9 +1634,9 @@ function FestivalInvoice(props: {
                     <ItemHeaders state={state} />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-black/30 bg-transparent">
+                <tbody className="bg-transparent">
                   {props.items.map((item, idx) => (
-                    <tr key={item.name} className="hover:bg-amber-500/10">
+                    <tr key={item.name} className="hover:bg-amber-500/10 align-top">
                       <td className="py-2 px-2.5 border-r border-black text-center font-bold text-slate-800">
                         {idx + 1}
                       </td>
@@ -1646,26 +1652,24 @@ function FestivalInvoice(props: {
                     </tr>
                   ))}
 
-                  {/* Empty filler rows to stretch table across full A4 */}
-                  {Array.from({ length: Math.max(0, (state.showTax ? 15 : 17) - props.items.length) }).map((_, i) => (
-                    <tr key={`filler-${i}`} className="h-7 sm:h-8">
-                      <td className="py-2 px-2.5 border-r border-black">&nbsp;</td>
-                      <td className="py-2 px-2.5 border-r border-black">&nbsp;</td>
-                      {state.showHsn && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                      {state.showQuantity && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                      {state.enableFreeItemQuantity && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                      {state.showBatchNo && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                      {state.showExpDate && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                      {state.showMfgDate && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                      {state.itemCustomColumns.map((col) => (
-                        <td key={col.id} className="py-2 px-2 border-r border-black">&nbsp;</td>
-                      ))}
-                      {state.showPricePerItem && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                      {state.showDiscount && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                      {state.showTax && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}
-                      <td className="py-2 px-2.5">&nbsp;</td>
-                    </tr>
-                  ))}
+                  {/* Spacer row to stretch vertical column divider lines all the way down with NO horizontal lines */}
+                  <tr className="h-full">
+                    <td className="py-1 px-2.5 border-r border-black">&nbsp;</td>
+                    <td className="py-1 px-2.5 border-r border-black">&nbsp;</td>
+                    {state.showHsn && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {state.showQuantity && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {state.enableFreeItemQuantity && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {state.showBatchNo && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {state.showExpDate && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {state.showMfgDate && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {state.itemCustomColumns.map((col) => (
+                      <td key={col.id} className="py-1 px-2 border-r border-black">&nbsp;</td>
+                    ))}
+                    {state.showPricePerItem && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {state.showDiscount && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    {state.showTax && <td className="py-1 px-2 border-r border-black">&nbsp;</td>}
+                    <td className="py-1 px-2.5">&nbsp;</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -1686,6 +1690,14 @@ function FestivalInvoice(props: {
                 <div className="flex justify-between text-[11px] text-slate-800">
                   <span className="font-medium">Taxable Amount</span>
                   <span className="font-bold font-mono text-slate-950">₹ 11,091.43</span>
+                </div>
+                <div className="flex justify-between text-[10.5px] text-slate-800 font-medium">
+                  <span>Freight</span>
+                  <span className="font-mono">₹ 0.00</span>
+                </div>
+                <div className="flex justify-between text-[10.5px] text-slate-800 font-medium">
+                  <span>Discount</span>
+                  <span className="font-mono">₹ 0.00</span>
                 </div>
                 {state.showTax && (
                   <>
@@ -1913,11 +1925,10 @@ export function FestiveThumb({
     <div className="relative flex flex-col items-center">
       {/* Mini invoice preview card */}
       <div
-        className={`relative h-[70px] w-[62px] overflow-hidden rounded-md border bg-white p-1 shadow-2xs transition-all ${
-          isSelected
-            ? "border-2 border-[#2563EB] ring-2 ring-blue-100"
-            : "border-slate-200 hover:border-slate-300"
-        }`}
+        className={`relative h-[70px] w-[62px] overflow-hidden rounded-md border bg-white p-1 shadow-2xs transition-all ${isSelected
+          ? "border-2 border-[#2563EB] ring-2 ring-blue-100"
+          : "border-slate-200 hover:border-slate-300"
+          }`}
         style={{ backgroundColor: skin.wash }}
       >
         {/* Selected checkmark indicator on top-right */}
@@ -1969,9 +1980,8 @@ export function FestiveThumb({
 
       {/* Label under card */}
       <span
-        className={`mt-1 max-w-[64px] truncate text-[10px] leading-tight text-center ${
-          isSelected ? "font-bold text-[#2563EB]" : "font-medium text-slate-700"
-        }`}
+        className={`mt-1 max-w-[64px] truncate text-[10px] leading-tight text-center ${isSelected ? "font-bold text-[#2563EB]" : "font-medium text-slate-700"
+          }`}
       >
         {name}
       </span>

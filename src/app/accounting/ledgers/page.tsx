@@ -399,13 +399,17 @@ export default function LedgersPage() {
               <input
                 type="number"
                 step="0.01"
-                value={formData.openingBalance}
+                value={formData.openingBalance === 0 || formData.openingBalance === ("" as any) ? "" : formData.openingBalance}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    openingBalance: Number(e.target.value),
+                    openingBalance: e.target.value === "" ? ("" as any) : Number(e.target.value),
                   })
                 }
+                onFocus={(e) => {
+                  if (e.target.value === "0") e.target.select();
+                }}
+                placeholder="0.00"
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums h-10"
               />
             </div>

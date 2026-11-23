@@ -3,6 +3,7 @@
 import React from "react";
 import { DocumentNotesAndTermsProps, AdditionalInfoFields } from "./types";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 export function DocumentNotesAndTermsCard({
   activeTab,
@@ -34,22 +35,20 @@ export function DocumentNotesAndTermsCard({
           <button
             type="button"
             onClick={() => onTabChange("notes")}
-            className={`px-3 py-1 rounded-md typo-tab transition-all cursor-pointer ${
-              activeTab === "notes"
+            className={`px-3 py-1 rounded-md typo-tab transition-all cursor-pointer ${activeTab === "notes"
                 ? "bg-white text-[#0F172A] shadow-xs"
                 : "text-slate-500 hover:text-slate-800"
-            }`}
+              }`}
           >
             Notes
           </button>
           <button
             type="button"
             onClick={() => onTabChange("terms")}
-            className={`px-3 py-1 rounded-md typo-tab transition-all cursor-pointer ${
-              activeTab === "terms"
+            className={`px-3 py-1 rounded-md typo-tab transition-all cursor-pointer ${activeTab === "terms"
                 ? "bg-white text-[#0F172A] shadow-xs"
                 : "text-slate-500 hover:text-slate-800"
-            }`}
+              }`}
           >
             Terms & Conditions
           </button>
@@ -110,6 +109,8 @@ export function DocumentAdditionalInfoCard({
   onEwayBillNoChange,
   dispatchDate = "",
   onDispatchDateChange,
+  freightAmount = "",
+  onFreightAmountChange,
   customFields,
 }: AdditionalInfoFields) {
   return (
@@ -130,7 +131,7 @@ export function DocumentAdditionalInfoCard({
       {customFields ? (
         customFields
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {/* Transport Mode */}
           <div className="space-y-1">
             <label className="typo-label text-slate-600 block">Transport Mode</label>
@@ -175,12 +176,31 @@ export function DocumentAdditionalInfoCard({
           {/* Dispatch Date */}
           <div className="space-y-1">
             <label className="typo-label text-slate-600 block">Dispatch Date</label>
-            <input
-              type="date"
+            <CustomDatePicker
+              size="sm"
               value={dispatchDate}
-              onChange={(e) => onDispatchDateChange?.(e.target.value)}
-              className="w-full py-1.5 px-2 bg-white border border-slate-200 rounded-xl typo-input tabular-nums text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs cursor-pointer h-9"
+              onChange={(val) => onDispatchDateChange?.(val)}
+              placeholder="DD/MM/YYYY"
+              triggerClassName="rounded-xl border-slate-200 bg-white h-9"
             />
+          </div>
+
+          {/* Freight */}
+          <div className="space-y-1">
+            <label className="typo-label text-slate-600 block">Freight</label>
+            <div className="relative flex items-center">
+              <span className="absolute left-2.5 text-xs text-slate-400 font-bold pointer-events-none">₹</span>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={freightAmount === 0 || freightAmount === "" ? "" : freightAmount}
+                onChange={(e) => onFreightAmountChange?.(e.target.value === "" ? "" : Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
+                placeholder="0.00"
+                className="w-full py-1.5 pl-6 pr-2.5 bg-white border border-slate-200 rounded-xl typo-input text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] shadow-2xs h-9 text-right tabular-nums font-semibold"
+              />
+            </div>
           </div>
         </div>
       )}

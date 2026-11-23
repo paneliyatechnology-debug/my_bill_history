@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
@@ -124,11 +126,7 @@ function formatReadableDate(dateStr?: string | null): string {
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+    return formatDate(d);
   } catch {
     return dateStr;
   }
@@ -4877,7 +4875,7 @@ function PricingSettingsView() {
     if (!subscriptionEnds) return null;
     try {
       const d = new Date(subscriptionEnds);
-      return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+      return formatDate(d);
     } catch {
       return null;
     }

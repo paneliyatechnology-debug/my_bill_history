@@ -7,6 +7,8 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { Check, X } from "lucide-react";
+import { formatDate as formatGlobalDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 type DateRangePreset =
   | "ALL"
@@ -66,14 +68,7 @@ function formatInr(val: number | string): string {
 }
 
 function formatDate(value?: string): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatGlobalDate(value, "—");
 }
 
 function isoDate(date: Date): string {
@@ -458,20 +453,16 @@ export default function PurchaseReturnsPage() {
                   <div className="border-t border-slate-100 p-3 space-y-2 bg-slate-50/60 rounded-b-xl">
                     <div>
                       <label className="block text-[10px] font-medium text-slate-500 mb-0.5">Start Date</label>
-                      <input
-                        type="date"
+                      <CustomDatePicker
                         value={customStartDate}
-                        onChange={(e) => setCustomStartDate(e.target.value)}
-                        className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-[13px] h-10"
+                        onChange={(val) => setCustomStartDate(val)}
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] font-medium text-slate-500 mb-0.5">End Date</label>
-                      <input
-                        type="date"
+                      <CustomDatePicker
                         value={customEndDate}
-                        onChange={(e) => setCustomEndDate(e.target.value)}
-                        className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-[13px] h-10"
+                        onChange={(val) => setCustomEndDate(val)}
                       />
                     </div>
                     <button

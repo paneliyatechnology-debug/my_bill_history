@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
@@ -283,7 +285,7 @@ export default function BomPage() {
         <div className="font-medium text-slate-900">
           <div>{bom.bomName}</div>
           <span className="text-[11px] text-slate-400 tabular-nums">
-            {new Date(bom.createdAt).toLocaleDateString()}
+            {formatDate(bom.createdAt)}
           </span>
         </div>
       ),

@@ -18,6 +18,8 @@ import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { Phone, Check, X, ShieldAlert } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
+import { formatDate } from "@/lib/date-utils";
 
 interface SalesInvoice {
   id: string;
@@ -894,19 +896,21 @@ export default function SalesInvoicesDashboardPage() {
             {/* Custom Date Pickers */}
             {dateRangePreset === "CUSTOM" && (
               <div className="flex items-center gap-1.5 flex-wrap">
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs tabular-nums"
-                />
+                <div className="w-36">
+                  <CustomDatePicker
+                    size="sm"
+                    value={customStartDate}
+                    onChange={(val) => setCustomStartDate(val)}
+                  />
+                </div>
                 <span className="text-xs text-slate-400">to</span>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs tabular-nums"
-                />
+                <div className="w-36">
+                  <CustomDatePicker
+                    size="sm"
+                    value={customEndDate}
+                    onChange={(val) => setCustomEndDate(val)}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -1081,11 +1085,7 @@ export default function SalesInvoicesDashboardPage() {
                       {/* Date */}
                       <td className="py-3 px-3 text-slate-700 font-medium whitespace-nowrap typo-table-td">
                         <div>
-                          {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {formatDate(inv.invoiceDate)}
                         </div>
                       </td>
 
@@ -1583,11 +1583,9 @@ export default function SalesInvoicesDashboardPage() {
                   <label className="block typo-label text-slate-600 uppercase mb-1">
                     {lang === "gu" ? "ચૂકવણી તારીખ" : "Payment Date"}
                   </label>
-                  <input
-                    type="date"
+                  <CustomDatePicker
                     value={paymentDate}
-                    onChange={(e) => setPaymentDate(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 typo-input focus:bg-white focus:outline-none"
+                    onChange={(val) => setPaymentDate(val)}
                   />
                 </div>
               </div>
@@ -1653,7 +1651,7 @@ export default function SalesInvoicesDashboardPage() {
                   <div className="absolute -left-[31px] top-0.5 w-3.5 h-3.5 rounded-full bg-[#0F172A] border-2 border-white ring-2 ring-[#BFDBFE]" />
                   <p className="font-bold text-slate-900">Invoice Created</p>
                   <p className="text-[11px] text-slate-500">
-                    Created on {new Date(historyInvoice.invoiceDate).toLocaleDateString()}
+                    Created on {formatDate(historyInvoice.invoiceDate)}
                   </p>
                   <p className="text-[10px] tabular-nums text-slate-400 mt-0.5">
                     Total: {formatInr(historyInvoice.grandTotal)} • Party: {historyInvoice.party?.name || "Cash Customer"}

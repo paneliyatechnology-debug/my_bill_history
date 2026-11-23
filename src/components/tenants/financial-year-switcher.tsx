@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Lock } from "lucide-react";
 import { useAuth, FinancialYearInfo } from "../../context/auth-context";
+import { formatDate } from "@/lib/date-utils";
 
 export function FinancialYearSwitcher() {
   const {
@@ -161,18 +162,8 @@ export function FinancialYearSwitcher() {
                         )}
                       </div>
                       {fy.startDate && fy.endDate && (
-                        <span className="text-[10px] text-slate-400 mt-0.5 font-normal">
-                          {new Date(fy.startDate).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}{" "}
-                          -{" "}
-                          {new Date(fy.endDate).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                        <span className="text-[10px] text-slate-400 mt-0.5 font-normal tabular-nums">
+                          {formatDate(fy.startDate)} - {formatDate(fy.endDate)}
                         </span>
                       )}
                     </div>

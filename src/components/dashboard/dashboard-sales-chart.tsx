@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDayMonth } from "@/lib/date-utils";
+
 import React, { useState, useMemo } from "react";
 import { formatInr, formatInrCompact } from "@/components/design-system/tokens";
 import { CustomSelect } from "@/components/ui/dropdown-system";
@@ -84,7 +86,7 @@ export function DashboardSalesChart({
     if (point.dateIso) {
       const parsed = new Date(point.dateIso);
       if (!Number.isNaN(parsed.getTime())) {
-        return parsed.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+        return formatDayMonth(parsed);
       }
     }
     return point.dayLabel;

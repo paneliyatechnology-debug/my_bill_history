@@ -28,6 +28,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { formatDate, getTodayDisplayDate } from "@/lib/date-utils";
 
 // Interfaces
 interface CatalogItem {
@@ -945,7 +946,7 @@ export default function PosTerminalPage() {
         upiId: displayUpi,
 
         invoiceNumber: generatedInvoiceNumber,
-        invoiceDate: new Date().toLocaleDateString("en-IN"),
+        invoiceDate: getTodayDisplayDate(),
         invoiceTime: new Date().toLocaleTimeString("en-IN", {
           hour: "2-digit",
           minute: "2-digit",
@@ -1111,7 +1112,7 @@ export default function PosTerminalPage() {
           upiId: displayUpi,
 
           invoiceNumber: data.invoiceNumber,
-          invoiceDate: (data.date || "").split(",")[0] || new Date().toLocaleDateString("en-IN"),
+          invoiceDate: (data.date || "").split(",")[0] ? formatDate((data.date || "").split(",")[0]) : getTodayDisplayDate(),
           invoiceTime: (data.date || "").split(",")[1]?.trim() || new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
           cashierName: user?.fullName || "Cashier",
 
@@ -2099,14 +2100,17 @@ export default function PosTerminalPage() {
                   <input
                     id="pos-received-amount-input"
                     type="number"
-                    value={currentScreen.receivedAmount}
+                    value={currentScreen.receivedAmount === 0 || currentScreen.receivedAmount === "" ? "" : currentScreen.receivedAmount}
                     onChange={(e) =>
                       updateCurrentScreen((prev) => ({
                         ...prev,
                         receivedAmount: e.target.value === "" ? "" : Number(e.target.value),
                       }))
                     }
-                    placeholder="0"
+                    onFocus={(e) => {
+                      if (e.target.value === "0") e.target.select();
+                    }}
+                    placeholder="0.00"
                     className="w-full pl-7 pr-3 py-2 text-[13px] tabular-nums bg-white border border-[#E5E7EB] rounded-md outline-none focus:border-[#8B5CF6] text-[#1F2937] h-10"
                   />
                 </div>

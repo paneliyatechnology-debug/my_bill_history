@@ -25,12 +25,15 @@ export interface DocumentInfoField {
   id: string;
   label: string;
   required?: boolean;
-  type: "text" | "date" | "select" | "custom";
+  type: "text" | "date" | "select" | "combobox" | "custom";
   value?: string | number;
   onChange?: (val: any) => void;
-  options?: Array<{ label: string; value: string | number }>;
+  options?: Array<{ label: string; value: string | number; sublabel?: string }>;
   placeholder?: string;
   customRender?: React.ReactNode;
+  readOnly?: boolean;
+  badge?: string;
+  helperText?: string;
 }
 
 export interface DocumentInfoStripProps {
@@ -77,6 +80,8 @@ export interface AdditionalInfoFields {
   onEwayBillNoChange?: (val: string) => void;
   dispatchDate?: string;
   onDispatchDateChange?: (val: string) => void;
+  freightAmount?: number | "";
+  onFreightAmountChange?: (val: number | "") => void;
   customFields?: React.ReactNode;
 }
 
@@ -102,13 +107,20 @@ export interface DocumentSummaryCardProps {
 }
 
 export interface DocumentPaymentCardProps {
+  title?: string;
+  amountLabel?: string;
+  isPurchase?: boolean;
+  isOrder?: boolean;
   amountReceived: number | string;
   onAmountReceivedChange: (val: number | "") => void;
   paymentMode: string;
   onPaymentModeChange: (val: string) => void;
   balanceDue: number | string;
+  balanceLabel?: string;
   onPaidInFull?: () => void;
+  paidInFullLabel?: string;
   isPaid?: boolean;
+  lang?: "en" | "gu";
 }
 
 export interface DocumentBottomBarProps {

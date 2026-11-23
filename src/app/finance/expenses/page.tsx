@@ -8,6 +8,7 @@ import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { formatDate, formatDateTime } from "@/lib/date-utils";
 import {
   Check,
   X,
@@ -452,7 +453,7 @@ export default function ExpensesPage() {
     const rows = filteredVouchers.map((v) => {
       const d = getVoucherDetails(v);
       return [
-        v.voucherDate ? new Date(v.voucherDate).toLocaleDateString("en-IN") : "",
+        v.voucherDate ? formatDate(v.voucherDate) : "",
         v.voucherNumber,
         v.referenceNo || "",
         d.categoryName,
@@ -513,13 +514,7 @@ export default function ExpensesPage() {
 
       doc.setFontSize(8);
       doc.text(
-        `Generated: ${new Date().toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })}`,
+        `Generated: ${formatDateTime(new Date())}`,
         140,
         18
       );
@@ -556,13 +551,7 @@ export default function ExpensesPage() {
         const d = getVoucherDetails(v);
         return [
           idx + 1,
-          v.voucherDate
-            ? new Date(v.voucherDate).toLocaleDateString("en-IN", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
-            : "-",
+          formatDate(v.voucherDate, "-"),
           v.voucherNumber,
           v.referenceNo || "-",
           d.categoryName,
@@ -635,15 +624,7 @@ export default function ExpensesPage() {
 
       doc.text(`Voucher Number: ${v.voucherNumber}`, 14, 35);
       doc.text(
-        `Date: ${
-          v.voucherDate
-            ? new Date(v.voucherDate).toLocaleDateString("en-IN", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
-            : "-"
-        }`,
+        `Date: ${formatDate(v.voucherDate, "-")}`,
         14,
         42
       );
@@ -1091,13 +1072,7 @@ export default function ExpensesPage() {
                       >
                         {/* Date */}
                         <td className="py-3 px-4 tabular-nums text-[#1E293B] text-[13px]">
-                          {v.voucherDate
-                            ? new Date(v.voucherDate).toLocaleDateString("en-IN", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })
-                            : "-"}
+                          {formatDate(v.voucherDate, "-")}
                         </td>
 
                         {/* Expense Number */}
@@ -1230,13 +1205,7 @@ export default function ExpensesPage() {
                         {v.voucherNumber}
                       </span>
                       <span className="tabular-nums text-xs text-[#64748B]">
-                        {v.voucherDate
-                          ? new Date(v.voucherDate).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : "-"}
+                        {formatDate(v.voucherDate, "-")}
                       </span>
                     </div>
 
@@ -1478,9 +1447,7 @@ export default function ExpensesPage() {
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Date</span>
                     <span className="font-semibold text-slate-900 tabular-nums">
-                      {selectedVoucher.voucherDate
-                        ? new Date(selectedVoucher.voucherDate).toLocaleDateString("en-IN")
-                        : "-"}
+                      {formatDate(selectedVoucher.voucherDate, "-")}
                     </span>
                   </div>
                   <div>

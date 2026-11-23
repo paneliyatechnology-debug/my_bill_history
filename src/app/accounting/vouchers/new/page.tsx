@@ -27,6 +27,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { CustomSelect, CustomCombobox, DropdownOption } from "@/components/ui/dropdown-system";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 export interface AccountOption {
   id: string;
@@ -716,12 +717,9 @@ function NewVoucherForm() {
             <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
               Voucher Date *
             </label>
-            <input
-              type="date"
-              required
+            <CustomDatePicker
               value={voucherDate}
-              onChange={(e) => setVoucherDate(e.target.value)}
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl tabular-nums text-slate-900 focus:bg-white focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/15 h-10 outline-none transition-all"
+              onChange={(val) => setVoucherDate(val)}
             />
           </div>
 

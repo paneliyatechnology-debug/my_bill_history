@@ -7,6 +7,8 @@ import { useAuth } from "../../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../../lib/api-client";
 import { Settings, X, Search, Calendar } from "lucide-react";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 interface PartyOption {
   id: string;
@@ -55,14 +57,7 @@ function formatInr(val: number | string): string {
 }
 
 function formatPaymentDate(value?: string): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDate(value, "—");
 }
 
 export default function EditPaymentInPage() {
@@ -502,9 +497,12 @@ export default function EditPaymentInPage() {
                   <input
                     type="number"
                     step="any"
-                    value={amountReceived}
+                    value={amountReceived === "0" ? "" : amountReceived}
                     onChange={(e) => handleAmountReceivedChange(e.target.value)}
-                    placeholder="0"
+                    onFocus={(e) => {
+                      if (e.target.value === "0") e.target.select();
+                    }}
+                    placeholder="0.00"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
@@ -516,9 +514,12 @@ export default function EditPaymentInPage() {
                   <input
                     type="number"
                     step="any"
-                    value={paymentInDiscount}
+                    value={paymentInDiscount === "0" ? "" : paymentInDiscount}
                     onChange={(e) => setPaymentInDiscount(e.target.value)}
-                    placeholder="0"
+                    onFocus={(e) => {
+                      if (e.target.value === "0") e.target.select();
+                    }}
+                    placeholder="0.00"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
@@ -532,14 +533,10 @@ export default function EditPaymentInPage() {
                   <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Payment Date
                   </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={voucherDate}
-                      onChange={(e) => setVoucherDate(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
-                    />
-                  </div>
+                  <CustomDatePicker
+                    value={voucherDate}
+                    onChange={(val) => setVoucherDate(val)}
+                  />
                 </div>
 
                 <div>

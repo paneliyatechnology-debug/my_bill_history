@@ -7,6 +7,8 @@ import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { Keyboard, Settings, X, FileText, Search, Calendar } from "lucide-react";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { formatDate } from "@/lib/date-utils";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 
 interface PartyOption {
   id: string;
@@ -55,14 +57,7 @@ function formatInr(val: number | string): string {
 }
 
 function formatPaymentDate(value?: string): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDate(value, "—");
 }
 
 function CreatePaymentOutForm() {
@@ -155,7 +150,7 @@ function CreatePaymentOutForm() {
   const [paymentMode, setPaymentMode] = useState("CASH");
   const [paidFromAccountId, setPaidFromAccountId] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
-  const [paymentOutDiscount, setPaymentOutDiscount] = useState("0");
+  const [paymentOutDiscount, setPaymentOutDiscount] = useState("");
   const [referenceNo, setReferenceNo] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -245,10 +240,18 @@ function CreatePaymentOutForm() {
             if (parsed.prefix !== undefined) setSettingsPrefix(parsed.prefix);
             if (parsed.sequence !== undefined) setSettingsSequence(parsed.sequence);
             if (parsed.enablePrefix !== undefined) setEnablePrefix(parsed.enablePrefix);
+
+            const backendSeq = parseInt(String(nextSeq).replace(/\D+/g, ""), 10) || 1;
+            const storedSeq = parseInt(String(parsed.sequence || "1"), 10) || 1;
+            const effectiveSeq = Math.max(backendSeq, storedSeq);
+            setSettingsSequence(String(effectiveSeq));
+
             if (parsed.enablePrefix && parsed.prefix) {
-              setPaymentNumber(`${parsed.prefix}${parsed.sequence || nextSeq}`);
+              setPaymentNumber(`${parsed.prefix}${effectiveSeq}`);
               return;
             }
+            setPaymentNumber(String(effectiveSeq));
+            return;
           } catch {}
         }
         setPaymentNumber(nextSeq);
@@ -593,6 +596,21 @@ function CreatePaymentOutForm() {
         allocations: allocationsPayload.length > 0 ? allocationsPayload : undefined,
       });
 
+      // Advance sequence in localStorage for next payment out
+      try {
+        const saved = localStorage.getItem("payment_out_quick_settings");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const usedNumber = res?.voucherNumber || res?.paymentNumber || paymentNumber;
+          const match = String(usedNumber).match(/(\d+)$/);
+          const usedSeq = match ? parseInt(match[1], 10) : (Number(parsed.sequence) || 1);
+          localStorage.setItem("payment_out_quick_settings", JSON.stringify({
+            ...parsed,
+            sequence: usedSeq + 1,
+          }));
+        }
+      } catch {}
+
       router.push(`/purchases/payment-out/${res.id}`);
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to record payment out.");
@@ -767,9 +785,12 @@ function CreatePaymentOutForm() {
                   <input
                     type="number"
                     step="any"
-                    value={amountPaid}
+                    value={amountPaid === "0" ? "" : amountPaid}
                     onChange={(e) => handleAmountPaidChange(e.target.value)}
-                    placeholder="0"
+                    onFocus={(e) => {
+                      if (e.target.value === "0") e.target.select();
+                    }}
+                    placeholder="0.00"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
@@ -781,9 +802,12 @@ function CreatePaymentOutForm() {
                   <input
                     type="number"
                     step="any"
-                    value={paymentOutDiscount}
+                    value={paymentOutDiscount === "0" ? "" : paymentOutDiscount}
                     onChange={(e) => setPaymentOutDiscount(e.target.value)}
-                    placeholder="0"
+                    onFocus={(e) => {
+                      if (e.target.value === "0") e.target.select();
+                    }}
+                    placeholder="0.00"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
@@ -797,11 +821,9 @@ function CreatePaymentOutForm() {
                   <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Payment Date
                   </label>
-                  <input
-                    type="date"
+                  <CustomDatePicker
                     value={voucherDate}
-                    onChange={(e) => setVoucherDate(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
+                    onChange={(val) => setVoucherDate(val)}
                   />
                 </div>
 
@@ -976,9 +998,12 @@ function CreatePaymentOutForm() {
                                 <input
                                   type="number"
                                   step="any"
-                                  value={bill.discount}
+                                  value={bill.discount === "0" ? "" : bill.discount}
                                   onChange={(e) => handleBillDiscountChange(idx, e.target.value)}
-                                  placeholder="Apply Discount"
+                                  onFocus={(e) => {
+                                    if (e.target.value === "0") e.target.select();
+                                  }}
+                                  placeholder="0.00"
                                   className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                                 />
                               </td>
@@ -986,8 +1011,11 @@ function CreatePaymentOutForm() {
                                 <input
                                   type="number"
                                   step="any"
-                                  value={bill.settle}
+                                  value={bill.settle === "0" ? "" : bill.settle}
                                   onChange={(e) => handleBillSettleChange(idx, e.target.value)}
+                                  onFocus={(e) => {
+                                    if (e.target.value === "0") e.target.select();
+                                  }}
                                   placeholder="0.00"
                                   className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                                 />

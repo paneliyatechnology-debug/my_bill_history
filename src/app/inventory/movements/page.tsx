@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
@@ -99,7 +101,7 @@ export default function StockMovementsPage() {
             sortable: true,
             cell: (m) => (
               <span className="tabular-nums text-slate-600">
-                {new Date(m.transactionDate).toLocaleDateString("en-IN")}
+                {formatDate(m.transactionDate)}
               </span>
             ),
           },
@@ -221,7 +223,7 @@ export default function StockMovementsPage() {
               </div>
               <div className="flex items-center justify-between text-xs text-slate-500">
                 <span className="tabular-nums">
-                  {new Date(m.transactionDate).toLocaleDateString("en-IN")}
+                  {formatDate(m.transactionDate)}
                 </span>
                 <Badge variant={typeBadgeVariant(m.transactionType)}>
                   {m.transactionType.replace("_", " ")}

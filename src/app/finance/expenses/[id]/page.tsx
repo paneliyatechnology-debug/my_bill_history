@@ -7,6 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { apiClient } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { FileText } from "lucide-react";
+import { getStateDisplayName } from "@/shared-types";
 
 interface JournalLine {
   id: string;
@@ -83,7 +84,7 @@ export default function ExpenseDetailsPage() {
 
     let partyName = "-";
     let notes = "-";
-    let placeOfSupply = currentCompany?.stateCode ? `Gujarat (${currentCompany.stateCode})` : "Gujarat";
+    let placeOfSupply = getStateDisplayName(currentCompany?.stateCode) || "—";
     let itemsParsed: Array<{
       name: string;
       hsn: string;

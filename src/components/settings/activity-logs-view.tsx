@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/date-utils";
+
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
@@ -53,11 +55,7 @@ function formatDateTime(isoStr: string) {
     const d = new Date(isoStr);
     if (isNaN(d.getTime())) return isoStr;
 
-    const dateFormatted = d.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+    const dateFormatted = formatDate(d);
 
     const timeFormatted = d.toLocaleTimeString("en-IN", {
       hour: "2-digit",

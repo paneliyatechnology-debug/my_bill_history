@@ -1058,10 +1058,14 @@ export default function HsnMasterPage() {
                 min="0"
                 max="100"
                 step="0.01"
-                value={formData.cessRate}
+                value={formData.cessRate === 0 || formData.cessRate === ("" as any) ? "" : formData.cessRate}
                 onChange={(e) =>
-                  setFormData({ ...formData, cessRate: Number(e.target.value) })
+                  setFormData({ ...formData, cessRate: e.target.value === "" ? ("" as any) : Number(e.target.value) })
                 }
+                onFocus={(e) => {
+                  if (e.target.value === "0") e.target.select();
+                }}
+                placeholder="0.00"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               />
             </div>
@@ -1212,13 +1216,17 @@ export default function HsnMasterPage() {
                 min="0"
                 max="100"
                 step="0.01"
-                value={editFormData.cessRate}
+                value={editFormData.cessRate === 0 || editFormData.cessRate === ("" as any) ? "" : editFormData.cessRate}
                 onChange={(e) =>
                   setEditFormData({
                     ...editFormData,
-                    cessRate: Number(e.target.value),
+                    cessRate: e.target.value === "" ? ("" as any) : Number(e.target.value),
                   })
                 }
+                onFocus={(e) => {
+                  if (e.target.value === "0") e.target.select();
+                }}
+                placeholder="0.00"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               />
             </div>
