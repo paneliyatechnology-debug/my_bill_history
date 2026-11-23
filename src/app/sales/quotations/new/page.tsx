@@ -553,7 +553,21 @@ export default function NewQuotationPage() {
         invoiceNumber: quotationNumber.trim() || undefined,
         poNumber: poNumber.trim() || undefined,
         poDate: poDate || undefined,
-        shippingAddress: shippingAddress.trim() || undefined,
+        additionalCharges: totalAdditionalCharges > 0
+          ? [{ name: "Freight", amount: totalAdditionalCharges }]
+          : [],
+        freightAmount: totalAdditionalCharges > 0 ? totalAdditionalCharges : 0,
+        vehicleNumber: vehicleNo || undefined,
+        transportMode: transportMode || undefined,
+        shippingAddress: {
+          ...(shippingAddress.trim() ? { address: shippingAddress.trim() } : {}),
+          freight: totalAdditionalCharges || 0,
+          freightAmount: totalAdditionalCharges || 0,
+          ...(vehicleNo ? { vehicleNo } : {}),
+          ...(transportMode ? { transportMode } : {}),
+          ...(ewayBillNo ? { ewayBillNo } : {}),
+          ...(dispatchDate ? { dispatchDate } : {}),
+        },
         signatureData: signatureData || undefined,
         isDraft: true,
         items: validRows.map((r) => ({

@@ -306,6 +306,15 @@ function PurchaseInvoiceDetailContent() {
     paidAmount: effectivePaid,
     balanceAmount: balance,
     notes: invoice.notes,
+    roundOff: Number((invoice as any).roundOff || 0),
+    shippingAddress: (invoice as any).shippingAddress,
+    freightAmount: Number(
+      (invoice as any).freightAmount ??
+      (invoice as any).freight ??
+      (invoice as any).shippingAddress?.freightAmount ??
+      (invoice as any).shippingAddress?.freight ??
+      0
+    ),
     party: {
       id: invoice.party?.id,
       name: invoice.party?.name,

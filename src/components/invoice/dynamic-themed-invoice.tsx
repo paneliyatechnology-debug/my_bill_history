@@ -893,47 +893,26 @@ export function DynamicThemedInvoice({
 
                 <div className="col-span-5 space-y-1.5 pl-3 border-l border-black/30 flex flex-col justify-between">
                   <div className="space-y-1.5">
-                    {resolvedDiscount > 0 ? (
-                      <>
-                        <div className="flex justify-between text-[11px] text-slate-800">
-                          <span className="font-medium">Subtotal (Gross)</span>
-                          <span className="font-mono font-bold text-slate-950">
-                            ₹ {Number((invoice as any).subTotal || (Number(invoice.taxableAmount || 0) + resolvedDiscount)).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-[10.5px] text-slate-800">
-                          <span>Discount</span>
-                          <span className="font-mono font-medium text-rose-600">
-                            - ₹ {Number(resolvedDiscount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-[11px] text-slate-800 font-semibold border-t border-slate-200/80 pt-0.5">
-                          <span>Taxable Amount</span>
-                          <span className="font-mono font-bold text-slate-950">
-                            ₹ {Number(invoice.taxableAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex justify-between text-[11px] text-slate-800">
-                        <span className="font-medium">Taxable Amount</span>
-                        <span className="font-mono font-bold text-slate-950">
-                          ₹ {Number(invoice.taxableAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex justify-between text-[11px] text-slate-800">
+                      <span className="font-medium">Taxable Amount</span>
+                      <span className="font-mono font-bold text-slate-950">
+                        ₹ {Number(invoice.taxableAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
                     <div className="flex justify-between text-[10.5px] text-slate-800">
                       <span>Freight</span>
                       <span className="font-mono font-medium">
                         ₹ {Number(resolvedFreight || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </span>
                     </div>
-                    {resolvedDiscount === 0 && (
-                      <div className="flex justify-between text-[10.5px] text-slate-800">
-                        <span>Discount</span>
-                        <span className="font-mono font-medium">₹ 0.00</span>
-                      </div>
-                    )}
+                    <div className="flex justify-between text-[10.5px] text-slate-800">
+                      <span>Discount</span>
+                      <span className={`font-mono font-medium ${resolvedDiscount > 0 ? "text-rose-600" : ""}`}>
+                        {resolvedDiscount > 0
+                          ? `- ₹ ${Number(resolvedDiscount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+                          : "₹ 0.00"}
+                      </span>
+                    </div>
                     {settings.showTax && (
                       <>
                         {!isInterState ? (

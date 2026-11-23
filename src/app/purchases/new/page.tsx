@@ -1673,6 +1673,7 @@ function NewPurchaseInvoiceContent() {
     }
 
     try {
+      const freightVal = Number(additionalChargeAmount) || 0;
       const payload = {
         partyId,
         vendorInvoiceNumber: finalBillNumber,
@@ -1686,6 +1687,20 @@ function NewPurchaseInvoiceContent() {
         paidFromAccountId: payAccountId || undefined,
         paymentDate: formatIsoDate(paymentDate) || formatIsoDate(invoiceDate) || new Date().toISOString(),
         paymentReference: payReference || undefined,
+        additionalCharges: freightVal > 0 ? [{ name: "Freight", amount: freightVal }] : [],
+        freightAmount: freightVal > 0 ? freightVal : 0,
+        vehicleNumber: vehicleNo || undefined,
+        transportMode: transportMode || undefined,
+        notes: notes || undefined,
+        termsAndConditions: terms || undefined,
+        shippingAddress: {
+          freight: freightVal,
+          freightAmount: freightVal,
+          ...(vehicleNo ? { vehicleNo } : {}),
+          ...(transportMode ? { transportMode } : {}),
+          ...(ewayBillNo ? { ewayBillNo } : {}),
+          ...(dispatchDate ? { dispatchDate } : {}),
+        },
         items: validRows.map((r) => {
           const qty = Number(r.quantity);
           const rate = Number(r.unitPrice);
