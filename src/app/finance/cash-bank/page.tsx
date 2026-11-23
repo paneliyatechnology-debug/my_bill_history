@@ -1410,7 +1410,7 @@ export default function CashAndBankPage() {
             <svg className="w-3.5 h-3.5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span className="truncate">{lang === "gu" ? "નવી બેંક" : "+ New Bank"}</span>
+            <span className="truncate">{lang === "gu" ? "નવી બેંક" : " New Bank"}</span>
           </button>
         </div>
       </div>
