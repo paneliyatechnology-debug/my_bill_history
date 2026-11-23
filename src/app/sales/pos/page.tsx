@@ -37,6 +37,9 @@ interface CatalogItem {
   sku?: string;
   barcode?: string;
   retailPrice: number;
+  salesPrice?: number;
+  salePrice?: number;
+  priceWithTax?: number;
   wholesalePrice?: number;
   purchaseRate?: number;
   taxRate: number;
@@ -343,7 +346,13 @@ export default function PosTerminalPage() {
       const effectivePrice =
         partyPrice !== null
           ? partyPrice
-          : Number(catalogItem.retailPrice) || 0;
+          : Number(
+              catalogItem.salesPrice ??
+              catalogItem.salePrice ??
+              catalogItem.retailPrice ??
+              catalogItem.mrp ??
+              0
+            );
 
       updateCurrentScreen((prev) => {
         const existingIdx = prev.items.findIndex((c) => c.item.id === catalogItem.id);
@@ -365,7 +374,7 @@ export default function PosTerminalPage() {
             quantity: 1,
             unitPrice: effectivePrice,
             discountPercent: 0,
-            mrp: Number(catalogItem.mrp) || effectivePrice,
+            mrp: Number(catalogItem.mrp ?? catalogItem.salesPrice ?? effectivePrice),
             taxRate: Number(catalogItem.taxRate) || 0,
             description: "",
           };
