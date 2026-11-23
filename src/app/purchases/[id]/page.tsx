@@ -401,31 +401,9 @@ function PurchaseInvoiceDetailContent() {
             <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
             <div className="min-w-0">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="font-semibold text-[#182230] text-base sm:text-lg tracking-tight truncate">
-                  <span>Purchase #{invoice.vendorInvoiceNumber}</span>
-                </h1>
-
-                {/* Status Badge */}
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase ${
-                    isPaid
-                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                      : isPartiallyPaid
-                        ? "bg-amber-50 text-amber-800 border border-amber-200"
-                        : "bg-rose-50 text-rose-800 border border-rose-200"
-                  }`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${isPaid ? "bg-emerald-500" : isPartiallyPaid ? "bg-amber-500" : "bg-rose-500"}`} />
-                  <span>
-                    {isPaid
-                      ? (lang === "gu" ? "ચૂકવેલ" : "Paid")
-                      : isPartiallyPaid
-                        ? (lang === "gu" ? "અડધી ચૂકવણી" : "Partially Paid")
-                        : (lang === "gu" ? "બાકી" : "Unpaid")}
-                  </span>
-                </span>
-              </div>
+              <h1 className="font-semibold text-slate-900 text-base sm:text-lg tracking-tight truncate">
+                Purchase #{invoice.vendorInvoiceNumber}
+              </h1>
               {invoice.party?.name && (
                 <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
                   {invoice.party.name} • {formatDate(invoice.invoiceDate)}
@@ -434,12 +412,12 @@ function PurchaseInvoiceDetailContent() {
             </div>
 
             {/* Financial Summary Pill */}
-            <div className="hidden md:flex items-center gap-2 bg-[#F6F8F7] px-3 py-1 rounded-xl border border-slate-200 text-xs shadow-2xs">
+            <div className="hidden md:flex items-center gap-2.5 bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200/90 text-xs shadow-2xs">
               <span className="text-slate-500 font-medium">{lang === "gu" ? "કુલ:" : "Total:"}</span>
-              <span className="tabular-nums font-bold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-              <span className="text-slate-300">•</span>
+              <span className="tabular-nums font-semibold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+              <span className="text-slate-300">|</span>
               <span className="text-slate-500 font-medium">{lang === "gu" ? "બાકી:" : "Due:"}</span>
-              <span className={`tabular-nums font-bold ${balance > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+              <span className={`tabular-nums font-semibold ${balance > 0 ? "text-rose-600" : "text-emerald-700"}`}>
                 ₹{balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>

@@ -12,7 +12,7 @@ import {
   DynamicCompanyData,
 } from "@/components/invoice/dynamic-themed-invoice";
 import { getStateDisplayName } from "@/shared-types";
-import { Palette, X } from "lucide-react";
+import { X, Printer, Receipt, MessageSquare } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 
 export default function PurchaseReturnViewPage() {
@@ -395,45 +395,53 @@ export default function PurchaseReturnViewPage() {
       {/* ─────────────────────────────────────────────────────────────
           1. TOP ACTION HEADER (Hidden when printing)
          ───────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/90 shadow-2xs print:hidden">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white px-4 sm:px-6 py-3 border-b border-slate-200 shadow-2xs print:hidden">
+        {/* Left: Back Link, Document Title, Financial Summary */}
+        <div className="flex items-center gap-3 flex-wrap min-w-0">
           <Link
             href={backHref}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl border border-slate-200 transition-colors shadow-2xs"
             title={`Back to ${docTitle}`}
           >
-            ←
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>{lang === "gu" ? "પાછા જાઓ" : docTitle}</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <h1 className="text-[15px] font-semibold text-[#182230]">
+
+          <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+
+          <div className="min-w-0">
+            <h1 className="font-semibold text-slate-900 text-base sm:text-lg tracking-tight truncate">
               {docTitle} #{returnNumber}
             </h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E0F2FE] text-[#0284C7]">
-              Credited
+          </div>
+
+          {/* Financial Summary Pill */}
+          <div className="hidden md:flex items-center gap-2.5 bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200/90 text-xs shadow-2xs">
+            <span className="text-slate-500 font-medium">{lang === "gu" ? "કુલ:" : "Total:"}</span>
+            <span className="tabular-nums font-semibold text-slate-900">
+              ₹{grandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           {/* Download PDF */}
           <button
             type="button"
             onClick={downloadPdf}
             disabled={isGeneratingPdf}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            <svg
-              className="w-3.5 h-3.5 text-slate-500"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            <span>{isGeneratingPdf ? "Generating..." : "Download PDF"}</span>
+            {isGeneratingPdf ? (
+              <span className="inline-block w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            )}
+            <span>{isGeneratingPdf ? "Generating..." : (lang === "gu" ? "પીડીએફ" : "PDF")}</span>
           </button>
 
           {/* Print PDF Dropdown */}
@@ -441,61 +449,48 @@ export default function PurchaseReturnViewPage() {
             <button
               type="button"
               onClick={() => setIsPrintDropdownOpen(!isPrintDropdownOpen)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
             >
+              <Printer className="w-3.5 h-3.5 text-slate-500" />
+              <span>{lang === "gu" ? "પ્રિન્ટ" : "Print"}</span>
               <svg
-                className="w-3.5 h-3.5 text-slate-500"
-                viewBox="0 0 24 24"
+                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                  isPrintDropdownOpen ? "rotate-180 text-slate-700" : ""
+                }`}
                 fill="none"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth="2"
               >
-                <polyline points="6 9 6 2 18 2 18 9" />
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                <rect x="6" y="14" width="12" height="8" />
-              </svg>
-              <span>Print PDF</span>
-              <svg
-                className="w-3 h-3 text-slate-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             {isPrintDropdownOpen && (
-              <div className="absolute left-0 top-10 z-40 w-44 rounded-xl border border-slate-200 bg-white py-1 shadow-lg text-xs">
+              <div className="absolute right-0 top-10 z-40 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-xl text-xs">
                 <button
                   type="button"
-                  onClick={() => handlePrint("A4")}
-                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700 cursor-pointer"
+                  onClick={() => {
+                    setIsPrintDropdownOpen(false);
+                    handlePrint("A4");
+                  }}
+                  className="flex w-full items-center gap-2.5 h-9 px-3.5 hover:bg-slate-50 text-slate-700 font-medium cursor-pointer"
                 >
-                  Standard A4 Print
+                  <Printer className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Standard A4 Print</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => handlePrint("THERMAL_80")}
-                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700 border-t border-slate-100 cursor-pointer"
+                  onClick={() => {
+                    setIsPrintDropdownOpen(false);
+                    handlePrint("THERMAL_80");
+                  }}
+                  className="flex w-full items-center gap-2.5 h-9 px-3.5 hover:bg-slate-50 text-slate-700 font-medium border-t border-slate-100 cursor-pointer"
                 >
-                  Thermal Print (3 Inch)
+                  <Receipt className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Thermal Print (3 Inch)</span>
                 </button>
               </div>
             )}
           </div>
-
-          {/* Theme Settings Shortcut */}
-          <Link
-            href="/app/settings/invoice/customize"
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
-            title={lang === "gu" ? "થીમ સેટિંગ્સ બદલો" : "Invoice Theme Settings"}
-          >
-            <Palette className="w-3.5 h-3.5 text-slate-500" />
-            <span>{lang === "gu" ? "થીમ સેટિંગ્સ" : "Theme"}</span>
-          </Link>
 
           {/* Share Dropdown */}
           <div className="relative" ref={shareDropdownRef}>

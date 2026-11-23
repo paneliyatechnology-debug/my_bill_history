@@ -21,7 +21,6 @@ import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { CustomSelect } from "@/components/ui/dropdown-system";
 import { formatDate } from "@/lib/date-utils";
 import {
-  Palette,
   FileText,
   Receipt,
   MessageSquare,
@@ -557,43 +556,26 @@ export default function PurchaseOrdersListPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </button>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-[22px] font-semibold text-[#182230]">
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-base sm:text-[20px] font-semibold text-slate-900">
                   Purchase Order #{ord.orderNumber}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FEF6EE] text-[#B93815] border border-[#FECDCA]">
-                  {ord.status === "OPEN" ? "Open" : ord.status}
+              </div>
+
+              {/* Financial Summary Pill */}
+              <div className="hidden md:flex items-center gap-2.5 bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200/90 text-xs shadow-2xs">
+                <span className="text-slate-500 font-medium">{lang === "gu" ? "કુલ:" : "Total:"}</span>
+                <span className="tabular-nums font-semibold text-slate-900">
+                  ₹{Number(ord.grandTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </span>
+                <span className="text-slate-300">|</span>
+                <span className="font-semibold text-amber-700">
+                  {ord.status === "OPEN" ? (lang === "gu" ? "ખુલ્લું" : "Open") : ord.status}
                 </span>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Paper Size Selector */}
-              <div className="w-[140px]">
-                <CustomSelect
-                  size="sm"
-                  value={selectedPaperSize}
-                  onChange={(val: any) => setSelectedPaperSize(val as any)}
-                  options={[
-                    { value: "A4", label: "A4 (Standard)" },
-                    { value: "A5", label: "A5 (Half Page)" },
-                    { value: "THERMAL_80", label: "Thermal (80mm)" },
-                    { value: "US_LETTER", label: "Letter" },
-                    { value: "LEGAL", label: "Legal" },
-                  ]}
-                  triggerClassName="rounded-md border-slate-300 bg-white"
-                />
-              </div>
-
-              {/* Theme Settings Button */}
-              <Link
-                href="/settings/invoice-settings"
-                className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs"
-                title="Change Invoice Theme in Settings"
-              >
-                <Palette className="w-4 h-4 text-slate-600" />
-                <span className="hidden sm:inline">Theme</span>
-              </Link>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
 
               {/* Download PDF Button */}
               <button
