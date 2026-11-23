@@ -121,7 +121,7 @@ export function getCachedThermalSettings(): ThermalPrintSettings {
       const parsed = JSON.parse(raw);
       return { ...DEFAULT_THERMAL_SETTINGS, ...parsed };
     }
-  } catch {}
+  } catch { }
   return DEFAULT_THERMAL_SETTINGS;
 }
 
@@ -132,7 +132,7 @@ export function saveCachedThermalSettings(settings: ThermalPrintSettings): void 
     window.dispatchEvent(
       new CustomEvent("billing_thermal_settings_updated", { detail: settings }),
     );
-  } catch {}
+  } catch { }
 }
 
 export async function generateUpiQrDataUrl(
@@ -170,12 +170,12 @@ export async function buildThermalReceiptHtml(
         ? "8.5px"
         : "9.5px"
       : settings.fontSize === "large"
-      ? is2Inch
-        ? "10.5px"
-        : "12px"
-      : is2Inch
-      ? "9.5px"
-      : "11px";
+        ? is2Inch
+          ? "10.5px"
+          : "12px"
+        : is2Inch
+          ? "9.5px"
+          : "11px";
 
   const divider = is2Inch
     ? "--------------------------------"
@@ -307,39 +307,32 @@ export async function buildThermalReceiptHtml(
   <div class="content-box">
     <!-- Header -->
     <div class="text-center">
-      ${
-        data.companyLogoUrl
-          ? `<div style="margin-bottom: 4px;"><img src="${data.companyLogoUrl}" alt="logo" style="max-height: ${
-              is2Inch ? "34px" : "44px"
-            }; max-width: 120px; object-contain: contain; filter: grayscale(100%) contrast(150%);" /></div>`
-          : ""
-      }
+      ${data.companyLogoUrl
+      ? `<div style="margin-bottom: 4px;"><img src="${data.companyLogoUrl}" alt="logo" style="max-height: ${is2Inch ? "34px" : "44px"
+      }; max-width: 120px; object-contain: contain; filter: grayscale(100%) contrast(150%);" /></div>`
+      : ""
+    }
       <div class="store-title">${data.companyName || "STORE RECEIPT"}</div>
-      ${
-        data.companyAddress
-          ? `<div style="font-size: 0.9em;">${data.companyAddress}</div>`
-          : ""
-      }
-      ${
-        data.companyPhone
-          ? `<div style="font-size: 0.9em;">Phone: <b>${data.companyPhone}</b></div>`
-          : ""
-      }
-      ${
-        settings.showGstin && data.companyGstin
-          ? `<div style="font-size: 0.9em;">GSTIN: <b>${data.companyGstin}</b></div>`
-          : ""
-      }
-      ${
-        data.companyFssai
-          ? `<div style="font-size: 0.85em;">FSSAI Lic: ${data.companyFssai}</div>`
-          : ""
-      }
-      ${
-        settings.customHeader
-          ? `<div style="font-size: 0.85em; font-style: italic; margin-top: 1px;">${settings.customHeader}</div>`
-          : ""
-      }
+      ${data.companyAddress
+      ? `<div style="font-size: 0.9em;">${data.companyAddress}</div>`
+      : ""
+    }
+      ${data.companyPhone
+      ? `<div style="font-size: 0.9em;">Phone: <b>${data.companyPhone}</b></div>`
+      : ""
+    }
+      ${settings.showGstin && data.companyGstin
+      ? `<div style="font-size: 0.9em;">GSTIN: <b>${data.companyGstin}</b></div>`
+      : ""
+    }
+      ${data.companyFssai
+      ? `<div style="font-size: 0.85em;">FSSAI Lic: ${data.companyFssai}</div>`
+      : ""
+    }
+      ${settings.customHeader
+      ? `<div style="font-size: 0.85em; font-style: italic; margin-top: 1px;">${settings.customHeader}</div>`
+      : ""
+    }
     </div>
 
     <div class="divider-double"></div>
@@ -353,55 +346,46 @@ export async function buildThermalReceiptHtml(
         <span>Date: <b>${data.invoiceDate || ""}</b></span>
       </div>
       <div class="flex-row">
-        ${
-          settings.showTime && data.invoiceTime
-            ? `<span>Time: ${data.invoiceTime}</span>`
-            : "<span></span>"
-        }
-        ${
-          data.cashierName
-            ? `<span>Cashier: ${data.cashierName}</span>`
-            : "<span></span>"
-        }
+        ${settings.showTime && data.invoiceTime
+      ? `<span>Time: ${data.invoiceTime}</span>`
+      : "<span></span>"
+    }
+        ${data.cashierName
+      ? `<span>Cashier: ${data.cashierName}</span>`
+      : "<span></span>"
+    }
       </div>
-      ${
-        settings.showDueDate && data.dueDate
-          ? `<div class="flex-row"><span>Due Date: ${data.dueDate}</span></div>`
-          : ""
-      }
-      ${
-        settings.showPlaceOfSupply && data.placeOfSupply
-          ? `<div class="flex-row"><span>Place of Supply: ${data.placeOfSupply}</span></div>`
-          : ""
-      }
+      ${settings.showDueDate && data.dueDate
+      ? `<div class="flex-row"><span>Due Date: ${data.dueDate}</span></div>`
+      : ""
+    }
+      ${settings.showPlaceOfSupply && data.placeOfSupply
+      ? `<div class="flex-row"><span>Place of Supply: ${data.placeOfSupply}</span></div>`
+      : ""
+    }
 
       <!-- Customer / Party Info -->
-      ${
-        data.customerName && data.customerName !== "Cash Sale"
-          ? `<div class="divider-line"></div>
+      ${data.customerName && data.customerName !== "Cash Sale"
+      ? `<div class="divider-line"></div>
              <div><b>Customer:</b> ${data.customerName}</div>
-             ${
-               settings.showCustomerPhone && data.customerPhone
-                 ? `<div>Mobile: ${data.customerPhone}</div>`
-                 : ""
-             }
-             ${
-               data.customerAddress
-                 ? `<div style="font-size: 0.85em;">Address: ${data.customerAddress}</div>`
-                 : ""
-             }
-             ${
-               settings.showGstin && data.customerGstin
-                 ? `<div>Cust GSTIN: ${data.customerGstin}</div>`
-                 : ""
-             }
-             ${
-               settings.showShippingAddress && data.shippingAddress
-                 ? `<div style="font-size: 0.85em;">Ship To: ${data.shippingAddress}</div>`
-                 : ""
-             }`
-          : ""
+             ${settings.showCustomerPhone && data.customerPhone
+        ? `<div>Mobile: ${data.customerPhone}</div>`
+        : ""
       }
+             ${data.customerAddress
+        ? `<div style="font-size: 0.85em;">Address: ${data.customerAddress}</div>`
+        : ""
+      }
+             ${settings.showGstin && data.customerGstin
+        ? `<div>Cust GSTIN: ${data.customerGstin}</div>`
+        : ""
+      }
+             ${settings.showShippingAddress && data.shippingAddress
+        ? `<div style="font-size: 0.85em;">Ship To: ${data.shippingAddress}</div>`
+        : ""
+      }`
+      : ""
+    }
     </div>
 
     <!-- Items Table -->
@@ -411,32 +395,29 @@ export async function buildThermalReceiptHtml(
           <th class="text-left" style="width: 8%;">#</th>
           <th class="text-left" style="width: ${is2Inch ? "44%" : "48%"};">Item</th>
           <th class="text-center" style="width: ${is2Inch ? "18%" : "16%"};">Qty</th>
-          ${
-            settings.showRate
-              ? `<th class="text-right" style="width: ${is2Inch ? "15%" : "16%"};">Rate</th>`
-              : ""
-          }
+          ${settings.showRate
+      ? `<th class="text-right" style="width: ${is2Inch ? "15%" : "16%"};">Rate</th>`
+      : ""
+    }
           <th class="text-right" style="width: ${is2Inch ? "15%" : "20%"};">Amt</th>
         </tr>
       </thead>
       <tbody>
         ${data.items
-          .map((it, idx) => {
-            const hasDesc = settings.showItemDesc && (it.description || it.hsn);
-            return `<tr>
+      .map((it, idx) => {
+        const hasDesc = settings.showItemDesc && (it.description || it.hsn);
+        return `<tr>
               <td>${idx + 1}</td>
               <td class="font-bold">${it.name}</td>
               <td class="text-center">${it.quantity}${it.unit ? ` ${it.unit}` : ""}</td>
-              ${
-                settings.showRate
-                  ? `<td class="text-right">${Number(it.rate).toFixed(2)}</td>`
-                  : ""
-              }
+              ${settings.showRate
+            ? `<td class="text-right">${Number(it.rate).toFixed(2)}</td>`
+            : ""
+          }
               <td class="text-right font-bold">${Number(it.amount).toFixed(2)}</td>
             </tr>
-            ${
-              hasDesc
-                ? `<tr>
+            ${hasDesc
+            ? `<tr>
                     <td></td>
                     <td colspan="${settings.showRate ? 4 : 3}" class="item-desc">
                       ${it.description ? `<span>${it.description}</span> ` : ""}
@@ -445,10 +426,10 @@ export async function buildThermalReceiptHtml(
                       ${it.taxPercent ? `<span>GST:${it.taxPercent}%</span>` : ""}
                     </td>
                   </tr>`
-                : ""
-            }`;
-          })
-          .join("")}
+            : ""
+          }`;
+      })
+      .join("")}
       </tbody>
     </table>
 
@@ -463,55 +444,50 @@ export async function buildThermalReceiptHtml(
         <span>Subtotal:</span>
         <span>₹ ${Number(data.subTotal).toFixed(2)}</span>
       </div>
-      ${
-        data.taxableAmount
-          ? `<div class="flex-row">
+      ${data.taxableAmount
+      ? `<div class="flex-row">
               <span>Taxable Value:</span>
               <span>₹ ${Number(data.taxableAmount).toFixed(2)}</span>
             </div>`
-          : ""
-      }
-      ${
-        settings.showTaxBreakup && data.taxBreakdown && data.taxBreakdown.length > 0
-          ? data.taxBreakdown
-              .map(
-                (tb) => `<div class="flex-row" style="font-size: 0.9em;">
+      : ""
+    }
+      ${settings.showTaxBreakup && data.taxBreakdown && data.taxBreakdown.length > 0
+      ? data.taxBreakdown
+        .map(
+          (tb) => `<div class="flex-row" style="font-size: 0.9em;">
                   <span>${tb.label}:</span>
                   <span>₹ ${Number(tb.amount).toFixed(2)}</span>
                 </div>`,
-              )
-              .join("")
-          : data.taxTotal
-          ? `<div class="flex-row">
+        )
+        .join("")
+      : data.taxTotal
+        ? `<div class="flex-row">
               <span>Tax Amount:</span>
               <span>₹ ${Number(data.taxTotal).toFixed(2)}</span>
             </div>`
-          : ""
-      }
-      ${
-        data.discountTotal && Number(data.discountTotal) > 0
-          ? `<div class="flex-row">
+        : ""
+    }
+      ${data.discountTotal && Number(data.discountTotal) > 0
+      ? `<div class="flex-row">
               <span>Total Discount:</span>
               <span>- ₹ ${Number(data.discountTotal).toFixed(2)}</span>
             </div>`
-          : ""
-      }
-      ${
-        data.chargesTotal && Number(data.chargesTotal) > 0
-          ? `<div class="flex-row">
+      : ""
+    }
+      ${data.chargesTotal && Number(data.chargesTotal) > 0
+      ? `<div class="flex-row">
               <span>Delivery / Charges:</span>
               <span>+ ₹ ${Number(data.chargesTotal).toFixed(2)}</span>
             </div>`
-          : ""
-      }
-      ${
-        data.roundOff && Number(data.roundOff) !== 0
-          ? `<div class="flex-row">
+      : ""
+    }
+      ${data.roundOff && Number(data.roundOff) !== 0
+      ? `<div class="flex-row">
               <span>Round Off:</span>
               <span>₹ ${Number(data.roundOff).toFixed(2)}</span>
             </div>`
-          : ""
-      }
+      : ""
+    }
 
       <div class="divider-line"></div>
       <div class="flex-row font-bold" style="font-size: 1.2em;">
@@ -521,108 +497,96 @@ export async function buildThermalReceiptHtml(
       <div class="divider-line"></div>
 
       <!-- Savings Line -->
-      ${
-        settings.showSavings && data.youSaved && Number(data.youSaved) > 0
-          ? `<div class="flex-row font-bold" style="font-size: 1em; background: #000; color: #fff; padding: 2px 4px;">
+      ${settings.showSavings && data.youSaved && Number(data.youSaved) > 0
+      ? `<div class="flex-row font-bold" style="font-size: 1em; background: #000; color: #fff; padding: 2px 4px;">
               <span style="color:#fff;">YOU SAVED:</span>
               <span style="color:#fff;">₹ ${Number(data.youSaved).toFixed(2)}</span>
             </div>
             <div class="divider-line"></div>`
-          : ""
-      }
+      : ""
+    }
 
       <!-- Payment tender details -->
       <div class="flex-row">
         <span>Payment Mode:</span>
         <span><b>${data.paymentMode || "Cash"}</b></span>
       </div>
-      ${
-        data.receivedAmount !== undefined
-          ? `<div class="flex-row">
+      ${data.receivedAmount !== undefined
+      ? `<div class="flex-row">
               <span>Amount Received:</span>
               <span>₹ ${Number(data.receivedAmount).toFixed(2)}</span>
             </div>`
-          : ""
-      }
-      ${
-        data.changeDue && Number(data.changeDue) > 0
-          ? `<div class="flex-row font-bold">
+      : ""
+    }
+      ${data.changeDue && Number(data.changeDue) > 0
+      ? `<div class="flex-row font-bold">
               <span>Change Return:</span>
               <span>₹ ${Number(data.changeDue).toFixed(2)}</span>
             </div>`
-          : ""
-      }
-      ${
-        data.balanceAmount && Number(data.balanceAmount) > 0
-          ? `<div class="flex-row font-bold" style="color: #000;">
+      : ""
+    }
+      ${data.balanceAmount && Number(data.balanceAmount) > 0
+      ? `<div class="flex-row font-bold" style="color: #000;">
               <span>Bill Due Balance:</span>
               <span>₹ ${Number(data.balanceAmount).toFixed(2)}</span>
             </div>`
-          : ""
-      }
+      : ""
+    }
 
       <!-- Ledger / Party balance -->
-      ${
-        settings.showPartyBalance &&
-        (data.previousBalance !== undefined || data.currentBalance !== undefined)
-          ? `<div class="divider-line"></div>
-             ${
-               settings.showPrevBalance && data.previousBalance !== undefined
-                 ? `<div class="flex-row" style="font-size: 0.9em;">
+      ${settings.showPartyBalance &&
+      (data.previousBalance !== undefined || data.currentBalance !== undefined)
+      ? `<div class="divider-line"></div>
+             ${settings.showPrevBalance && data.previousBalance !== undefined
+        ? `<div class="flex-row" style="font-size: 0.9em;">
                      <span>Previous Balance:</span>
                      <span>₹ ${Number(data.previousBalance).toFixed(2)}</span>
                    </div>`
-                 : ""
-             }
-             ${
-               data.currentBalance !== undefined
-                 ? `<div class="flex-row font-bold">
+        : ""
+      }
+             ${data.currentBalance !== undefined
+        ? `<div class="flex-row font-bold">
                      <span>Current Total Balance:</span>
                      <span>₹ ${Number(data.currentBalance).toFixed(2)}</span>
                    </div>`
-                 : ""
-             }`
-          : ""
-      }
+        : ""
+      }`
+      : ""
+    }
     </div>
 
     <!-- Scannable UPI QR Code -->
-    ${
-      qrDataUrl
-        ? `<div class="divider-line"></div>
+    ${qrDataUrl
+      ? `<div class="divider-line"></div>
            <div class="qr-container">
              <img src="${qrDataUrl}" alt="UPI QR" />
              <div style="font-size: 0.85em; font-weight: 800; margin-top: 1px;">SCAN TO PAY VIA UPI</div>
              <div style="font-size: 0.8em;">GPay / PhonePe / Paytm / BHIM</div>
            </div>`
-        : ""
+      : ""
     }
 
     <!-- Notes & Terms -->
-    ${
-      (settings.showNotes && data.notes) || (settings.showTerms && data.terms)
-        ? `<div class="divider-line"></div>
+    ${(settings.showNotes && data.notes) || (settings.showTerms && data.terms)
+      ? `<div class="divider-line"></div>
            <div style="font-size: 0.85em;">
-             ${
-               settings.showNotes && data.notes
-                 ? `<div><b>Note:</b> ${data.notes}</div>`
-                 : ""
-             }
-             ${
-               settings.showTerms && data.terms
-                 ? `<div style="margin-top: 2px;"><b>Terms:</b> ${data.terms}</div>`
-                 : ""
-             }
-           </div>`
+             ${settings.showNotes && data.notes
+        ? `<div><b>Note:</b> ${data.notes}</div>`
         : ""
+      }
+             ${settings.showTerms && data.terms
+        ? `<div style="margin-top: 2px;"><b>Terms:</b> ${data.terms}</div>`
+        : ""
+      }
+           </div>`
+      : ""
     }
 
     <!-- Footer -->
     <div class="divider-double"></div>
     <div class="text-center" style="font-size: 0.85em; margin-top: 3px;">
-      <p class="font-bold">${
-        settings.customFooter || "Thank you for your business!"
-      }</p>
+      <p class="font-bold">${settings.customFooter || "Thank you for your business!"
+    }</p>
       <p style="font-size: 0.8em; margin-top: 2px;">Powered by myownbillbook POS</p>
     </div>
 
@@ -876,7 +840,7 @@ export async function printViaBluetoothPos(
       try {
         service = await server.getPrimaryService(uuid);
         if (service) break;
-      } catch {}
+      } catch { }
     }
 
     if (!service) {
@@ -919,7 +883,7 @@ export async function printViaBluetoothPos(
 }
 
 /**
- * Direct WebUSB ESC/POS raw printing for USB thermal printers (DMart / JioMart Supermarket Style)
+ * Direct WebUSB ESC/POS raw printing for USB thermal printers ( /  Supermarket Style)
  * Communicates directly with TVS, Epson, Posiflex, Rongta, Everycom over USB cable with auto-cut
  */
 export async function printViaWebUsb(
@@ -979,7 +943,7 @@ export async function printViaWebUsb(
     try {
       await device.releaseInterface(interfaceNumber);
       await device.close();
-    } catch {}
+    } catch { }
 
     return {
       success: true,

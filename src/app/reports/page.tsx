@@ -16,6 +16,7 @@ import { exportReportData } from "./lib/report-export-adapter";
 import { DataTablePagination } from "../../components/ui/data-table-pagination";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import { formatDate } from "@/lib/date-utils";
+import { ReportPrintHeader, ReportPrintFooter } from "@/components/ui/report-print-header";
 import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 import {
   Star,
@@ -96,7 +97,7 @@ function ReportPagination({
   lang,
 }: ReportPaginationProps) {
   return (
-    <div className="bg-white border-t border-[#E2E8F0] px-4 py-1">
+    <div className="bg-white border-t border-[#E2E8F0] px-4 py-1 print:hidden" data-print-hide="true">
       <DataTablePagination
         currentPage={currentPage}
         pageSize={pageSize}
@@ -315,11 +316,37 @@ export default function ReportsPage({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  // Sync print events to dynamically expand full lists for printing
+  useEffect(() => {
+    const handleBeforePrint = () => setIsPrinting(true);
+    const handleAfterPrint = () => setIsPrinting(false);
+    window.addEventListener("beforeprint", handleBeforePrint);
+    window.addEventListener("afterprint", handleAfterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", handleBeforePrint);
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, []);
+
+  const handlePrintReport = () => {
+    setIsPrinting(true);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        setIsPrinting(false);
+      }, 500);
+    }, 120);
+  };
 
   // Helper to slice lists and calculate pagination parameters
   const paginateList = (list: any[]) => {
     const arr = Array.isArray(list) ? list : [];
     const totalEntries = arr.length;
+    if (isPrinting) {
+      return { paginatedList: arr, safePage: 1, totalPages: 1, totalEntries };
+    }
     const totalPages = Math.max(1, Math.ceil(totalEntries / reportPageSize));
     const safePage = Math.min(Math.max(1, reportPage), totalPages);
     const startIdx = (safePage - 1) * reportPageSize;
@@ -480,6 +507,9 @@ export default function ReportsPage({
               fromDate: startDate,
               toDate: endDate,
             });
+            if (data?.party && !partiesList.some((p) => p.id === data.party.id)) {
+              setPartiesList((prev) => [data.party, ...prev]);
+            }
           }
           break;
         case "party-aging":
@@ -678,8 +708,42 @@ export default function ReportsPage({
         />
       ) : (
         <>
+          {/* Authoritative Corporate Print Header (Visible strictly on Print & PDF output) */}
+          <ReportPrintHeader
+            title={
+              activeTab === "gst-purchase-hsn"
+                ? "GST Purchase (With HSN)"
+                : activeTab === "gst-sales-hsn"
+                ? "GST Sales (With HSN)"
+                : activeTab === "sales-summary"
+                ? "Sales Summary - Staff wise"
+                : activeTab === "balance-sheet"
+                ? "Balance Sheet (As of Today)"
+                : activeTab === "bill-wise-profit"
+                ? "Bill Wise Profit"
+                : activeTab === "party-ledger"
+                ? "Party Statement (Ledger)"
+                : activeTab === "daybook"
+                ? "Daybook"
+                : activeTab === "gstr-1"
+                ? "GSTR-1 (Sales)"
+                : activeTab === "stock-summary"
+                ? "Stock Summary"
+                : currentTabMeta.label
+            }
+            company={currentCompany}
+            startDate={startDate}
+            endDate={endDate}
+            financialYear={currentFY?.name || "2026-27"}
+            filterSummary={
+              activeTab === "party-ledger" && selectedPartyId
+                ? partiesList.find((p) => p.id === selectedPartyId)?.name
+                : undefined
+            }
+          />
+
           {/* 1. Header matching MyBillBook Report Screen */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1 pb-1">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1 pb-1 print:hidden">
             <div className="flex items-center gap-3 flex-wrap min-w-0">
               <button
                 type="button"
@@ -715,7 +779,7 @@ export default function ReportsPage({
                   ? "Stock Summary"
                   : currentTabMeta.label}
               </h1>
-              <p className="text-[12px] text-[#64748B]">{startDate} to {endDate}{currentCompany?.tradeName || currentCompany?.legalName ? ` · ${currentCompany.tradeName || currentCompany.legalName}` : ""}</p>
+              <p className="text-[12px] text-[#64748B]">{formatDate(startDate)} to {formatDate(endDate)}{currentCompany?.tradeName || currentCompany?.legalName ? ` · ${currentCompany.tradeName || currentCompany.legalName}` : ""}</p>
               </div>
 
               {/* Favourite Pill Button */}
@@ -742,7 +806,7 @@ export default function ReportsPage({
 
           {/* Contextual notice banner for Balance Sheet */}
           {activeTab === "balance-sheet" && (
-            <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-amber-900 text-xs font-medium flex items-center justify-between">
+            <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-amber-900 text-xs font-medium flex items-center justify-between print:hidden">
               <div className="flex items-center gap-2">
                 <Info className="w-3.5 h-3.5 text-amber-700 shrink-0" />
                 <span>Balance sheet figures come from the accounting report for the selected period. Missing sections stay at zero instead of sample amounts.</span>
@@ -752,7 +816,7 @@ export default function ReportsPage({
 
           {/* Contextual tabs for GSTR-1 */}
           {activeTab === "gstr-1" && (
-            <div className="flex items-center gap-4 border-b border-slate-200 bg-white px-4 pt-2">
+            <div className="flex items-center gap-4 border-b border-slate-200 bg-white px-4 pt-2 print:hidden">
               <button
                 type="button"
                 onClick={() => setGstr1SubTab("sales")}
@@ -790,7 +854,7 @@ export default function ReportsPage({
           )}
 
           {/* 2. Responsive Action & Filter Bar matching MyBillBook */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full min-w-0 py-1">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full min-w-0 py-1 print:hidden">
             <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto flex-1 min-w-0">
               {/* Date Preset Selector */}
               <div className="flex items-center gap-1.5">
@@ -1017,7 +1081,7 @@ export default function ReportsPage({
 
               <button
                 type="button"
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5 text-slate-500" />
@@ -1028,7 +1092,7 @@ export default function ReportsPage({
 
           {/* Date Range Validation Warning */}
           {isDateRangeInvalid && (
-            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-between gap-3">
+            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-between gap-3 print:hidden">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                 <span className="font-semibold">
@@ -3304,7 +3368,13 @@ export default function ReportsPage({
                       <span>Total Receivable</span>
                     </span>
                     <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
-                      {selectedPartyId ? `₹ ${Number(reportData?.summary?.totalReceivable || reportData?.summary?.closingBalance || 0).toLocaleString("en-IN")}` : "—"}
+                      {selectedPartyId
+                        ? `₹ ${Number(
+                            reportData?.summary?.totalReceivable ??
+                            (reportData?.closingBalance?.type === "DR" ? reportData?.closingBalance?.amount : reportData?.closingBalance) ??
+                            0
+                          ).toLocaleString("en-IN")}`
+                        : "—"}
                     </p>
                   </div>
 
@@ -3314,7 +3384,13 @@ export default function ReportsPage({
                       <span>Overdue Amount</span>
                     </span>
                     <p className="tabular-nums font-bold text-lg text-amber-700 mt-1">
-                      {selectedPartyId ? `₹ ${Number(reportData?.summary?.overdueAmount || 0).toLocaleString("en-IN")}` : "—"}
+                      {selectedPartyId
+                        ? `₹ ${Number(
+                            reportData?.summary?.overdueAmount ??
+                            (reportData?.closingBalance?.type === "DR" ? reportData?.closingBalance?.amount : 0) ??
+                            0
+                          ).toLocaleString("en-IN")}`
+                        : "—"}
                     </p>
                   </div>
 
@@ -3324,7 +3400,14 @@ export default function ReportsPage({
                       <span>Total Sales</span>
                     </span>
                     <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
-                      {selectedPartyId ? `₹ ${Number(reportData?.summary?.totalDebits || reportData?.summary?.totalSales || 0).toLocaleString("en-IN")}` : "—"}
+                      {selectedPartyId
+                        ? `₹ ${Number(
+                            reportData?.summary?.totalSales ??
+                            reportData?.summary?.totalDebits ??
+                            reportData?.totalDebit ??
+                            0
+                          ).toLocaleString("en-IN")}`
+                        : "—"}
                     </p>
                   </div>
 
@@ -3334,7 +3417,14 @@ export default function ReportsPage({
                       <span>Total Received</span>
                     </span>
                     <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">
-                      {selectedPartyId ? `₹ ${Number(reportData?.summary?.totalCredits || reportData?.summary?.totalReceived || 0).toLocaleString("en-IN")}` : "—"}
+                      {selectedPartyId
+                        ? `₹ ${Number(
+                            reportData?.summary?.totalReceived ??
+                            reportData?.summary?.totalCredits ??
+                            reportData?.totalCredit ??
+                            0
+                          ).toLocaleString("en-IN")}`
+                        : "—"}
                     </p>
                   </div>
                 </div>
@@ -5455,6 +5545,9 @@ export default function ReportsPage({
               </div>
             )}
           </div>
+
+          {/* Authoritative Corporate Print Footer (Visible strictly on Print & PDF output) */}
+          <ReportPrintFooter />
         </>
       )}
 

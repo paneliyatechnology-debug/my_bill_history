@@ -509,7 +509,7 @@ export function ItemDetailView({
         </div>
 
         {/* 2. Tabs Navigation Row matching myBillBook */}
-        <div className="flex border-b border-slate-200 px-6 gap-8 bg-white">
+        <div className="flex border-b border-slate-200 px-6 gap-8 bg-white print:hidden">
           <button
             type="button"
             onClick={() => setActiveTab("details")}
@@ -711,7 +711,7 @@ export function ItemDetailView({
           {activeTab === "stock" && (
             <div className="space-y-4">
               {/* Filter Toolbar: Date Range, Download, Print */}
-              <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center justify-between flex-wrap gap-2 print:hidden">
                 <div className="w-36">
                   <CustomSelect
                     size="sm"
@@ -759,7 +759,7 @@ export function ItemDetailView({
                       <th className="px-5 py-3 whitespace-nowrap">Quantity</th>
                       <th className="px-5 py-3 whitespace-nowrap">Invoice Number</th>
                       <th className="px-5 py-3 whitespace-nowrap">Closing Stock</th>
-                      <th className="px-5 py-3 text-right whitespace-nowrap">Action</th>
+                      <th className="px-5 py-3 text-right whitespace-nowrap print:hidden">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-slate-800">
@@ -828,7 +828,7 @@ export function ItemDetailView({
                             <td className="px-5 py-3 whitespace-nowrap font-semibold text-slate-900">
                               {m.closingStock} {uomLabel}
                             </td>
-                            <td className="px-5 py-3 text-right whitespace-nowrap">
+                            <td className="px-5 py-3 text-right whitespace-nowrap print:hidden">
                               {hasLink ? (
                                 <Link
                                   href={m.docLink!}
@@ -857,7 +857,7 @@ export function ItemDetailView({
           {activeTab === "party_report" && (
             <div className="space-y-4">
               {/* Filter Toolbar: Date Range, Download, Print */}
-              <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center justify-between flex-wrap gap-2 print:hidden">
                 <div className="w-36">
                   <CustomSelect
                     size="sm"

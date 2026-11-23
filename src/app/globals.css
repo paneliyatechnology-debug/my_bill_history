@@ -1010,39 +1010,47 @@ textarea {
     print-color-adjust: exact !important;
   }
 
-  /* Explicitly hide application navigation, aside, header, and buttons */
+  /* Explicitly hide application navigation, aside, header, inputs, buttons, and pagination */
   aside,
   header,
   nav,
   footer,
   button,
   select,
-  textarea {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    width: 0 !important;
-    overflow: hidden !important;
-  }
-
-  /* Specifically target mobile bottom bar and drawer */
-  nav[aria-label="Mobile Navigation Bar"],
-  nav[aria-label="Sidebar Navigation"],
-  nav[aria-label="Mobile Navigation"] {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    overflow: hidden !important;
-  }
-
-  /* Hide print-hidden utility classes */
+  textarea,
+  input,
   .no-print,
   .print-hide,
   .wave-background,
   [data-print-hide="true"],
   [class*="print:hidden"],
-  [class*="no-print"] {
+  [class*="no-print"],
+  .data-table-pagination,
+  .report-action-bar,
+  .pagination-container {
     display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+  }
+
+  /* Reveal print-only elements */
+  .print-only,
+  .print\:block,
+  [class*="print:block"] {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+    width: auto !important;
+  }
+  .print\:flex,
+  [class*="print:flex"] {
+    display: flex !important;
+    visibility: visible !important;
   }
 
   /* Ensure #main-content and all wrappers are visible and flow normally */
@@ -1137,6 +1145,97 @@ textarea {
   .printable-invoice .summary-card {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+  }
+
+  /* Professional Report Table styling across all report screens */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 10px !important;
+  }
+
+  thead th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    font-size: 9.5px !important;
+    text-transform: uppercase !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  tbody td {
+    font-size: 9.5px !important;
+    color: #0f172a !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 5px 8px !important;
+  }
+
+  tbody tr:nth-child(even) td {
+    background-color: #f8fafc !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  tfoot th,
+  tfoot td {
+    background-color: #f1f5f9 !important;
+    font-weight: 700 !important;
+    font-size: 10px !important;
+    border: 1px solid #94a3b8 !important;
+    padding: 6px 8px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Report summary cards in print */
+  .grid:has(.tabular-nums) {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    page-break-inside: avoid !important;
+  }
+
+  .grid:has(.tabular-nums) > div {
+    border: 1px solid #cbd5e1 !important;
+    background-color: #f8fafc !important;
+    box-shadow: none !important;
+    border-radius: 4px !important;
+    padding: 6px 10px !important;
+    page-break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .grid:has(.tabular-nums) > div span {
+    font-size: 8.5px !important;
+    font-weight: 700 !important;
+    color: #475569 !important;
+    text-transform: uppercase !important;
+    display: block !important;
+  }
+
+  .grid:has(.tabular-nums) > div p {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    margin-top: 2px !important;
+  }
+
+  /* Ensure card borders and remove web shadows */
+  .rounded-xl,
+  .rounded-2xl {
+    border-radius: 4px !important;
+  }
+  .shadow-xs,
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xs {
+    box-shadow: none !important;
   }
 
   /* Force background colors and borders to print accurately */

@@ -264,7 +264,10 @@ export default function LedgersPage() {
         searchKeys={["name", "code", "nameGujarati"]}
         defaultPageSize={10}
         isLoading={isLoading}
-        onRowClick={(l) => router.push(`/reports?tab=party-ledger&partyId=${l.id}`)}
+        onRowClick={(l) => {
+          const targetId = (l as any).partyId || l.id;
+          router.push(`/reports?tab=party-ledger&partyId=${targetId}`);
+        }}
         emptyMessage={
           lang === "gu"
             ? "કોઈ ખાતા મળ્યા નથી"

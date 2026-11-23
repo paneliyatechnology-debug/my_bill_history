@@ -76,7 +76,8 @@ export function DataTablePagination({
 
   return (
     <div
-      className={`flex flex-col sm:flex-row items-center justify-between gap-3 px-1 py-3 text-[13px] text-slate-600 select-none ${className}`}
+      data-print-hide="true"
+      className={`flex flex-col sm:flex-row items-center justify-between gap-3 px-1 py-3 text-[13px] text-slate-600 select-none print:hidden data-table-pagination ${className}`}
     >
       {/* Left side: Showing X–Y of Z entries */}
       <div className="flex items-center gap-2 text-slate-600 font-normal">
