@@ -735,36 +735,24 @@ function NewPurchaseInvoiceContent() {
       totalDiscount += overallDiscVal;
     }
 
-    // Additional charges calculation
-    let addChargeVal = 0;
-    let addChargeTax = 0;
-    if (additionalChargeAmount) {
-      addChargeVal = Number(additionalChargeAmount) || 0;
-      addChargeTax = (addChargeVal * (Number(additionalChargeGstRate) || 0)) / 100;
-      totalTaxable += addChargeVal;
-      if (isInterState) {
-        totalIgst += addChargeTax;
-      } else {
-        totalCgst += addChargeTax / 2;
-        totalSgst += addChargeTax / 2;
-      }
-    }
-
+    // Additional freight charges calculation (Freight is added to Grand Total, not items taxable or items GST)
+    const freightVal = Number(additionalChargeAmount) || 0;
+    const itemsTaxable = totalTaxable;
     const totalTax = totalCgst + totalSgst + totalIgst;
-    const rawGrandTotal = totalTaxable + totalTax;
+    const rawGrandTotal = itemsTaxable + totalTax + freightVal;
     const roundedGrandTotal = autoRoundOff ? Math.round(rawGrandTotal) : Math.round(rawGrandTotal * 100) / 100;
     const roundOff = autoRoundOff ? roundedGrandTotal - rawGrandTotal : 0;
 
     return {
       grossSubtotal,
       totalDiscount,
-      totalTaxable,
+      totalTaxable: itemsTaxable,
       totalCgst,
       totalSgst,
       totalIgst,
       totalTax,
       totalQuantity,
-      additionalChargeAmount: addChargeVal,
+      additionalChargeAmount: freightVal,
       roundOff,
       grandTotal: roundedGrandTotal,
     };
@@ -2994,7 +2982,7 @@ function NewPurchaseInvoiceContent() {
                     <div>
                       <span>Items Total: </span>
                       <span className="font-bold text-slate-900 tabular-nums">
-                        {formatInr(totals.grandTotal)}
+                        {formatInr(totals.totalTaxable + totals.totalTax)}
                       </span>
                     </div>
                   </div>
@@ -3234,7 +3222,7 @@ function NewPurchaseInvoiceContent() {
                       <div className="flex items-center justify-between text-slate-600">
                         <span>Items Subtotal</span>
                         <span className="font-semibold tabular-nums text-slate-800">
-                          {formatInr(totals.totalTaxable)}
+                          {formatInr(totals.totalDiscount > 0 ? totals.grossSubtotal : totals.totalTaxable)}
                         </span>
                       </div>
 
