@@ -379,6 +379,13 @@ export function ItemStepModal({
     }
   }, [units, form.primaryUomId]);
 
+  // If switched to SERVICE while on stock tab, automatically switch to basic tab
+  useEffect(() => {
+    if (form.type === "SERVICE" && activeTab === "stock") {
+      setActiveTab("basic");
+    }
+  }, [form.type, activeTab]);
+
   if (!isOpen) return null;
 
   // Generate unique 11-digit Barcode
@@ -415,10 +422,19 @@ export function ItemStepModal({
       setErrorMsg(lang === "gu" ? "આઇટમનું નામ દાખલ કરો." : "Please enter the Item Name.");
       return;
     }
-    if (!form.hsnCode.trim()) {
-      setActiveTab("stock");
-      setErrorMsg(lang === "gu" ? "HSN/SAC કોડ જરૂરી છે." : "HSN/SAC code is required.");
+    if (form.type === "PRODUCT" && !form.primaryUomId) {
+      setActiveTab("basic");
+      setErrorMsg(lang === "gu" ? "માપન એકમ (Unit) પસંદ કરો." : "Please select a Measuring Unit.");
       return;
+    }
+    if (!form.hsnCode.trim()) {
+      if (form.type === "SERVICE") {
+        form.hsnCode = "9999";
+      } else {
+        setActiveTab("stock");
+        setErrorMsg(lang === "gu" ? "HSN/SAC કોડ જરૂરી છે." : "HSN/SAC code is required.");
+        return;
+      }
     }
 
     setErrorMsg(null);
@@ -426,8 +442,11 @@ export function ItemStepModal({
     try {
       await onSubmit({
         ...form,
+        primaryUomId: form.primaryUomId || defaultUom || units[0]?.id || "",
         taxRate: form.taxRate === "" ? 0 : Number(form.taxRate) || 0,
         conversionFactor: form.conversionFactor === "" ? 1 : Number(form.conversionFactor) || 1,
+        openingStock: form.type === "SERVICE" ? "0" : form.openingStock,
+        minStockLevel: form.type === "SERVICE" ? 0 : form.minStockLevel,
       });
       onClose();
     } catch (err: any) {
@@ -507,7 +526,8 @@ export function ItemStepModal({
     selectedPrimaryUom?.name ||
     "PCS";
 
-  // Tab definitions
+  // Tab definitions (Dynamically hide Stock Details when item is a SERVICE)
+  const isService = form.type === "SERVICE";
   const tabs: { id: ItemTab; label: string; labelGu: string; icon: React.ReactNode; isRequired?: boolean }[] = [
     {
       id: "basic",
@@ -520,16 +540,20 @@ export function ItemStepModal({
         </svg>
       ),
     },
-    {
-      id: "stock",
-      label: "Stock Details",
-      labelGu: "સ્ટોક વિગતો",
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-      ),
-    },
+    ...(!isService
+      ? [
+          {
+            id: "stock" as ItemTab,
+            label: "Stock Details",
+            labelGu: "સ્ટોક વિગતો",
+            icon: (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            ),
+          },
+        ]
+      : []),
     {
       id: "pricing",
       label: "Pricing Details",
@@ -756,7 +780,13 @@ export function ItemStepModal({
                               name="itemType"
                               value="SERVICE"
                               checked={form.type === "SERVICE"}
-                              onChange={() => setForm({ ...form, type: "SERVICE" })}
+                              onChange={() =>
+                                setForm({
+                                  ...form,
+                                  type: "SERVICE",
+                                  openingStock: "0",
+                                })
+                              }
                               className="accent-purple-600 w-3.5 h-3.5"
                             />
                             <span>{lang === "gu" ? "સેવા (Service)" : "Service"}</span>
@@ -925,25 +955,25 @@ export function ItemStepModal({
                       </div>
                     </div>
 
-                    {/* Measuring Unit & Opening Stock Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
-                          {lang === "gu" ? "માપન એકમ (Unit) *" : "Measuring Unit *"}
-                        </label>
-                        <CustomCombobox
-                          value={form.primaryUomId}
-                          onChange={(val: any) => setForm({ ...form, primaryUomId: val })}
-                          options={units.map((u) => ({
-                            value: u.id,
-                            label: getUnitOptionLabel(u),
-                          }))}
-                          placeholder="Select Unit..."
-                          triggerClassName="rounded-xl border-slate-300 bg-slate-50 font-normal text-slate-800"
-                        />
-                      </div>
+                    {/* Measuring Unit & Opening Stock Row - Shown ONLY for PRODUCT */}
+                    {form.type === "PRODUCT" && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
+                            {lang === "gu" ? "માપન એકમ (Unit) *" : "Measuring Unit *"}
+                          </label>
+                          <CustomCombobox
+                            value={form.primaryUomId}
+                            onChange={(val: any) => setForm({ ...form, primaryUomId: val })}
+                            options={units.map((u) => ({
+                              value: u.id,
+                              label: getUnitOptionLabel(u),
+                            }))}
+                            placeholder="Select Unit..."
+                            triggerClassName="rounded-xl border-slate-300 bg-slate-50 font-normal text-slate-800"
+                          />
+                        </div>
 
-                      {form.type === "PRODUCT" && (
                         <div>
                           <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                             {lang === "gu" ? "પ્રારંભિક સ્ટોક (Opening Stock)" : "Opening Stock"}
@@ -962,8 +992,8 @@ export function ItemStepModal({
                             </span>
                           </div>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Batching & Serialisation Toggles matching Video Screenshot */}
                     {form.type === "PRODUCT" && (

@@ -1319,7 +1319,7 @@ export default function CreatePurchaseReturnPage() {
               itemsCount={items.length}
               totalQty={calculations.totalQty}
               itemsTotal={calculations.finalTotal}
-              onImportItems={handleAddItem}
+              // onImportItems={handleAddItem}
               onAddItem={handleAddItem}
               onAddBlankRow={handleAddItem}
               addItemLabel="+ Add Item"
