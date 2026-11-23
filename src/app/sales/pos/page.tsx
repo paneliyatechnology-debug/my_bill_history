@@ -2107,9 +2107,6 @@ export default function PosTerminalPage() {
                         receivedAmount: e.target.value === "" ? "" : Number(e.target.value),
                       }))
                     }
-                    onFocus={(e) => {
-                      if (e.target.value === "0") e.target.select();
-                    }}
                     placeholder="0.00"
                     className="w-full pl-7 pr-3 py-2 text-[13px] tabular-nums bg-white border border-[#E5E7EB] rounded-md outline-none focus:border-[#8B5CF6] text-[#1F2937] h-10"
                   />

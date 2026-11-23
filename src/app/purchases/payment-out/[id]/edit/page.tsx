@@ -465,9 +465,6 @@ export default function EditPaymentOutPage() {
                     step="any"
                     value={amountPaid === "0" ? "" : amountPaid}
                     onChange={(e) => handleAmountPaidChange(e.target.value)}
-                    onFocus={(e) => {
-                      if (e.target.value === "0") e.target.select();
-                    }}
                     placeholder="0.00"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                   />
@@ -482,9 +479,6 @@ export default function EditPaymentOutPage() {
                     step="any"
                     value={paymentOutDiscount === "0" ? "" : paymentOutDiscount}
                     onChange={(e) => setPaymentOutDiscount(e.target.value)}
-                    onFocus={(e) => {
-                      if (e.target.value === "0") e.target.select();
-                    }}
                     placeholder="0.00"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />

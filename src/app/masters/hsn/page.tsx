@@ -1062,9 +1062,6 @@ export default function HsnMasterPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, cessRate: e.target.value === "" ? ("" as any) : Number(e.target.value) })
                 }
-                onFocus={(e) => {
-                  if (e.target.value === "0") e.target.select();
-                }}
                 placeholder="0.00"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               />
@@ -1223,9 +1220,6 @@ export default function HsnMasterPage() {
                     cessRate: e.target.value === "" ? ("" as any) : Number(e.target.value),
                   })
                 }
-                onFocus={(e) => {
-                  if (e.target.value === "0") e.target.select();
-                }}
                 placeholder="0.00"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               />

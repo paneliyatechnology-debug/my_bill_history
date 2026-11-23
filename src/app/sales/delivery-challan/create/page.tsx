@@ -927,8 +927,7 @@ export default function CreateDeliveryChallanPage() {
                               value={row.quantity}
                               onChange={(val) => handleUpdateRow(row.id, "quantity", val)}
                               placeholder="1"
-                              className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none"
-                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                              className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] h-10 shadow-2xs"
                             />
                           </td>
 

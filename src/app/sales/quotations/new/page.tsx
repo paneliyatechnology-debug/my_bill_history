@@ -1042,8 +1042,7 @@ export default function NewQuotationPage() {
                               value={row.quantity}
                               onChange={(val) => handleRowChange(idx, "quantity", val)}
                               placeholder="1"
-                              className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none"
-                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                              className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] h-10 shadow-2xs"
                             />
                           </td>
 
@@ -1052,7 +1051,7 @@ export default function NewQuotationPage() {
                               value={row.unitPrice}
                               onChange={(val) => handleRowChange(idx, "unitPrice", val)}
                               placeholder="0.00"
-                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] h-10 shadow-2xs"
                             />
                           </td>
 

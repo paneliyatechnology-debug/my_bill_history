@@ -406,9 +406,6 @@ export default function LedgersPage() {
                     openingBalance: e.target.value === "" ? ("" as any) : Number(e.target.value),
                   })
                 }
-                onFocus={(e) => {
-                  if (e.target.value === "0") e.target.select();
-                }}
                 placeholder="0.00"
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums h-10"
               />

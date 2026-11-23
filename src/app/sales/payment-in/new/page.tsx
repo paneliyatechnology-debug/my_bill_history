@@ -854,9 +854,6 @@ function CreatePaymentInForm() {
                   step="0.01"
                   value={amountReceived === "0" ? "" : amountReceived}
                   onChange={(e) => handleAmountReceivedChange(e.target.value)}
-                  onFocus={(e) => {
-                    if (e.target.value === "0") e.target.select();
-                  }}
                   placeholder="0.00"
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
                 />
@@ -875,9 +872,6 @@ function CreatePaymentInForm() {
                   step="0.01"
                   value={paymentInDiscount === "0" ? "" : paymentInDiscount}
                   onChange={(e) => setPaymentInDiscount(e.target.value)}
-                  onFocus={(e) => {
-                    if (e.target.value === "0") e.target.select();
-                  }}
                   placeholder="0.00"
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
                 />
@@ -1171,9 +1165,6 @@ function CreatePaymentInForm() {
                               max={inv.balanceAmount}
                               value={inv.discount === "0" ? "" : inv.discount}
                               onChange={(e) => updateInvoiceDiscount(inv.id, e.target.value)}
-                              onFocus={(e) => {
-                                if (e.target.value === "0") e.target.select();
-                              }}
                               placeholder="0.00"
                               className="w-16 rounded border border-slate-200 px-1 py-0.5 text-[13px] text-right h-10"
                             />
@@ -1214,9 +1205,6 @@ function CreatePaymentInForm() {
                               step="0.01"
                               value={inv.settle === "0" ? "" : inv.settle}
                               onChange={(e) => updateInvoiceSettle(inv.id, e.target.value)}
-                              onFocus={(e) => {
-                                if (e.target.value === "0") e.target.select();
-                              }}
                               placeholder="0.00"
                               className="w-24 rounded border border-slate-200 px-1.5 py-0.5 text-[13px] font-normal text-right text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                             />

@@ -533,9 +533,6 @@ export default function BatchesPage() {
                     purchaseRate: e.target.value === "" ? ("" as any) : parseFloat(e.target.value),
                   })
                 }
-                onFocus={(e) => {
-                  if (e.target.value === "0") e.target.select();
-                }}
                 placeholder="80.00"
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums font-medium focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
@@ -557,9 +554,6 @@ export default function BatchesPage() {
                     mrp: e.target.value === "" ? ("" as any) : parseFloat(e.target.value),
                   })
                 }
-                onFocus={(e) => {
-                  if (e.target.value === "0") e.target.select();
-                }}
                 placeholder="100.00"
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
@@ -581,9 +575,6 @@ export default function BatchesPage() {
                     saleRate: e.target.value === "" ? ("" as any) : parseFloat(e.target.value),
                   })
                 }
-                onFocus={(e) => {
-                  if (e.target.value === "0") e.target.select();
-                }}
                 placeholder="90.00"
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums font-normal text-emerald-700 focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />

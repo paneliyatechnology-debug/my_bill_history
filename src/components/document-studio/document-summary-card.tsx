@@ -185,11 +185,6 @@ export function DocumentPaymentCard({
                 step="any"
                 value={amountReceived === 0 || amountReceived === "0" || amountReceived === "" ? "" : amountReceived}
                 onChange={(e) => onAmountReceivedChange(e.target.value === "" ? "" : parseFloat(e.target.value))}
-                onFocus={(e) => {
-                  if (e.target.value === "0") {
-                    e.target.select();
-                  }
-                }}
                 placeholder="0.00"
                 className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-xl typo-input text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs h-9"
               />

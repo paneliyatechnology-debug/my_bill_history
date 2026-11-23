@@ -65,11 +65,6 @@ export function DocumentPaymentCard({
               const val = e.target.value;
               onAmountReceivedChange(val === "" ? "" : Number(val));
             }}
-            onFocus={(e) => {
-              if (e.target.value === "0") {
-                e.target.select();
-              }
-            }}
             placeholder="0.00"
             className="w-full text-[13px] bg-transparent tabular-nums font-normal text-slate-900 focus:outline-none disabled:text-slate-500 h-10"
           />

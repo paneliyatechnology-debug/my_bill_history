@@ -1388,7 +1388,7 @@ export default function CreatePurchaseReturnPage() {
                           value={row.quantity}
                           onChange={(val) => updateItemLine(idx, "quantity", val)}
                           placeholder="1"
-                          className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
+                          className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
                         />
                       </td>
 
@@ -1397,7 +1397,7 @@ export default function CreatePurchaseReturnPage() {
                           value={row.unitPrice}
                           onChange={(val) => updateItemLine(idx, "unitPrice", val)}
                           placeholder="0.00"
-                          className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
+                          className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
                         />
                       </td>
 
@@ -1703,7 +1703,6 @@ export default function CreatePurchaseReturnPage() {
                   list="gst-rates-return"
                   value={createItemForm.taxRate ?? ""}
                   onChange={(e) => setCreateItemForm({ ...createItemForm, taxRate: e.target.value as any })}
-                  onFocus={(e) => e.target.select()}
                   placeholder="0"
                   className="w-full p-2 pr-6 border border-slate-300 rounded-lg text-slate-800 font-normal text-right tabular-nums focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
                 />

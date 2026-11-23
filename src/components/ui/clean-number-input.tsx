@@ -58,7 +58,7 @@ export const CleanNumberInput = React.forwardRef<HTMLInputElement, CleanNumberIn
       prefix,
       containerClassName = "",
       className = "",
-      selectOnFocus = true,
+      selectOnFocus = false,
       onFocus,
       onBlur,
       type = "text",
@@ -79,9 +79,6 @@ export const CleanNumberInput = React.forwardRef<HTMLInputElement, CleanNumberIn
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(true);
-      if (selectOnFocus && e.target.value) {
-        e.target.select();
-      }
       onFocus?.(e);
     };
 
@@ -116,6 +113,13 @@ export const CleanNumberInput = React.forwardRef<HTMLInputElement, CleanNumberIn
       onBlur?.(e);
     };
 
+    const resolvedInputClass = [
+      "selection:bg-blue-100 selection:text-blue-900 transition-colors",
+      className,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
     const inputElement = (
       <input
         ref={ref}
@@ -126,14 +130,22 @@ export const CleanNumberInput = React.forwardRef<HTMLInputElement, CleanNumberIn
         onFocus={handleFocus}
         onBlur={handleBlur}
         placeholder={placeholder}
-        className={className}
+        className={resolvedInputClass}
         {...props}
       />
     );
 
     if (prefix || suffix || containerClassName) {
+      const resolvedContainerClass = [
+        "relative flex items-center transition-colors",
+        "focus-within:border-[#1677E8] focus-within:ring-1 focus-within:ring-[#1677E8] focus-within:bg-white",
+        containerClassName,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
       return (
-        <div className={`relative flex items-center ${containerClassName}`}>
+        <div className={resolvedContainerClass}>
           {prefix && <span className="shrink-0">{prefix}</span>}
           {inputElement}
           {suffix && <span className="shrink-0">{suffix}</span>}

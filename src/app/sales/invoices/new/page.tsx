@@ -2025,8 +2025,7 @@ export default function NewInvoicePage() {
                               value={row.quantity}
                               onChange={(val) => handleRowChange(idx, "quantity", val)}
                               placeholder="1"
-                              className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none"
-                              containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
+                              className="w-full typo-input py-1.5 px-2 text-center typo-tabular bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] h-10 shadow-2xs"
                             />
                           </td>
 
@@ -2437,9 +2436,6 @@ export default function NewInvoicePage() {
                                   openingBalance: e.target.value === "" ? 0 : Number(e.target.value),
                                 })
                               }
-                              onFocus={(e) => {
-                                if (e.target.value === "0") e.target.select();
-                              }}
                               placeholder="0.00"
                               className="w-full text-[13px] bg-transparent tabular-nums font-normal focus:outline-none h-10"
                             />
@@ -2540,9 +2536,6 @@ export default function NewInvoicePage() {
                             creditLimit: e.target.value === "" ? 0 : Number(e.target.value),
                           })
                         }
-                        onFocus={(e) => {
-                          if (e.target.value === "0") e.target.select();
-                        }}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-[13px] font-normal h-10"
                       />
                     </div>
@@ -2560,9 +2553,6 @@ export default function NewInvoicePage() {
                             creditDays: e.target.value === "" ? 0 : Number(e.target.value),
                           })
                         }
-                        onFocus={(e) => {
-                          if (e.target.value === "0") e.target.select();
-                        }}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-[13px] font-normal h-10"
                       />
                     </div>
@@ -2746,9 +2736,6 @@ export default function NewInvoicePage() {
                         const updated = [...splitRows];
                         updated[idx].amount = e.target.value === "" ? 0 : Number(e.target.value);
                         setSplitRows(updated);
-                      }}
-                      onFocus={(e) => {
-                        if (e.target.value === "0") e.target.select();
                       }}
                       placeholder="0.00"
                       className="w-full text-[13px] bg-transparent tabular-nums font-normal focus:outline-none h-10"

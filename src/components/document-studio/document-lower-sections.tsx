@@ -196,7 +196,6 @@ export function DocumentAdditionalInfoCard({
                 step="any"
                 value={freightAmount === 0 || freightAmount === "" ? "" : freightAmount}
                 onChange={(e) => onFreightAmountChange?.(e.target.value === "" ? "" : Number(e.target.value))}
-                onFocus={(e) => e.target.select()}
                 placeholder="0.00"
                 className="w-full py-1.5 pl-6 pr-2.5 bg-white border border-slate-200 rounded-xl typo-input text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] shadow-2xs h-9 text-right tabular-nums font-semibold"
               />

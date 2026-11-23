@@ -2881,13 +2881,9 @@ function NewPurchaseInvoiceContent() {
 
                             {/* Qty */}
                             <td className="py-2.5 px-2 w-24">
-                              <input
-                                type="number"
-                                min="0.001"
-                                step="any"
-                                value={row.quantity === 0 || row.quantity === "" ? "" : row.quantity}
-                                onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                                onFocus={(e) => e.target.select()}
+                              <CleanNumberInput
+                                value={row.quantity}
+                                onChange={(val) => handleRowChange(idx, "quantity", val)}
                                 placeholder="1"
                                 className="w-full text-xs h-9 px-2 text-center tabular-nums font-semibold text-slate-800 bg-white border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none shadow-2xs"
                               />
@@ -2897,13 +2893,9 @@ function NewPurchaseInvoiceContent() {
                             <td className="py-2.5 px-2 w-36">
                               <div className="relative flex items-center">
                                 <span className="absolute left-2.5 text-xs text-slate-400 font-medium pointer-events-none">₹</span>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="any"
-                                  value={row.unitPrice === 0 || row.unitPrice === "" ? "" : row.unitPrice}
-                                  onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                                  onFocus={(e) => e.target.select()}
+                                <CleanNumberInput
+                                  value={row.unitPrice}
+                                  onChange={(val) => handleRowChange(idx, "unitPrice", val)}
                                   placeholder="0.00"
                                   className="w-full text-xs h-9 pl-6 pr-2.5 text-right tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
                                 />
@@ -3145,7 +3137,6 @@ function NewPurchaseInvoiceContent() {
                                 setAdditionalChargeAmount(v);
                                 if (v !== "") setShowAdditionalCharges(true);
                               }}
-                              onFocus={(e) => e.target.select()}
                               placeholder="0.00"
                               className="w-full h-9 pl-6 pr-2 text-xs text-right tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
                             />
@@ -3332,11 +3323,6 @@ function NewPurchaseInvoiceContent() {
                                 } else {
                                   setPaymentStatus("PARTIAL_PAID");
                                 }
-                              }
-                            }}
-                            onFocus={(e) => {
-                              if (e.target.value === "0") {
-                                e.target.select();
                               }
                             }}
                             placeholder="0.00"

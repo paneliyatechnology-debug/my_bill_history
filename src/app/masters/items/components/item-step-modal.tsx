@@ -135,7 +135,6 @@ function GstRateInput({
             const raw = e.target.value.replace(/[^0-9.]/g, "");
             onChange(raw);
           }}
-          onFocus={(e) => e.target.select()}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               setIsOpen(false);
@@ -1212,7 +1211,6 @@ export function ItemStepModal({
                               onChange={(e) =>
                                 setForm({ ...form, conversionFactor: e.target.value })
                               }
-                              onFocus={(e) => e.target.select()}
                               className="w-24 text-[13px] p-2 bg-slate-50 border border-slate-300 rounded-lg h-10"
                               title="Conversion factor: 1 Primary UOM = X Secondary UOM"
                             />

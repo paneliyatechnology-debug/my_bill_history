@@ -499,9 +499,6 @@ export default function EditPaymentInPage() {
                     step="any"
                     value={amountReceived === "0" ? "" : amountReceived}
                     onChange={(e) => handleAmountReceivedChange(e.target.value)}
-                    onFocus={(e) => {
-                      if (e.target.value === "0") e.target.select();
-                    }}
                     placeholder="0.00"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                   />
@@ -516,9 +513,6 @@ export default function EditPaymentInPage() {
                     step="any"
                     value={paymentInDiscount === "0" ? "" : paymentInDiscount}
                     onChange={(e) => setPaymentInDiscount(e.target.value)}
-                    onFocus={(e) => {
-                      if (e.target.value === "0") e.target.select();
-                    }}
                     placeholder="0.00"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />

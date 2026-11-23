@@ -865,7 +865,6 @@ export function QuickSettingsModal({
                             defaultTaxRate: e.target.value as any,
                           })
                         }
-                        onFocus={(e) => e.target.select()}
                         placeholder="e.g. 5, 12, 18, 28"
                         className="w-full p-2 pr-6 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 tabular-nums text-right focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                       />
