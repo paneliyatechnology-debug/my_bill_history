@@ -2891,15 +2891,14 @@ function NewPurchaseInvoiceContent() {
 
                             {/* Rate (₹) */}
                             <td className="py-2.5 px-2 w-36">
-                              <div className="relative flex items-center">
-                                <span className="absolute left-2.5 text-xs text-slate-400 font-medium pointer-events-none">₹</span>
-                                <CleanNumberInput
-                                  value={row.unitPrice}
-                                  onChange={(val) => handleRowChange(idx, "unitPrice", val)}
-                                  placeholder="0.00"
-                                  className="w-full text-xs h-9 pl-6 pr-2.5 text-right tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
-                                />
-                              </div>
+                              <CleanNumberInput
+                                value={row.unitPrice}
+                                onChange={(val) => handleRowChange(idx, "unitPrice", val)}
+                                placeholder="0.00"
+                                prefix={<span className="text-xs text-slate-400 font-medium mr-1">₹</span>}
+                                className="w-full text-xs text-right tabular-nums font-semibold bg-transparent"
+                                containerClassName="w-full h-9 px-2.5 bg-white border border-slate-200 rounded-xl shadow-2xs"
+                              />
                             </td>
 
                             {/* Discount */}
@@ -2908,9 +2907,9 @@ function NewPurchaseInvoiceContent() {
                                 value={row.discountValue}
                                 onChange={(val) => handleRowChange(idx, "discountValue", val)}
                                 placeholder="0"
-                                suffix={<span className="absolute right-2 text-[10px] text-slate-400 font-bold pointer-events-none">%</span>}
-                                className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
-                                containerClassName="relative flex items-center"
+                                suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                                className="w-full text-xs text-right tabular-nums bg-transparent"
+                                containerClassName="w-full h-9 px-2 bg-white border border-slate-200 rounded-xl shadow-2xs"
                               />
                             </td>
 
@@ -2920,9 +2919,9 @@ function NewPurchaseInvoiceContent() {
                                 value={row.taxRate}
                                 onChange={(val) => handleRowChange(idx, "taxRate", val)}
                                 placeholder="0"
-                                suffix={<span className="absolute right-2 text-[10px] text-slate-400 font-bold pointer-events-none">%</span>}
-                                className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
-                                containerClassName="relative flex items-center"
+                                suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                                className="w-full text-xs text-right tabular-nums font-semibold bg-transparent"
+                                containerClassName="w-full h-9 px-2 bg-white border border-slate-200 rounded-xl shadow-2xs"
                               />
                             </td>
 

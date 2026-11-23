@@ -9,6 +9,7 @@ import { einvoiceApi, EInvoiceValidationError } from "@/lib/einvoice";
 import { INDIAN_STATES, resolvePartyStateCode } from "@/shared-types";
 import { formatInr } from "@/components/design-system/tokens";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
+import { CleanNumberInput } from "@/components/ui/clean-number-input";
 import { X, Check } from "lucide-react";
 
 interface LineItem {
@@ -906,13 +907,11 @@ export default function CreateEInvoicePage() {
 
                       {/* Quantity */}
                       <td className="py-2 px-2">
-                        <input
-                          type="number"
-                          min="0.01"
-                          step="any"
+                        <CleanNumberInput
                           value={row.quantity}
-                          onChange={(e) => handleItemChange(idx, "quantity", Number(e.target.value))}
-                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums h-10"
+                          onChange={(val) => handleItemChange(idx, "quantity", val)}
+                          className="w-full text-[13px] py-1 px-2 text-center tabular-nums bg-white border border-slate-300 rounded h-10 focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10"
+                          placeholder="1"
                         />
                       </td>
 
@@ -932,25 +931,23 @@ export default function CreateEInvoicePage() {
 
                       {/* Rate */}
                       <td className="py-2 px-2 text-right">
-                        <input
-                          type="number"
-                          min="0"
-                          step="any"
+                        <CleanNumberInput
                           value={row.unitPrice}
-                          onChange={(e) => handleItemChange(idx, "unitPrice", Number(e.target.value))}
-                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums text-right h-10"
+                          onChange={(val) => handleItemChange(idx, "unitPrice", val)}
+                          className="w-full text-[13px] py-1 px-2 text-right tabular-nums bg-white border border-slate-300 rounded h-10 focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10"
+                          placeholder="0.00"
                         />
                       </td>
 
                       {/* Disc % */}
                       <td className="py-2 px-2 text-right">
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
+                        <CleanNumberInput
                           value={row.discountPercent}
-                          onChange={(e) => handleItemChange(idx, "discountPercent", Number(e.target.value))}
-                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums text-right h-10"
+                          onChange={(val) => handleItemChange(idx, "discountPercent", val)}
+                          placeholder="0"
+                          suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                          className="w-full text-[13px] text-right tabular-nums bg-transparent"
+                          containerClassName="border border-slate-300 rounded px-2 py-1 h-10"
                         />
                       </td>
 

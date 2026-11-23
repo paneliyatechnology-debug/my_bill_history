@@ -113,8 +113,11 @@ export const CleanNumberInput = React.forwardRef<HTMLInputElement, CleanNumberIn
       onBlur?.(e);
     };
 
+    const isWrapped = Boolean(prefix || suffix || containerClassName);
+
     const resolvedInputClass = [
       "selection:bg-blue-100 selection:text-blue-900 transition-colors",
+      isWrapped ? "!border-0 !border-none !outline-none !shadow-none !ring-0 bg-transparent" : "",
       className,
     ]
       .filter(Boolean)
@@ -131,14 +134,19 @@ export const CleanNumberInput = React.forwardRef<HTMLInputElement, CleanNumberIn
         onBlur={handleBlur}
         placeholder={placeholder}
         className={resolvedInputClass}
+        style={
+          isWrapped
+            ? { border: "none", outline: "none", boxShadow: "none", background: "transparent", ...props.style }
+            : props.style
+        }
         {...props}
       />
     );
 
-    if (prefix || suffix || containerClassName) {
+    if (isWrapped) {
       const resolvedContainerClass = [
         "relative flex items-center transition-colors",
-        "focus-within:border-[#1677E8] focus-within:ring-1 focus-within:ring-[#1677E8] focus-within:bg-white",
+        "focus-within:border-[#1677E8] focus-within:ring-2 focus-within:ring-[#1677E8]/10 focus-within:bg-white",
         containerClassName,
       ]
         .filter(Boolean)

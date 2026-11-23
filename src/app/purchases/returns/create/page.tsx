@@ -1397,7 +1397,7 @@ export default function CreatePurchaseReturnPage() {
                           value={row.unitPrice}
                           onChange={(val) => updateItemLine(idx, "unitPrice", val)}
                           placeholder="0.00"
-                          className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
+                          className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 h-10"
                         />
                       </td>
 
@@ -1407,7 +1407,7 @@ export default function CreatePurchaseReturnPage() {
                           onChange={(val) => updateItemLine(idx, "discount", val)}
                           placeholder="0"
                           suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">{row.discountType}</span>}
-                          className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none"
+                          className="w-full text-[13px] text-right tabular-nums bg-transparent"
                           containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
                         />
                       </td>
@@ -1417,7 +1417,9 @@ export default function CreatePurchaseReturnPage() {
                           value={row.taxRate}
                           onChange={(val) => updateItemLine(idx, "taxRate", val)}
                           placeholder="0"
-                          className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
+                          suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                          className="w-full text-[13px] text-right tabular-nums bg-transparent"
+                          containerClassName="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 h-10"
                         />
                       </td>
 

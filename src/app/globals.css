@@ -1377,8 +1377,8 @@ input[type="radio"] {
   accent-color: #1677E8;
 }
 
-/* Shared form controls inside the application canvas */
-#main-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+/* Shared form controls inside the application canvas (standalone inputs only) */
+#main-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]):not(.bg-transparent):not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="border-0"]),
 #main-content select,
 #main-content textarea {
   border-radius: 10px;
@@ -1386,12 +1386,40 @@ input[type="radio"] {
   font-size: 13px;
 }
 
-#main-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+#main-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not(.bg-transparent):not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="border-0"]):focus,
 #main-content select:focus,
 #main-content textarea:focus {
   border-color: #1677E8;
   outline: none;
   box-shadow: 0 0 0 3px rgba(22, 119, 232, 0.12);
+}
+
+/* Inputs that are transparent or inside a styled container (e.g. CleanNumberInput, search bars, inputs with suffix/prefix) must NEVER get default input borders, border-radius, or focus box-shadows */
+input.bg-transparent,
+input[class*="bg-transparent"],
+input[class*="border-none"],
+input[class*="border-0"],
+[class*="focus-within"] input,
+[class*="focus-within"] input:focus,
+input.bg-transparent:focus,
+input[class*="bg-transparent"]:focus,
+input[class*="border-none"]:focus,
+input[class*="border-0"]:focus,
+#main-content input.bg-transparent,
+#main-content input[class*="bg-transparent"],
+#main-content input[class*="border-none"],
+#main-content input[class*="border-0"],
+#main-content [class*="focus-within"] input,
+#main-content [class*="focus-within"] input:focus,
+#main-content input.bg-transparent:focus,
+#main-content input[class*="bg-transparent"]:focus,
+#main-content input[class*="border-none"]:focus,
+#main-content input[class*="border-0"]:focus {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background-color: transparent !important;
 }
 
 #main-content table thead {

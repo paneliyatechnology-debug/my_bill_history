@@ -1196,7 +1196,7 @@ function CreateExpenseForm() {
                               })
                             }
                             placeholder="0"
-                            prefix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                            suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
                             className="w-full bg-transparent text-[11px] tabular-nums outline-none text-right"
                             containerClassName="flex items-center gap-1 bg-slate-50/60 border border-slate-200 rounded-md px-1.5 py-0.5 h-10"
                           />

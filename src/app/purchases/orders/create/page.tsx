@@ -822,7 +822,9 @@ export default function CreatePurchaseOrderPage() {
                             value={row.taxRate}
                             onChange={(val) => updateItemLine(idx, "taxRate", val)}
                             placeholder="0"
-                            className="w-full text-[13px] py-1.5 px-3 text-right tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:border-[#1677E8] h-10 shadow-2xs"
+                            suffix={<span className="text-[10px] text-slate-400 font-bold ml-1">%</span>}
+                            className="w-full text-[13px] text-right tabular-nums bg-transparent"
+                            containerClassName="bg-white border border-slate-200 rounded-xl px-2.5 py-1 h-10 shadow-2xs"
                           />
                         </td>
 

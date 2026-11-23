@@ -827,7 +827,7 @@ export default function CreateDeliveryChallanPage() {
               itemsCount={rows.length}
               totalQty={totalQuantity}
               itemsTotal={grandTotal}
-              onScanItem={() => setIsBarcodeOpen(true)}
+              // onScanItem={() => setIsBarcodeOpen(true)}
               onImportItems={() => setIsAddItemsModalOpen(true)}
               onAddItem={() => setIsAddItemsModalOpen(true)}
               onAddBlankRow={() => {

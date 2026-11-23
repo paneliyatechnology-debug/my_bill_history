@@ -657,22 +657,19 @@ export default function EditInvoicePage() {
                       />
                     </td>
                     <td className="py-2 px-3">
-                      <input
-                        type="number"
-                        min="1"
+                      <CleanNumberInput
                         value={row.quantity}
-                        onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-[13px] tabular-nums text-right focus:ring-2 focus:ring-primary/20 focus:outline-none font-normal h-10"
+                        onChange={(val) => handleRowChange(idx, "quantity", val)}
+                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-[13px] tabular-nums text-center focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 focus:bg-white font-normal h-10"
+                        placeholder="1"
                       />
                     </td>
                     <td className="py-2 px-3">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
+                      <CleanNumberInput
                         value={row.unitPrice}
-                        onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-[13px] tabular-nums text-right focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
+                        onChange={(val) => handleRowChange(idx, "unitPrice", val)}
+                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-[13px] tabular-nums text-right focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 focus:bg-white h-10"
+                        placeholder="0.00"
                       />
                     </td>
                     <td className="py-2 px-3">

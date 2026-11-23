@@ -1935,7 +1935,7 @@ export default function NewInvoicePage() {
               itemsCount={rows.length}
               totalQty={totalQty}
               itemsTotal={itemsSubtotal}
-              onScanItem={() => setShowAiPanel(true)}
+              // onScanItem={() => setShowAiPanel(true)}
               onImportItems={() => setIsAddItemsModalOpen(true)}
               onAddItem={() => setIsAddItemsModalOpen(true)}
               onAddBlankRow={handleAddBlankRow}
