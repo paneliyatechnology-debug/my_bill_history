@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Copy,
@@ -72,8 +73,35 @@ export function ActivityDetailDrawer({
 }: ActivityDetailDrawerProps) {
   const [activeTab, setActiveTab] = useState<"diff" | "snapshot" | "raw">("diff");
   const [copiedId, setCopiedId] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen || !event) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Handle ESC key to close drawer
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Prevent background scroll when drawer is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !event || !mounted) return null;
 
   const handleCopyId = () => {
     if (!event.entityId) return;
@@ -96,23 +124,27 @@ export function ActivityDetailDrawer({
   const changesList = event.changes || [];
   const hasDiffs = changesList.length > 0;
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-xs flex justify-end transition-opacity">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] overflow-hidden bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+      onClick={onClose}
+    >
       <div
-        className="relative w-full max-w-2xl bg-white shadow-2xl h-full flex flex-col border-l border-[#E2E8F0] transform transition-transform duration-200 ease-out"
+        className="relative w-full sm:max-w-2xl bg-white shadow-2xl h-full flex flex-col border-l border-[#E2E8F0] transform transition-transform duration-200 ease-out animate-in slide-in-from-right duration-200"
         role="dialog"
         aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-[#E2E8F0] flex items-center justify-between bg-white shrink-0">
-          <div>
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E2E8F0] flex items-center justify-between bg-white shrink-0">
+          <div className="min-w-0 pr-3">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#1677E8]" />
-              <h2 className="text-base font-semibold text-[#0F172A] tracking-tight">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#1677E8] shrink-0" />
+              <h2 className="text-sm sm:text-base font-semibold text-[#0F172A] tracking-tight truncate">
                 {lang === "gu" ? "પ્રવૃત્તિ વિગત & ઓડિટ ડેટા" : "Activity Event & Audit Diff"}
               </h2>
             </div>
-            <p className="text-xs text-[#64748B] mt-0.5">
+            <p className="text-xs text-[#64748B] mt-0.5 truncate">
               {new Date(event.timestamp).toLocaleString("en-IN", {
                 dateStyle: "medium",
                 timeStyle: "medium",
@@ -120,9 +152,11 @@ export function ActivityDetailDrawer({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors"
-            title="Close"
+            className="p-2 -mr-1 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            title={lang === "gu" ? "બંધ કરો" : "Close"}
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -380,18 +414,20 @@ export function ActivityDetailDrawer({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
-          <span className="text-[11px] text-[#64748B]">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-t border-[#E2E8F0] bg-white flex items-center justify-between gap-3 shrink-0">
+          <span className="text-[11px] text-[#64748B] truncate">
             Cryptographically logged • Multi-tenant isolated
           </span>
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9] transition-colors"
+            className="px-4 py-2 text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9] transition-colors cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
           >
             {lang === "gu" ? "બંધ કરો" : "Close"}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

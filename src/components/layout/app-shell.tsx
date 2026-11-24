@@ -569,7 +569,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     isModuleEntitled,
   } = useAuth();
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      const isDashboard =
+        window.location.pathname === "/" ||
+        window.location.pathname === "/dashboard";
+      return !isDashboard;
+    }
+    return false;
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [loadingWatchdogTriggered, setLoadingWatchdogTriggered] =
@@ -659,12 +667,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Load persisted sidebar state from localStorage
+  // Load persisted sidebar state from localStorage (only for dashboard; other pages auto-collapse)
   useEffect(() => {
     try {
-      const savedCollapsed = localStorage.getItem("sidebar_collapsed");
-      if (savedCollapsed !== null) {
-        setIsSidebarCollapsed(savedCollapsed === "true");
+      const isDashboard =
+        pathname === "/" || pathname === "/dashboard";
+      if (!isDashboard) {
+        setIsSidebarCollapsed(true);
+      } else {
+        const savedCollapsed = localStorage.getItem("sidebar_collapsed");
+        if (savedCollapsed !== null) {
+          setIsSidebarCollapsed(savedCollapsed === "true");
+        }
       }
       const savedSections = localStorage.getItem("sidebar_expanded_sections");
       if (savedSections) {
@@ -676,7 +690,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore storage access error
     }
-  }, []);
+  }, [pathname]);
 
   // Save expanded states
   const toggleSection = (sectionId: string) => {
@@ -699,13 +713,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Close mobile drawer on route change & reset main scroll position to top
+  // Close mobile drawer on route change, reset main scroll, and auto-collapse sidebar on non-dashboard pages
   useEffect(() => {
     setIsMobileMenuOpen(false);
     const mainEl = document.getElementById("main-content");
     if (mainEl) {
       mainEl.scrollTop = 0;
     }
+
+    const isDashboard = pathname === "/" || pathname === "/dashboard";
+    setIsSidebarCollapsed(!isDashboard);
   }, [pathname]);
 
   // Lock scrolling when mobile drawer is open and restore when closed
