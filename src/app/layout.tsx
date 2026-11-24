@@ -122,6 +122,9 @@ export const metadata: Metadata = {
     },
   },
   category: "finance",
+  verification: {
+    google: "googlefda1867c59daf15c",
+  },
 };
 
 const structuredSchema = {
