@@ -2,14 +2,17 @@ import type { Metadata } from "next";
 import { IntroductionPage } from "../../components/landing/introduction-page";
 
 export const metadata: Metadata = {
-  title: "MyOwn BillBook — Modern Indian GST Billing, Inventory & Accounting Software",
+  title: "Features & Tour | MyOwn BillBook",
   description:
-    "Run your business smarter. Bill faster. Grow bigger. Everything you need for GST billing, inventory, POS counter, purchases and accounting.",
+    "Explore GST billing, multi-godown inventory, POS counter, e-invoicing and accounting features built for Indian SMEs.",
+  alternates: {
+    canonical: "https://myownbillbook.com/intro",
+  },
   openGraph: {
-    title: "MyOwn BillBook — Modern Indian GST Billing, Inventory & Accounting",
+    title: "Features & Tour | MyOwn BillBook",
     description:
-      "Run your business smarter. Bill faster. Grow bigger. Everything you need for GST billing, inventory, POS counter, purchases and accounting.",
-    url: "https://www.myownbillbook.com",
+      "Explore GST billing, multi-godown inventory, POS counter, e-invoicing and accounting features built for Indian SMEs.",
+    url: "https://myownbillbook.com/intro",
     siteName: "MyOwn BillBook",
     locale: "en_IN",
     type: "website",

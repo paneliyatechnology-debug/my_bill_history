@@ -759,15 +759,9 @@ export default function HsnMasterPage() {
                         </div>
                       </td>
 
-                      {/* Type Badge */}
+                      {/* Type */}
                       <td className="py-3 px-3">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                            item.type === "SAC"
-                              ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
-                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          }`}
-                        >
+                        <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                           {item.type}
                         </span>
                       </td>
@@ -791,11 +785,11 @@ export default function HsnMasterPage() {
 
                       {/* GST Rate */}
                       <td className="py-3 px-3 text-center">
-                        <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-900 tabular-nums font-bold text-xs rounded border border-slate-200">
+                        <span className="tabular-nums font-semibold text-xs text-slate-900">
                           {Number(item.gstRate)}%
                         </span>
                         {item.cessRate && Number(item.cessRate) > 0 ? (
-                          <div className="text-[10px] text-amber-600 font-medium mt-0.5">
+                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
                             +{Number(item.cessRate)}% Cess
                           </div>
                         ) : null}
@@ -809,11 +803,7 @@ export default function HsnMasterPage() {
                         <button
                           type="button"
                           onClick={() => handleToggleStatus(item)}
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer ${
-                            item.isActive
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                              : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
-                          }`}
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
                           title={item.isActive ? "Click to deactivate" : "Click to activate"}
                         >
                           <span
@@ -821,7 +811,7 @@ export default function HsnMasterPage() {
                               item.isActive ? "bg-emerald-500" : "bg-slate-400"
                             }`}
                           />
-                          {item.isActive ? "Active" : "Inactive"}
+                          <span>{item.isActive ? "Active" : "Inactive"}</span>
                         </button>
                       </td>
 
@@ -1214,13 +1204,7 @@ export default function HsnMasterPage() {
                 <span className="font-mono text-base font-bold text-slate-900 bg-white px-2.5 py-0.5 rounded border border-slate-200">
                   {viewingItem.code}
                 </span>
-                <span
-                  className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    viewingItem.type === "SAC"
-                      ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
-                      : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                  }`}
-                >
+                <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                   {viewingItem.type}
                 </span>
               </div>

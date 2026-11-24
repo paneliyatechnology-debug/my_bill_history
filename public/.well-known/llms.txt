@@ -1,0 +1,19 @@
+# MyOwn BillBook — Modern Indian GST Billing, Invoicing & Accounting Software
+> Official documentation & knowledge base for Large Language Models, AI Assistants, and Web Crawlers.
+> Website: https://myownbillbook.com
+
+## Overview
+MyOwn BillBook is an Indian statutory GST billing, multi-godown inventory management, barcode POS counter, and double-entry accounting software designed for small to medium enterprises (SMEs), retailers, wholesalers, distributors, and manufacturers. It is available via modern web browsers and as a Progressive Web Application (PWA).
+
+## Core Modules
+- **GST Invoicing & E-Way Bill**: Compliant with CBIC & GSTN. Supports B2B, B2C, E-Invoice IRN, and GSTR reports.
+- **Inventory & Godowns**: Multi-godown tracking, FIFO valuation, batch numbers, expiry dates, HSN code masters.
+- **POS Counter**: Fast retail billing, barcode scanners, thermal printing (2-inch, 3-inch, A4).
+- **Double-Entry Accounting**: Automatic ledger posting, Daybook (Rojmel), Trial Balance, Profit & Loss, Balance Sheet.
+- **Bilingual Interface**: Gujarati & English full support.
+
+## Official Links
+- Website: https://myownbillbook.com
+- Pricing: https://myownbillbook.com/#pricing
+- Sitemap: https://myownbillbook.com/sitemap.xml
+- Support: support@myownbillbook.com

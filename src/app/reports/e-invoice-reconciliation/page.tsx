@@ -155,23 +155,23 @@ export default function EInvoiceReconciliationPage() {
       {/* Metric Cards */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Events Logged</div>
-          <div className="mt-1 text-2xl font-semibold text-slate-900">{metrics.total}</div>
+          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Events Logged</div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{metrics.total}</div>
         </div>
 
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 shadow-xs">
-          <div className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Confirmed Success</div>
-          <div className="mt-1 text-2xl font-semibold text-emerald-800">{metrics.succeeded}</div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Confirmed Success</div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{metrics.succeeded}</div>
         </div>
 
-        <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4 shadow-xs">
-          <div className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Failed / Rejected</div>
-          <div className="mt-1 text-2xl font-semibold text-rose-800">{metrics.failed}</div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Failed / Rejected</div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{metrics.failed}</div>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 shadow-xs">
-          <div className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Pending / Uncertain</div>
-          <div className="mt-1 text-2xl font-semibold text-amber-800">{metrics.uncertain}</div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Pending / Uncertain</div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{metrics.uncertain}</div>
         </div>
       </div>
 
@@ -275,16 +275,17 @@ export default function EInvoiceReconciliationPage() {
                       </td>
 
                       <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                            isSuccess
-                              ? "bg-emerald-100 text-emerald-800"
-                              : isFail
-                              ? "bg-rose-100 text-rose-800"
-                              : "bg-amber-100 text-amber-800 animate-pulse"
-                          }`}
-                        >
-                          {log.outcome}
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-800">
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              isSuccess
+                                ? "bg-emerald-500"
+                                : isFail
+                                ? "bg-rose-500"
+                                : "bg-amber-500 animate-pulse"
+                            }`}
+                          />
+                          <span>{log.outcome}</span>
                         </span>
                       </td>
 

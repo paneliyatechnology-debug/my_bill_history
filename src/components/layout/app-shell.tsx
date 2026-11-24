@@ -41,6 +41,7 @@ import {
   X,
   ShieldAlert,
   Sparkles,
+  History,
 } from "lucide-react";
 const SIDEBAR_BG = "#FFFFFF";
 const ACTIVE_MENU_BG = "#1677E8";
@@ -529,6 +530,16 @@ const navigationSections: NavSection[] = [
     planKey: "userManagementRbac",
     icon: <UserCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
+  {
+    id: "activity_logs",
+    name: "Activity Logs",
+    nameGujarati: "પ્રવૃત્તિ લૉગ્સ (Audit Trail)",
+    group: "BUSINESS TOOLS",
+    href: "/activity-logs",
+    module: "activity_logs",
+    action: "view",
+    icon: <History className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -770,6 +781,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
 
         // Direct top-level navigation item
+        if (section.id === "activity_logs") {
+          return section;
+        }
+
         const secPlanKey = section.planKey || section.id || section.module || section.href || "";
         if (secPlanKey && !isModuleEntitled(secPlanKey)) {
           return null;
@@ -796,6 +811,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       r === "COMPANY_ADMIN" ||
       r === "PARTNER" ||
       r === "ADMIN"
+    ) {
+      return false;
+    }
+
+    if (
+      pathname === "/activity-logs" ||
+      pathname.startsWith("/activity-logs/")
     ) {
       return false;
     }

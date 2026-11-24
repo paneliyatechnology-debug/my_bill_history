@@ -579,7 +579,7 @@ export default function InvoiceDetailPage() {
             </svg>
           </div>
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 mb-2">
-            Record Not Found · મળેલ નથી
+            Record Not Found
           </span>
           <h2 className="text-[15px] font-semibold text-[#182230]">
             {lang === "gu" ? "વેચાણ બિલ મળેલ નથી" : "Sales Invoice Not Found"}

@@ -27,23 +27,23 @@ export function StatCard({
   const isGu = auth?.lang === "gu";
 
   const borderVariants = {
-    default: "border-[#E2E8E5] hover:border-[#CBD5E1] bg-white",
-    primary: "border-[#93C5FD] bg-[#F8FAFC] hover:border-[#1677E8]",
-    saffron: "border-[#93C5FD] bg-[#F8FAFC] hover:border-[#1677E8]",
-    brand: "border-[#93C5FD] bg-[#F8FAFC] hover:border-[#1677E8]",
-    success: "border-emerald-200 bg-emerald-50/20 hover:border-emerald-300",
-    warning: "border-amber-200 bg-amber-50/20 hover:border-amber-300",
-    danger: "border-rose-200 bg-rose-50/20 hover:border-rose-300",
+    default: "border-slate-200 bg-white hover:border-slate-300",
+    primary: "border-slate-200 bg-white hover:border-slate-300",
+    saffron: "border-slate-200 bg-white hover:border-slate-300",
+    brand: "border-slate-200 bg-white hover:border-slate-300",
+    success: "border-slate-200 bg-white hover:border-slate-300",
+    warning: "border-slate-200 bg-white hover:border-slate-300",
+    danger: "border-slate-200 bg-white hover:border-slate-300",
   };
 
   const iconBgVariants = {
-    default: "bg-[#EEF1E8] text-[#5A6B66]",
-    primary: "bg-[#EFF6FF] text-[#1677E8]",
-    saffron: "bg-[#EFF6FF] text-[#1677E8]",
-    brand: "bg-[#EFF6FF] text-[#1677E8]",
-    success: "bg-emerald-100/60 text-emerald-700",
-    warning: "bg-amber-100/60 text-amber-700",
-    danger: "bg-rose-100/60 text-rose-700",
+    default: "bg-slate-50 text-slate-600 border border-slate-100",
+    primary: "bg-slate-50 text-slate-700 border border-slate-100",
+    saffron: "bg-slate-50 text-slate-700 border border-slate-100",
+    brand: "bg-slate-50 text-slate-700 border border-slate-100",
+    success: "bg-slate-50 text-slate-700 border border-slate-100",
+    warning: "bg-slate-50 text-slate-700 border border-slate-100",
+    danger: "bg-slate-50 text-slate-700 border border-slate-100",
   };
 
   return (

@@ -78,23 +78,24 @@ const getStoredTenant = (): TenantHeaders => {
   }
 };
 
-const CONFIGURED_API_BASE = (process.env.NEXT_PUBLIC_API_URL || "/api/v1").replace(/\/$/, "");
+const CONFIGURED_API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1"
+).replace(/\/$/, "");
 
 /**
- * The browser always talks to the Next.js origin (`/api/v1`). next.config
- * rewrites that to the Nest API. A direct call to another origin (for example
- * http://localhost:4000) makes Chrome send an OPTIONS preflight before every
- * GET that carries Authorization or tenant headers.
- * Server-side code still needs an absolute URL.
+ * Resolves the backend API base URL.
+ * Always routes requests directly to the NestJS backend port (default http://localhost:4000/api/v1)
+ * from both the browser and server-side contexts.
  */
 function resolveApiBase(): string {
-  if (typeof window !== "undefined") {
-    return "/api/v1";
+  if (CONFIGURED_API_BASE && /^https?:\/\//i.test(CONFIGURED_API_BASE)) {
+    return CONFIGURED_API_BASE;
   }
-  if (/^https?:\/\//i.test(CONFIGURED_API_BASE)) return CONFIGURED_API_BASE;
   const internal = process.env.API_INTERNAL_URL;
-  if (internal && /^https?:\/\//i.test(internal)) return internal.replace(/\/$/, "");
-  return "http://127.0.0.1:4000/api/v1";
+  if (internal && /^https?:\/\//i.test(internal)) {
+    return internal.replace(/\/$/, "");
+  }
+  return "http://localhost:4000/api/v1";
 }
 
 /** Bumped by writes so a refetch after a mutation never reuses a list GET that started earlier. */

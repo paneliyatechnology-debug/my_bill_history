@@ -21,31 +21,34 @@ export function Badge({
   variant = "neutral",
   className = "",
 }: BadgeProps) {
-  const variantStyles: Record<BadgeVariant, string> = {
-    primary:
-      "bg-[#EAF3FF] text-[#125CC0] border-[#B9D6FF] font-medium",
-    saffron:
-      "bg-[#EAF3FF] text-[#125CC0] border-[#B9D6FF] font-medium",
-    success:
-      "bg-[#EAF8EF] text-[#15803D] border-[#BBF7D0] font-medium",
-    warning:
-      "bg-[#FFF5E5] text-[#B45309] border-[#FDE68A] font-medium",
-    danger:
-      "bg-[#FEF0F0] text-[#DC2626] border-[#FECACA] font-medium",
-    info:
-      "bg-sky-50 text-sky-800 border-sky-200 font-medium",
-    neutral:
-      "bg-slate-100 text-slate-700 border-slate-200 font-medium",
-    purple:
-      "bg-purple-50 text-purple-800 border-purple-200 font-medium",
+  const dotStyles: Record<BadgeVariant, string> = {
+    primary: "bg-blue-600",
+    saffron: "bg-blue-600",
+    success: "bg-emerald-600",
+    warning: "bg-amber-500",
+    danger: "bg-rose-600",
+    info: "bg-sky-600",
+    neutral: "bg-slate-400",
+    purple: "bg-indigo-600",
+  };
+
+  const textStyles: Record<BadgeVariant, string> = {
+    primary: "text-slate-800",
+    saffron: "text-slate-800",
+    success: "text-slate-800",
+    warning: "text-slate-800",
+    danger: "text-rose-700",
+    info: "text-slate-800",
+    neutral: "text-slate-700",
+    purple: "text-slate-800",
   };
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md typo-badge border ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center gap-1.5 text-xs font-medium ${className}`}
     >
-      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
-      {children}
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotStyles[variant]}`} />
+      <span className={textStyles[variant]}>{children}</span>
     </span>
   );
 }

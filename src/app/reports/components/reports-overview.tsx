@@ -1269,13 +1269,13 @@ export function ReportsOverview({
         </div>
 
         {/* Card 2: Total Purchases */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:border-purple-300 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Total Purchases
               </span>
-              <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-100 flex items-center justify-center">
                 <RenderIcon type="shopping-bag" className="w-4 h-4" />
               </div>
             </div>
@@ -1294,13 +1294,13 @@ export function ReportsOverview({
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs font-medium text-slate-600 mb-1">
                 <span className="text-slate-500">Settled (Paid)</span>
-                <span className="font-bold text-purple-600">
+                <span className="font-bold text-slate-800">
                   {metrics.settlementRate.toFixed(1)}%
                 </span>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                 <div
-                  className="bg-purple-500 h-full rounded-full transition-all duration-500"
+                  className="bg-slate-700 h-full rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, Math.max(0, metrics.settlementRate))}%` }}
                 />
               </div>
@@ -1309,18 +1309,18 @@ export function ReportsOverview({
 
           <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <span>Taxable: {formatInr(metrics.purchaseTaxable)}</span>
-            <span className="text-purple-600 font-medium">ITC: {formatInr(metrics.purchaseTax)}</span>
+            <span className="text-slate-700 font-medium">ITC: {formatInr(metrics.purchaseTax)}</span>
           </div>
         </div>
 
         {/* Card 3: Gross Trading Profit & Operating Margin */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:border-emerald-300 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Gross Trading Profit
               </span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-100 flex items-center justify-center">
                 <Percent className="w-4 h-4" />
               </div>
             </div>
@@ -1329,11 +1329,7 @@ export function ReportsOverview({
               {isLoadingMetrics ? (
                 <div className="h-7 w-32 bg-slate-100 animate-pulse rounded-lg" />
               ) : (
-                <p
-                  className={`text-xl font-extrabold tracking-tight ${
-                    metrics.grossProfit >= 0 ? "text-emerald-700" : "text-rose-600"
-                  }`}
-                >
+                <p className="text-xl font-extrabold tracking-tight text-slate-900">
                   {formatInr(metrics.grossProfit)}
                 </p>
               )}
@@ -1343,19 +1339,13 @@ export function ReportsOverview({
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs font-medium text-slate-600 mb-1">
                 <span className="text-slate-500">Gross Margin</span>
-                <span
-                  className={`font-bold ${
-                    metrics.grossMarginRate >= 0 ? "text-emerald-600" : "text-rose-600"
-                  }`}
-                >
+                <span className="font-bold text-slate-800">
                   {metrics.grossMarginRate.toFixed(1)}%
                 </span>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    metrics.grossMarginRate >= 0 ? "bg-emerald-500" : "bg-rose-500"
-                  }`}
+                  className="h-full rounded-full transition-all duration-500 bg-slate-700"
                   style={{
                     width: `${Math.min(100, Math.max(0, Math.abs(metrics.grossMarginRate)))}%`,
                   }}
@@ -1377,13 +1367,13 @@ export function ReportsOverview({
         </div>
 
         {/* Card 4: Receivables (To Collect) */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:border-amber-300 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Receivables (Lena)
               </span>
-              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-100 flex items-center justify-center">
                 <Wallet className="w-4 h-4" />
               </div>
             </div>
@@ -1392,7 +1382,7 @@ export function ReportsOverview({
               {isLoadingMetrics ? (
                 <div className="h-7 w-32 bg-slate-100 animate-pulse rounded-lg" />
               ) : (
-                <p className="text-xl font-extrabold text-amber-700 tracking-tight">
+                <p className="text-xl font-extrabold text-slate-900 tracking-tight">
                   {formatInr(metrics.receivables)}
                 </p>
               )}
@@ -1402,13 +1392,13 @@ export function ReportsOverview({
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs font-medium text-slate-600 mb-1">
                 <span className="text-slate-500">% of Total Sales</span>
-                <span className="font-bold text-amber-700">
+                <span className="font-bold text-slate-800">
                   {metrics.receivablesShare.toFixed(1)}%
                 </span>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                 <div
-                  className="bg-amber-500 h-full rounded-full transition-all duration-500"
+                  className="bg-slate-700 h-full rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, Math.max(0, metrics.receivablesShare))}%` }}
                 />
               </div>
@@ -1428,13 +1418,13 @@ export function ReportsOverview({
         </div>
 
         {/* Card 5: Payables (To Pay) */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:border-rose-300 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Payables (Deva)
               </span>
-              <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-100 flex items-center justify-center">
                 <CreditCard className="w-4 h-4" />
               </div>
             </div>
@@ -1443,7 +1433,7 @@ export function ReportsOverview({
               {isLoadingMetrics ? (
                 <div className="h-7 w-32 bg-slate-100 animate-pulse rounded-lg" />
               ) : (
-                <p className="text-xl font-extrabold text-rose-700 tracking-tight">
+                <p className="text-xl font-extrabold text-slate-900 tracking-tight">
                   {formatInr(metrics.payables)}
                 </p>
               )}
@@ -1453,13 +1443,13 @@ export function ReportsOverview({
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs font-medium text-slate-600 mb-1">
                 <span className="text-slate-500">% of Inward Purchases</span>
-                <span className="font-bold text-rose-700">
+                <span className="font-bold text-slate-800">
                   {metrics.payablesShare.toFixed(1)}%
                 </span>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                 <div
-                  className="bg-rose-500 h-full rounded-full transition-all duration-500"
+                  className="bg-slate-700 h-full rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, Math.max(0, metrics.payablesShare))}%` }}
                 />
               </div>
@@ -1759,9 +1749,9 @@ export function ReportsOverview({
                       {report.description}
                     </div>
 
-                    {/* Col 3: Category Badge */}
+                    {/* Col 3: Category */}
                     <div className="hidden sm:block">
-                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 capitalize">
+                      <span className="text-xs text-slate-500 font-medium capitalize">
                         {report.categories[0] || "General"}
                       </span>
                     </div>

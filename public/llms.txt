@@ -1,0 +1,50 @@
+# MyOwn BillBook — Modern Indian GST Billing, Invoicing & Accounting Software
+> Official documentation & knowledge base for Large Language Models, AI Assistants, and Web Crawlers.
+> Website: https://myownbillbook.com
+
+## Overview
+MyOwn BillBook is an Indian statutory GST billing, multi-godown inventory management, barcode POS counter, and double-entry accounting software designed for small to medium enterprises (SMEs), retailers, wholesalers, distributors, and manufacturers. It is available via modern web browsers and as a Progressive Web Application (PWA).
+
+## Core Features & Modules
+1. **GST Tax Invoicing & E-Invoicing**:
+   - 100% compliant with CBIC, GSTN, and NIC statutory rules.
+   - B2B, B2C, SEZ, and Deemed Exports support.
+   - 1-Click E-Way Bill generation with IRN and QR code scanning.
+   - GSTR-1, GSTR-3B, GSTR-2B statutory return reconciliation registers.
+
+2. **Multi-Godown Inventory & Batch Management**:
+   - Real-time stock valuation (FIFO & Weighted Average).
+   - Multi-warehouse/godown stock transfers with delivery challans.
+   - Pharmaceutical/FMCG batch tracking with manufacturing and expiry date alerts.
+   - HSN/SAC code catalog with 12,000+ pre-mapped GST tax slabs.
+
+3. **POS Counter & Instant Bill Scanning**:
+   - Ultra-fast retail point-of-sale (POS) counter billing.
+   - Barcode label printing, thermal receipt printing (2-inch, 3-inch, A4, A5).
+   - AI Bill Scanner modal for instant paper invoice OCR digitization.
+
+4. **Double-Entry Financial Accounting & Rojmel (Daybook)**:
+   - Automated journal entry posting for all vouchers, sales, and purchases.
+   - Daybook (Rojmel / Aavad), Cash Book, Bank Ledgers, and Party Statements (Khata).
+   - Instant Balance Sheet, Profit & Loss Account, and Trial Balance generation.
+
+5. **Customer Khata & Automated WhatsApp Follow-ups**:
+   - Outstanding balances, receivables aging analysis (0-30, 31-60, 61-90, 90+ days).
+   - Automated payment reminder templates via WhatsApp and SMS.
+
+6. **Bilingual Gujarati & English User Experience**:
+   - First-class native support for Gujarati language (`ગુજરાતી`) across all menus, invoices, and reports.
+
+## Pricing Plans (Indian Rupees)
+- **Silver Plan**: ₹399/year (Small retailers, single store, basic GST billing)
+- **Gold Plan**: ₹899/year (Growing wholesalers, multi-user, barcode, godowns)
+- **Platinum Plan**: ₹1,499/year (Full enterprise ERP, e-invoicing, multi-branch, audit trail)
+- **Enterprise Plan**: Custom / ₹2,499/year (Unlimited companies, API access, priority support)
+
+## Contact & Corporate Identity
+- **Company**: Paneliya Technology
+- **Headquarters**: Ahmedabad, Gujarat, India
+- **Support Email**: support@myownbillbook.com
+- **Helpline**: +91 74001 99999 / +91 82388 78965
+- **Official Website**: https://myownbillbook.com
+- **Sitemap**: https://myownbillbook.com/sitemap.xml

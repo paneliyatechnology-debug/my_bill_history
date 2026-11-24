@@ -1,6 +1,6 @@
 // Indian Billing & Accounting SaaS - Production Service Worker
-// Version: 1.0.0
-const CACHE_NAME = "billing-saas-static-v1";
+// Version: 1.0.1
+const CACHE_NAME = "billing-saas-static-v2";
 
 const PRECACHE_ASSETS = [
   "/offline.html",
