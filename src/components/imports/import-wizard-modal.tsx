@@ -593,7 +593,7 @@ export function ImportWizardModal({
                 <p className="text-xs text-slate-500 max-w-sm mx-auto mb-3">
                   {isGu
                     ? "ટેલી, માર્ગ, બીઝી અથવા એક્સેલમાંથી એક્સપોર્ટ કરેલી .xlsx, .xls કે .csv ફાઇલ અપલોડ કરો."
-                    : "Supports Microsoft Excel (.xlsx, .xls) and CSV spreadsheets. Max 15 MB, up to 5,000 records."}
+                    : "Supports Microsoft Excel (.xlsx, .xls) and CSV spreadsheets. Max 50 MB, up to 50,000 records."}
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 shadow-2xs group-hover:border-[#1677E8] group-hover:text-[#1677E8] transition-colors">

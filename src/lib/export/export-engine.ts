@@ -55,6 +55,152 @@ export function triggerFileDownload(blob: Blob, fullFileName: string) {
 }
 
 /**
+ * Recursively extracts plain text from strings, numbers, booleans, React elements, or arrays.
+ * Strips out interactive buttons, icons, checkboxes, and non-text UI nodes.
+ */
+export function extractTextFromNode(node: any): string {
+  if (node === null || node === undefined) return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (typeof node === "boolean") return node ? "Yes" : "No";
+  if (Array.isArray(node)) return node.map(extractTextFromNode).filter(Boolean).join(" ").trim();
+  if (typeof node === "object") {
+    if (node instanceof Date) return node.toISOString().slice(0, 10);
+    // If it's a React element with props
+    if (node.props) {
+      if (node.type === "button" || node.type === "input" || node.type === "svg") {
+        return "";
+      }
+      if (node.props.children !== undefined) {
+        return extractTextFromNode(node.props.children);
+      }
+    }
+  }
+  return "";
+}
+
+/**
+ * Checks if a column identifier or header represents a UI-only column
+ * (checkboxes, selection, actions, buttons, menus, options, etc.)
+ * that must be stripped out of clean professional exports.
+ */
+export function isUiOnlyColumn(header?: any, key?: string): boolean {
+  const BLACKLIST_EXACT = new Set([
+    "select",
+    "selection",
+    "__selection__",
+    "selected",
+    "checkbox",
+    "check",
+    "chk",
+    "actions",
+    "action",
+    "__action__",
+    "__actions__",
+    "operation",
+    "operations",
+    "manage",
+    "menu",
+    "options",
+    "option",
+    "more",
+    "buttons",
+    "button",
+    "controls",
+    "control",
+    "edit",
+    "delete",
+    "view",
+    "drag",
+    "handle",
+    "row-action",
+    "row-actions",
+    "ક્રિયા",
+    "ક્રિયાઓ",
+    "પસંદ કરો",
+    "પસંદ",
+  ]);
+
+  const cleanKey = String(key || "").trim().toLowerCase();
+  if (cleanKey) {
+    if (BLACKLIST_EXACT.has(cleanKey)) return true;
+    if (cleanKey.startsWith("__")) return true;
+    if (cleanKey === "action" || cleanKey === "actions" || cleanKey.endsWith("_action") || cleanKey.endsWith("_actions")) return true;
+    if (cleanKey === "select" || cleanKey === "selection" || cleanKey.endsWith("_select")) return true;
+  }
+
+  let cleanHeader = "";
+  if (typeof header === "string") {
+    cleanHeader = header.trim().toLowerCase();
+  } else if (header && typeof header === "object") {
+    cleanHeader = extractTextFromNode(header).trim().toLowerCase();
+  }
+
+  if (cleanHeader) {
+    if (BLACKLIST_EXACT.has(cleanHeader)) return true;
+    if (cleanHeader === "#" || cleanHeader === "..." || cleanHeader === "⋮" || cleanHeader === "•") return true;
+    if (cleanHeader === "action" || cleanHeader === "actions" || cleanHeader === "row actions") return true;
+    if (cleanHeader === "select" || cleanHeader === "select all" || cleanHeader === "selection") return true;
+  } else if (!cleanKey) {
+    // Blank header and blank key -> empty spacer/UI column
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Centralized filter to purge UI-only columns and ensure only genuine business data is exported.
+ */
+export function filterExportColumns(
+  columns: ExportColumn[],
+  data?: any[]
+): ExportColumn[] {
+  return columns.filter((col) => {
+    // 1. Check if column header or key is in UI blacklist
+    if (isUiOnlyColumn(col.header, col.key)) {
+      return false;
+    }
+
+    // 2. If data is provided, test if the column actually provides meaningful data
+    if (data && data.length > 0) {
+      const sample = data.slice(0, 15);
+      let hasMeaningfulData = false;
+      for (const row of sample) {
+        let val: any;
+        if (col.format) {
+          try {
+            val = col.format(col.key ? row[col.key] : undefined, row);
+          } catch {
+            val = undefined;
+          }
+        } else if (col.key) {
+          if (col.key.includes(".")) {
+            val = col.key.split(".").reduce((acc, part) => (acc ? acc[part] : undefined), row);
+          } else {
+            val = row[col.key];
+          }
+        }
+
+        const textVal = extractTextFromNode(val);
+        if (textVal && textVal.trim() !== "" && textVal !== "-" && textVal !== "[object Object]") {
+          hasMeaningfulData = true;
+          break;
+        }
+      }
+
+      // If column has an action/select-like name and 0 meaningful text data in sample, drop it
+      const k = String(col.key || "").toLowerCase();
+      const h = String(col.header || "").toLowerCase();
+      if (!hasMeaningfulData && (k.includes("action") || k.includes("select") || h.includes("action") || h.includes("select") || !h)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+}
+
+/**
  * Format raw value according to column specification
  */
 export function extractCellValue(
@@ -65,7 +211,11 @@ export function extractCellValue(
   let val: any;
 
   if (col.format) {
-    val = col.format(col.key ? row[col.key] : undefined, row);
+    try {
+      val = col.format(col.key ? row[col.key] : undefined, row);
+    } catch {
+      val = undefined;
+    }
   } else if (col.key) {
     if (col.key.includes(".")) {
       val = col.key.split(".").reduce((acc, part) => (acc ? acc[part] : undefined), row);
@@ -74,8 +224,17 @@ export function extractCellValue(
     }
   }
 
+  // If val is a React node / JSX element, extract plain text
+  if (val && typeof val === "object") {
+    if (val instanceof Date) {
+      // keep date
+    } else {
+      val = extractTextFromNode(val);
+    }
+  }
+
   if (val === null || val === undefined) {
-    return rawForExcel ? "" : "";
+    return rawForExcel ? "" : "-";
   }
 
   if (col.type === "number" || col.type === "currency") {
@@ -107,7 +266,9 @@ export function extractCellValue(
     return val ? "Yes" : "No";
   }
 
-  return String(val);
+  const s = String(val).trim();
+  if (s === "[object Object]") return "-";
+  return s || (rawForExcel ? "" : "-");
 }
 
 /**
@@ -118,6 +279,7 @@ export function generateCsvString(
   data: any[],
   metadata?: ExportMetadata
 ): string {
+  const cleanCols = filterExportColumns(columns, data);
   const lines: string[] = [];
 
   // 1. Metadata Headers if provided
@@ -144,7 +306,7 @@ export function generateCsvString(
   }
 
   // 2. Table Column Headers
-  const headerRow = columns
+  const headerRow = cleanCols
     .map((c) => {
       const clean = sanitizeCellValue(c.header).replace(/"/g, '""');
       return `"${clean}"`;
@@ -154,7 +316,7 @@ export function generateCsvString(
 
   // 3. Table Rows
   for (const row of data) {
-    const rowCells = columns.map((col) => {
+    const rowCells = cleanCols.map((col) => {
       const rawVal = extractCellValue(row, col, false);
       const sanitized = sanitizeCellValue(rawVal);
       const strVal = String(sanitized).replace(/"/g, '""');
@@ -165,7 +327,7 @@ export function generateCsvString(
 
   // 4. Totals Row if present
   if (metadata?.totals && Object.keys(metadata.totals).length > 0) {
-    const totalsCells = columns.map((col, idx) => {
+    const totalsCells = cleanCols.map((col, idx) => {
       if (idx === 0) return '"Total"';
       const totVal = metadata.totals?.[col.header] ?? metadata.totals?.[col.key || ""];
       if (totVal !== undefined) {
@@ -203,6 +365,7 @@ export function generateExcelWorkbook(
   data: any[],
   metadata: ExportMetadata
 ): XLSX.WorkBook {
+  const cleanCols = filterExportColumns(columns, data);
   const wb = XLSX.utils.book_new();
   const rows: any[][] = [];
 
@@ -228,12 +391,12 @@ export function generateExcelWorkbook(
   rows.push([]); // Empty row separator
 
   // 2. Table Column Headers
-  const headerRow = columns.map((c) => sanitizeCellValue(c.header));
+  const headerRow = cleanCols.map((c) => sanitizeCellValue(c.header));
   rows.push(headerRow);
 
   // 3. Data Rows
   for (const row of data) {
-    const rowVals = columns.map((col) => {
+    const rowVals = cleanCols.map((col) => {
       const val = extractCellValue(row, col, true);
       if (typeof val === "number") {
         return val;
@@ -245,7 +408,7 @@ export function generateExcelWorkbook(
 
   // 4. Totals Row if present
   if (metadata.totals && Object.keys(metadata.totals).length > 0) {
-    const totalRow = columns.map((col, idx) => {
+    const totalRow = cleanCols.map((col, idx) => {
       if (idx === 0) return "Total";
       const tot = metadata.totals?.[col.header] ?? metadata.totals?.[col.key || ""];
       if (tot !== undefined) {
@@ -261,7 +424,7 @@ export function generateExcelWorkbook(
   const ws = XLSX.utils.aoa_to_sheet(rows);
 
   // Compute Auto Column Widths
-  const colWidths = columns.map((col, colIdx) => {
+  const colWidths = cleanCols.map((col) => {
     let maxLen = String(col.header).length;
     for (const r of data) {
       const val = extractCellValue(r, col, false);
@@ -308,16 +471,17 @@ export async function exportMultiSheetExcel(
   const wb = XLSX.utils.book_new();
 
   for (const sheet of options.sheets) {
+    const cleanCols = filterExportColumns(sheet.columns, sheet.data);
     const rows: any[][] = [];
     if (options.companyName) rows.push([options.companyName]);
     if (options.title) rows.push([options.title]);
     rows.push([`Section: ${sheet.sheetName}`]);
     rows.push([]);
 
-    rows.push(sheet.columns.map((c) => sanitizeCellValue(c.header)));
+    rows.push(cleanCols.map((c) => sanitizeCellValue(c.header)));
 
     for (const r of sheet.data) {
-      const rowVals = sheet.columns.map((col) => {
+      const rowVals = cleanCols.map((col) => {
         const val = extractCellValue(r, col, true);
         return typeof val === "number" ? val : sanitizeCellValue(val);
       });
@@ -325,7 +489,7 @@ export async function exportMultiSheetExcel(
     }
 
     if (sheet.totals) {
-      const totalRow = sheet.columns.map((col, idx) => {
+      const totalRow = cleanCols.map((col, idx) => {
         if (idx === 0) return "Total";
         const tot = sheet.totals?.[col.header] ?? sheet.totals?.[col.key || ""];
         if (tot !== undefined) {
@@ -338,7 +502,7 @@ export async function exportMultiSheetExcel(
     }
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
-    const colWidths = sheet.columns.map((col) => ({
+    const colWidths = cleanCols.map((col) => ({
       wch: Math.min(Math.max(String(col.header).length + 4, 12), 50),
     }));
     ws["!cols"] = colWidths;
@@ -363,9 +527,11 @@ export async function exportToPdf(
   data: any[],
   metadata: ExportMetadata
 ): Promise<void> {
+  const cleanCols = filterExportColumns(columns, data);
+
   // Determine orientation: Landscape if more than 6 columns or explicitly set
   const orientation =
-    metadata.orientation || (columns.length > 6 ? "landscape" : "portrait");
+    metadata.orientation || (cleanCols.length > 6 ? "landscape" : "portrait");
 
   const doc = new jsPDF({
     orientation,
@@ -377,8 +543,8 @@ export async function exportToPdf(
   const sampleText = [
     metadata.title,
     metadata.companyName,
-    ...columns.map((c) => c.header),
-    ...data.slice(0, 30).flatMap((r) => columns.map((c) => String(extractCellValue(r, c, false)))),
+    ...cleanCols.map((c) => c.header),
+    ...data.slice(0, 30).flatMap((r) => cleanCols.map((c) => String(extractCellValue(r, c, false)))),
   ].join(" ");
   const hasGujarati = /[\u0A80-\u0AFF]/.test(sampleText);
 
@@ -491,9 +657,9 @@ export async function exportToPdf(
   }
 
   // 4. Prepare Table Headers and Body
-  const head = [columns.map((c) => formatForPdf(c.header))];
+  const head = [cleanCols.map((c) => formatForPdf(c.header))];
   const body = data.map((row) =>
-    columns.map((col) => {
+    cleanCols.map((col) => {
       const val = extractCellValue(row, col, false);
       return val !== null && val !== undefined ? formatForPdf(String(val)) : "";
     })
@@ -503,7 +669,7 @@ export async function exportToPdf(
   let foot: string[][] | undefined = undefined;
   if (metadata.totals && Object.keys(metadata.totals).length > 0) {
     foot = [
-      columns.map((col, idx) => {
+      cleanCols.map((col, idx) => {
         if (idx === 0) return "Total";
         const tot = metadata.totals?.[col.header] ?? metadata.totals?.[col.key || ""];
         if (tot !== undefined) {
@@ -520,7 +686,7 @@ export async function exportToPdf(
 
   // Column Alignments & Styles
   const columnStyles: Record<number, any> = {};
-  columns.forEach((col, idx) => {
+  cleanCols.forEach((col, idx) => {
     if (col.type === "number" || col.type === "currency" || col.align === "right") {
       columnStyles[idx] = { halign: "right" };
     } else if (col.align === "center") {
@@ -600,15 +766,16 @@ export async function executeExport(
   data: any[],
   metadata: ExportMetadata
 ): Promise<void> {
+  const cleanCols = filterExportColumns(columns, data);
   switch (format) {
     case "xlsx":
-      await exportToExcel(columns, data, metadata);
+      await exportToExcel(cleanCols, data, metadata);
       break;
     case "csv":
-      await exportToCsv(columns, data, metadata);
+      await exportToCsv(cleanCols, data, metadata);
       break;
     case "pdf":
-      await exportToPdf(columns, data, metadata);
+      await exportToPdf(cleanCols, data, metadata);
       break;
     default:
       throw new Error(`Unsupported export format: ${format}`);

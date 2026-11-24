@@ -5,7 +5,7 @@ import { X, FileText } from "lucide-react";
 import { ExportDropdown } from "./export-dropdown";
 import { CustomSelect } from "./custom-select";
 import { ExportColumn, ExportFormat, ExportMetadata } from "../../lib/export/export-types";
-import { executeExport } from "../../lib/export/export-engine";
+import { executeExport, isUiOnlyColumn } from "../../lib/export/export-engine";
 import { AuthContext } from "../../context/auth-context";
 import { DataTablePagination } from "./data-table-pagination";
 
@@ -386,6 +386,7 @@ export function DataTable<T>({
     const exportColumns: ExportColumn[] = columns
       .filter((col) => {
         if (col.id === "__selection__") return false;
+        if (isUiOnlyColumn(col.header, col.accessorKey ? String(col.accessorKey) : col.id)) return false;
         if (!col.header && !col.accessorKey && !col.id) return false;
         return true;
       })

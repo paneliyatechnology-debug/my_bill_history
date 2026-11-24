@@ -698,12 +698,21 @@ export default function CashAndBankPage() {
             }
 
             let targetLink: string | undefined = undefined;
+            const invId = l.invoiceId || (l.sourceDocument === "SALES_INVOICE" ? l.sourceEntityId : null);
+            const purId = l.purchaseInvoiceId || (l.sourceDocument === "PURCHASE_INVOICE" ? l.sourceEntityId : null);
             const vId = l.voucherId || l.id;
-            if (typeStr === "Payment In" && vId) targetLink = `/sales/payment-in/${vId}`;
-            else if (typeStr === "Payment Out" && vId) targetLink = `/purchases/payment-out/${vId}`;
-            else if (typeStr === "Sales" && vId) targetLink = `/sales/invoices/${vId}`;
-            else if (typeStr === "Purchase" && vId) targetLink = `/purchases/invoices/${vId}`;
-            else if (l.voucherNumber && l.voucherNumber !== "-") targetLink = `/app/home/vouchers/all_transactions?search=${encodeURIComponent(l.voucherNumber)}`;
+
+            if (typeStr === "Payment In" && vId) {
+              targetLink = `/sales/payment-in/${vId}`;
+            } else if (typeStr === "Payment Out" && vId) {
+              targetLink = `/purchases/payment-out/${vId}`;
+            } else if (typeStr === "Sales") {
+              targetLink = `/sales/invoices/${invId || vId}`;
+            } else if (typeStr === "Purchase") {
+              targetLink = `/purchases/invoices/${purId || vId}`;
+            } else if (l.voucherNumber && l.voucherNumber !== "-") {
+              targetLink = `/accounting/vouchers?search=${encodeURIComponent(l.voucherNumber)}`;
+            }
 
             return {
               id: l.id || `txn_${i}`,
@@ -787,11 +796,20 @@ export default function CashAndBankPage() {
           }
 
           let targetLink: string | undefined = undefined;
-          if (typeStr === "Payment In" && v.id) targetLink = `/sales/payment-in/${v.id}`;
-          else if (typeStr === "Payment Out" && v.id) targetLink = `/purchases/payment-out/${v.id}`;
-          else if (typeStr === "Sales" && v.id) targetLink = `/sales/invoices/${v.id}`;
-          else if (typeStr === "Purchase" && v.id) targetLink = `/purchases/invoices/${v.id}`;
-          else if (v.voucherNumber && v.voucherNumber !== "-") targetLink = `/app/home/vouchers/all_transactions?search=${encodeURIComponent(v.voucherNumber)}`;
+          const invId = (v.sourceDocument === "SALES_INVOICE" ? v.sourceEntityId : null) || v.allocations?.[0]?.invoiceId;
+          const purId = (v.sourceDocument === "PURCHASE_INVOICE" ? v.sourceEntityId : null) || v.allocations?.[0]?.purchaseInvoiceId;
+
+          if (typeStr === "Payment In" && v.id) {
+            targetLink = `/sales/payment-in/${v.id}`;
+          } else if (typeStr === "Payment Out" && v.id) {
+            targetLink = `/purchases/payment-out/${v.id}`;
+          } else if (typeStr === "Sales") {
+            targetLink = `/sales/invoices/${invId || v.id}`;
+          } else if (typeStr === "Purchase") {
+            targetLink = `/purchases/invoices/${purId || v.id}`;
+          } else if (v.voucherNumber && v.voucherNumber !== "-") {
+            targetLink = `/accounting/vouchers?search=${encodeURIComponent(v.voucherNumber)}`;
+          }
 
           filtered.push({
             id: v.id,

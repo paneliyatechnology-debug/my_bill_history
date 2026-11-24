@@ -1,16 +1,28 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { StatCard } from "../../../components/ui/stat-card";
-import { Badge } from "../../../components/ui/badge";
 import { ExportDropdown } from "../../../components/ui/export-dropdown";
 import { ExportColumn, ExportFormat, ExportMetadata } from "../../../lib/export/export-types";
 import { executeExport } from "../../../lib/export/export-engine";
 import { DataTablePagination } from "../../../components/ui/data-table-pagination";
 import { CustomSelect } from "@/components/ui/dropdown-system";
+import { ImportWizardModal } from "../../../components/imports/import-wizard-modal";
+import { ImportModuleType } from "@billing/shared-types";
+import {
+  FileSpreadsheet,
+  Trash2,
+  Edit2,
+  Eye,
+  Plus,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Search,
+} from "lucide-react";
 
 interface HsnMasterItem {
   id: string;
@@ -35,12 +47,18 @@ interface HsnResponse {
   page: number;
   limit: number;
   totalPages: number;
+  counts?: {
+    total: number;
+    hsn: number;
+    sac: number;
+    active: number;
+  };
 }
 
 const STATUTORY_GST_RATES = [0, 0.1, 0.25, 3, 5, 12, 18, 28];
 
 export default function HsnMasterPage() {
-  const { lang, tenantContext } = useAuth();
+  const { lang } = useAuth();
 
   // Listing State
   const [data, setData] = useState<HsnMasterItem[]>([]);
@@ -48,6 +66,12 @@ export default function HsnMasterPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [totalPages, setTotalPages] = useState(1);
+  const [catalogCounts, setCatalogCounts] = useState<{ total: number; hsn: number; sac: number; active: number }>({
+    total: 0,
+    hsn: 0,
+    sac: 0,
+    active: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,10 +80,16 @@ export default function HsnMasterPage() {
   const [typeFilter, setTypeFilter] = useState<"ALL" | "HSN" | "SAC">("ALL");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
 
-  // Summary counts
-  const [goodsCount, setGoodsCount] = useState(0);
-  const [servicesCount, setServicesCount] = useState(0);
-  const [officialCount, setOfficialCount] = useState(0);
+  // Selection for bulk actions
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Import Modal State
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  // Bulk Delete Modal State
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [bulkDeleteError, setBulkDeleteError] = useState<string | null>(null);
 
   // Create Modal State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -80,6 +110,8 @@ export default function HsnMasterPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<HsnMasterItem | null>(null);
   const [editFormData, setEditFormData] = useState({
+    code: "",
+    type: "HSN" as "HSN" | "SAC",
     description: "",
     descriptionGujarati: "",
     chapter: "",
@@ -92,7 +124,7 @@ export default function HsnMasterPage() {
   const [viewingItem, setViewingItem] = useState<HsnMasterItem | null>(null);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
 
-  // Delete Modal State
+  // Delete Modal State (Single)
   const [deletingItem, setDeletingItem] = useState<HsnMasterItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -116,12 +148,15 @@ export default function HsnMasterPage() {
       setData(res.items || []);
       setTotal(res.total || 0);
       setTotalPages(res.totalPages || 1);
-
-      // Fast counts from stats or current dataset
-      if (page === 1 && !search && typeFilter === "ALL" && statusFilter === "ALL") {
-        setOfficialCount(res.items.filter((i) => i.isSystem).length);
-        setGoodsCount(res.items.filter((i) => i.type === "HSN").length);
-        setServicesCount(res.items.filter((i) => i.type === "SAC").length);
+      if (res.counts) {
+        setCatalogCounts(res.counts);
+      } else {
+        setCatalogCounts({
+          total: res.total || 0,
+          hsn: (res.items || []).filter((i) => i.type === "HSN").length,
+          sac: (res.items || []).filter((i) => i.type === "SAC").length,
+          active: (res.items || []).filter((i) => i.isActive).length,
+        });
       }
     } catch (err: any) {
       setError(err.message || "Failed to load HSN/SAC master records.");
@@ -138,6 +173,7 @@ export default function HsnMasterPage() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setPage(1);
+    setSelectedIds(new Set());
   };
 
   const showNotification = (msg: string) => {
@@ -145,12 +181,40 @@ export default function HsnMasterPage() {
     setTimeout(() => setSuccessMessage(null), 4000);
   };
 
+  // Selection handlers
+  const isAllPageSelected = useMemo(() => {
+    return data.length > 0 && data.every((item) => selectedIds.has(item.id));
+  }, [data, selectedIds]);
+
+  const isSomePageSelected = useMemo(() => {
+    return data.some((item) => selectedIds.has(item.id)) && !isAllPageSelected;
+  }, [data, selectedIds, isAllPageSelected]);
+
+  const handleToggleSelectAll = () => {
+    const next = new Set(selectedIds);
+    if (isAllPageSelected) {
+      data.forEach((item) => next.delete(item.id));
+    } else {
+      data.forEach((item) => next.add(item.id));
+    }
+    setSelectedIds(next);
+  };
+
+  const handleToggleSelectRow = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedIds(next);
+  };
+
   // Create Custom HSN/SAC
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
-    // Frontend validation
     const code = formData.code.trim();
     if (!/^\d{2,8}$/.test(code)) {
       setFormError(
@@ -210,6 +274,8 @@ export default function HsnMasterPage() {
   const handleOpenEdit = (item: HsnMasterItem) => {
     setEditingItem(item);
     setEditFormData({
+      code: item.code,
+      type: item.type,
       description: item.description,
       descriptionGujarati: item.descriptionGujarati || "",
       chapter: item.chapter || "",
@@ -221,7 +287,7 @@ export default function HsnMasterPage() {
     setIsEditOpen(true);
   };
 
-  // Update Custom HSN/SAC
+  // Update HSN/SAC
   const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem) return;
@@ -230,6 +296,7 @@ export default function HsnMasterPage() {
     setIsSubmitting(true);
     try {
       await apiClient.put(`/masters/hsn/${editingItem.id}`, {
+        type: editFormData.type,
         description: editFormData.description.trim(),
         descriptionGujarati: editFormData.descriptionGujarati.trim() || undefined,
         chapter: editFormData.chapter.trim() || undefined,
@@ -284,7 +351,7 @@ export default function HsnMasterPage() {
     }
   };
 
-  // Delete Custom HSN/SAC
+  // Delete Single HSN/SAC
   const handleDeleteSubmit = async () => {
     if (!deletingItem) return;
     setIsDeleting(true);
@@ -292,13 +359,40 @@ export default function HsnMasterPage() {
 
     try {
       await apiClient.delete(`/masters/hsn/${deletingItem.id}`);
+      const deletedCode = deletingItem.code;
       setDeletingItem(null);
-      showNotification(`Code ${deletingItem.code} deleted.`);
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(deletingItem.id);
+        return next;
+      });
+      showNotification(`Code ${deletedCode} deleted successfully.`);
       await fetchHsnList();
     } catch (err: any) {
       setDeleteError(err.message || "Failed to delete HSN code.");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // Bulk Delete Selected HSN/SAC Codes
+  const handleBulkDeleteSubmit = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkDeleting(true);
+    setBulkDeleteError(null);
+
+    try {
+      const res: any = await apiClient.post("/masters/hsn/bulk-delete", {
+        ids: Array.from(selectedIds),
+      });
+      setIsBulkDeleteModalOpen(false);
+      setSelectedIds(new Set());
+      showNotification(`${res.deletedCount || selectedIds.size} HSN code(s) deleted successfully.`);
+      await fetchHsnList();
+    } catch (err: any) {
+      setBulkDeleteError(err.message || "Failed to delete selected HSN codes.");
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -309,7 +403,6 @@ export default function HsnMasterPage() {
       { header: "HSN / SAC Code", key: "code", type: "string" },
       { header: "Type", key: "type", type: "string" },
       { header: "Description", key: "description", type: "string" },
-      { header: "Gujarati Description", key: "descriptionGujarati", type: "string" },
       { header: "GST Rate (%)", key: "gstRate", type: "number", align: "right" },
       { header: "Cess Rate (%)", key: "cessRate", type: "number", align: "right" },
       {
@@ -317,16 +410,11 @@ export default function HsnMasterPage() {
         type: "string",
         format: (_v, r) => (r.isActive ? "Active" : "Inactive"),
       },
-      {
-        header: "Catalogue Source",
-        type: "string",
-        format: (_v, r) => (r.isSystem ? "Official Government Schedule" : "Custom User Code"),
-      },
     ];
 
     const metadata: ExportMetadata = {
-      title: "HSN and SAC Master Directory",
-      fileName: `HSN_SAC_Master_${typeFilter}`,
+      title: "HSN and SAC Code Master Catalog",
+      fileName: "hsn_sac_codes_catalog",
       filterDescription: `Type: ${typeFilter}, Status: ${statusFilter}${search ? `, Search: "${search}"` : ""}`,
       totalCount: data.length,
       generatedAt: new Date().toLocaleString("en-IN"),
@@ -338,21 +426,20 @@ export default function HsnMasterPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
-          <h1 className="typo-page-title text-[#182230]">
-            {lang === "gu"
-              ? "એચએસએન અને એસએસી કોડ માસ્ટર"
-              : "HSN & SAC Code Master"}
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            {lang === "gu" ? "એચએસએન અને એસએસી કોડ માસ્ટર" : "HSN & SAC Code Master"}
           </h1>
-          <p className="typo-page-subtitle text-muted mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             {lang === "gu"
-              ? "કેન્દ્રીય જીએસટી વર્ગીકરણ, માન્ય કર સ્લેબ અને કંપની કસ્ટમ કોડ્સ"
-              : "Centralized GST goods & services classification, statutory tax slabs & company custom codes."}
+              ? "કેન્દ્રીય જીએસટી વર્ગીકરણ અને માન્ય કર સ્લેબ"
+              : "Centralized GST goods & services classification and statutory tax slabs."}
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Export Dropdown */}
           <ExportDropdown
             onExport={handleExportHsn}
             totalCount={data.length}
@@ -361,53 +448,41 @@ export default function HsnMasterPage() {
             themeColor="saffron"
           />
 
+          {/* Import Excel / CSV Button */}
           <button
+            type="button"
+            onClick={() => setIsImportModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[13px] font-medium rounded-xl shadow-2xs transition-all cursor-pointer"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>{lang === "gu" ? "એક્સેલ ઈમ્પોર્ટ" : "Import Excel / CSV"}</span>
+          </button>
+
+          {/* Add HSN / SAC Code */}
+          <button
+            type="button"
             onClick={() => {
               setFormError(null);
               setIsCreateOpen(true);
             }}
-            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-card hover:shadow-hover transition-all"
+            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            <span>
-              {lang === "gu" ? "નવો એચએસએન ઉમેરો" : "Add Custom HSN/SAC"}
-            </span>
+            <Plus className="w-4 h-4 text-white" />
+            <span>{lang === "gu" ? "નવો એચએસએન ઉમેરો" : "Add HSN/SAC Code"}</span>
           </button>
         </div>
       </div>
 
       {/* Notification Banner */}
       {successMessage && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-medium text-emerald-800 flex items-center justify-between animate-fadeIn">
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-medium text-emerald-800 flex items-center justify-between shadow-2xs animate-fadeIn">
           <div className="flex items-center gap-2">
-            <svg
-              className="w-4 h-4 text-emerald-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>{successMessage}</span>
           </div>
           <button
             onClick={() => setSuccessMessage(null)}
-            className="text-emerald-700 hover:text-emerald-900"
+            className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
           >
             &times;
           </button>
@@ -419,93 +494,89 @@ export default function HsnMasterPage() {
         <StatCard
           title="Total Codes"
           titleGujarati="કુલ કોડ"
-          value={total}
-          subtext="Centralized catalogue"
+          value={catalogCounts.total || total}
+          subtext="Catalogue entries"
           variant="brand"
           icon={
-            <svg
-              className="w-5 h-5 text-amber-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.8}
-                d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
-              />
+            <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
             </svg>
           }
         />
         <StatCard
           title="Goods (HSN)"
           titleGujarati="માલસામાન કોડ"
-          value={data.filter((i) => i.type === "HSN").length}
+          value={catalogCounts.hsn}
           subtext="Commodities & products"
           variant="success"
           icon={
-            <svg
-              className="w-5 h-5 text-emerald-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.8}
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-              />
+            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           }
         />
         <StatCard
           title="Services (SAC)"
           titleGujarati="સેવા કોડ"
-          value={data.filter((i) => i.type === "SAC").length}
+          value={catalogCounts.sac}
           subtext="Chapter 99 services"
           variant="default"
           icon={
-            <svg
-              className="w-5 h-5 text-indigo-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.8}
-                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
+            <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           }
         />
         <StatCard
-          title="Verified Schedule"
-          titleGujarati="સત્તાવાર જીએસટી"
-          value={data.filter((i) => i.isSystem).length}
-          subtext="Official GST rates"
+          title="Active Codes"
+          titleGujarati="સક્રિય કોડ"
+          value={catalogCounts.active}
+          subtext="Ready for billing"
           variant="success"
           icon={
-            <svg
-              className="w-5 h-5 text-emerald-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM13.707 7.707a1 1 0 00-1.414-1.414L9 9.586 7.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           }
         />
       </div>
 
+      {/* Bulk Action Bar (Visible when rows are selected) */}
+      {selectedIds.size > 0 && (
+        <div className="bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-md flex items-center justify-between text-xs font-medium animate-fadeIn">
+          <div className="flex items-center gap-2.5">
+            <span className="bg-blue-600 text-white px-2 py-0.5 rounded-md font-bold text-[11px]">
+              {selectedIds.size}
+            </span>
+            <span>
+              {selectedIds.size === 1
+                ? "1 HSN/SAC code selected"
+                : `${selectedIds.size} HSN/SAC codes selected`}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setBulkDeleteError(null);
+                setIsBulkDeleteModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors cursor-pointer text-xs font-semibold"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Selected ({selectedIds.size})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors cursor-pointer text-xs"
+            >
+              Deselect All
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Toolbar / Search / Filters */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Search */}
         <div className="relative flex-1">
           <input
@@ -517,53 +588,27 @@ export default function HsnMasterPage() {
                 ? "કોડ અથવા વિગત શોધો (દા.ત. 1006, Rice, Software, 9983)..."
                 : "Search by code or description (e.g. 1006, Rice, Software, 9983)..."
             }
-            className="w-full px-3 py-2 pl-9 rounded-lg border border-slate-300 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] transition-colors h-10"
+            className="w-full px-3 py-2 pl-9 rounded-lg border border-slate-300 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors h-10"
           />
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-          {search && (
-            <button
-              onClick={() => {
-                setSearch("");
-                setPage(1);
-              }}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-            >
-              &times;
-            </button>
-          )}
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Type Filter */}
-          <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-xs">
+        {/* Filters */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
             <button
               type="button"
               onClick={() => {
                 setTypeFilter("ALL");
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded-md font-medium transition-all ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                 typeFilter === "ALL"
-                  ? "bg-white text-slate-900 shadow-sm"
+                  ? "bg-white text-slate-900 shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {lang === "gu" ? "બધા" : "All"}
+              All
             </button>
             <button
               type="button"
@@ -571,13 +616,13 @@ export default function HsnMasterPage() {
                 setTypeFilter("HSN");
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded-md font-medium transition-all ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                 typeFilter === "HSN"
-                  ? "bg-white text-emerald-800 shadow-sm"
+                  ? "bg-white text-emerald-700 shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {lang === "gu" ? "માલસામાન (HSN)" : "Goods (HSN)"}
+              Goods (HSN)
             </button>
             <button
               type="button"
@@ -585,28 +630,26 @@ export default function HsnMasterPage() {
                 setTypeFilter("SAC");
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded-md font-medium transition-all ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                 typeFilter === "SAC"
-                  ? "bg-white text-indigo-800 shadow-sm"
+                  ? "bg-white text-indigo-700 shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {lang === "gu" ? "સેવાઓ (SAC)" : "Services (SAC)"}
+              Services (SAC)
             </button>
           </div>
 
-          {/* Status Filter */}
           <div className="w-36">
             <CustomSelect
-              size="sm"
               value={statusFilter}
-              onChange={(val: any) => {
+              onChange={(val) => {
                 setStatusFilter(val as any);
                 setPage(1);
               }}
               options={[
-                { value: "ALL", label: lang === "gu" ? "બધા સ્ટેટસ" : "All Status" },
-                { value: "ACTIVE", label: lang === "gu" ? "માત્ર એક્ટિવ" : "Active Only" },
+                { value: "ALL", label: lang === "gu" ? "તમામ સ્ટેટસ" : "All Status" },
+                { value: "ACTIVE", label: lang === "gu" ? "માત્ર સક્રિય" : "Active Only" },
                 { value: "INACTIVE", label: lang === "gu" ? "માત્ર ઇન-એક્ટિવ" : "Inactive Only" },
               ]}
               triggerClassName="rounded-lg border-slate-200 bg-white text-slate-700 font-medium"
@@ -616,7 +659,7 @@ export default function HsnMasterPage() {
       </div>
 
       {/* Table Container */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         {error && (
           <div className="p-4 bg-rose-50 border-b border-rose-100 text-xs text-rose-700 font-medium">
             {error}
@@ -626,7 +669,20 @@ export default function HsnMasterPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider typo-table-th">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[11px] font-bold">
+                {/* Select All Checkbox */}
+                <th className="py-3 px-3 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={isAllPageSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = isSomePageSelected;
+                    }}
+                    onChange={handleToggleSelectAll}
+                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                    title="Select all on this page"
+                  />
+                </th>
                 <th className="py-3 px-4 w-32">
                   {lang === "gu" ? "કોડ (Code)" : "HSN/SAC Code"}
                 </th>
@@ -639,10 +695,7 @@ export default function HsnMasterPage() {
                 <th className="py-3 px-3 text-center w-24">
                   {lang === "gu" ? "જીએસટી સ્લેબ" : "GST Rate"}
                 </th>
-                <th className="py-3 px-3 w-32">
-                  {lang === "gu" ? "સ્ત્રોત (Scope)" : "Scope"}
-                </th>
-                <th className="py-3 px-3 text-center w-24">
+                <th className="py-3 px-3 text-center w-28">
                   {lang === "gu" ? "સ્ટેટસ" : "Status"}
                 </th>
                 <th className="py-3 px-4 text-center w-32">
@@ -654,266 +707,167 @@ export default function HsnMasterPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2" />
                     <p className="font-medium">Loading HSN / SAC catalogue...</p>
                   </td>
                 </tr>
               ) : data.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-slate-400">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                  <td colSpan={7} className="py-16 text-center">
+                    <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Search className="w-6 h-6" />
                     </div>
                     <p className="font-medium text-slate-700 text-sm mb-1">
                       No HSN / SAC codes match your search
                     </p>
                     <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
                       Try adjusting the search query, clearing filters, or click
-                      &quot;Add Custom HSN/SAC&quot; to define a new entry.
+                      &quot;Add HSN/SAC Code&quot; to define a new entry.
                     </p>
                   </td>
                 </tr>
               ) : (
-                data.map((item) => (
-                  <tr
-                    key={item.id}
-                    onClick={() => handleViewDetails(item)}
-                    className={`cursor-pointer hover:bg-emerald-50/40 transition-colors ${
-                      !item.isActive ? "opacity-60 bg-slate-50/40" : ""
-                    }`}
-                  >
-                    {/* Code */}
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-1.5">
-                        <span className="typo-invoice-no text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                          {item.code}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Type Badge */}
-                    <td className="py-3 px-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                          item.type === "SAC"
-                            ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
-                            : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        }`}
-                      >
-                        {item.type}
-                      </span>
-                    </td>
-
-                    {/* Description */}
-                    <td className="py-3 px-4">
-                      <div className="font-medium text-slate-900 text-xs">
-                        {item.description}
-                      </div>
-                      {lang === "gu" && item.descriptionGujarati && (
-                        <div className="text-[11px] text-slate-500 font-normal mt-0.5">
-                          {item.descriptionGujarati}
-                        </div>
-                      )}
-                      {item.chapter && (
-                        <div className="text-[10px] text-slate-400 mt-0.5">
-                          {item.chapter}
-                        </div>
-                      )}
-                    </td>
-
-                    {/* GST Rate */}
-                    <td className="py-3 px-3 text-center">
-                      <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-900 tabular-nums font-bold text-xs rounded border border-slate-200">
-                        {Number(item.gstRate)}%
-                      </span>
-                      {item.cessRate && Number(item.cessRate) > 0 ? (
-                        <div className="text-[10px] text-amber-600 font-medium mt-0.5">
-                          +{Number(item.cessRate)}% Cess
-                        </div>
-                      ) : null}
-                    </td>
-
-                    {/* Scope */}
-                    <td className="py-3 px-3">
-                      {item.isSystem ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          <svg
-                            className="w-3 h-3 text-emerald-600"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM13.707 7.707a1 1 0 00-1.414-1.414L9 9.586 7.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          Official GST
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                          <svg
-                            className="w-3 h-3 text-sky-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                            />
-                          </svg>
-                          Company
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Active Status Toggle */}
-                    <td 
-                      className="py-3 px-3 text-center"
-                      onClick={(e) => e.stopPropagation()}
+                data.map((item) => {
+                  const isChecked = selectedIds.has(item.id);
+                  return (
+                    <tr
+                      key={item.id}
+                      onClick={() => handleViewDetails(item)}
+                      className={`cursor-pointer hover:bg-slate-50/70 transition-colors ${
+                        isChecked ? "bg-blue-50/40" : !item.isActive ? "opacity-60 bg-slate-50/30" : ""
+                      }`}
                     >
-                      <button
-                        type="button"
-                        onClick={() => handleToggleStatus(item)}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
-                          item.isActive
-                            ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                            : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                        }`}
+                      {/* Checkbox */}
+                      <td
+                        className="py-3 px-3 text-center"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            item.isActive ? "bg-emerald-500" : "bg-slate-400"
-                          }`}
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleToggleSelectRow(item.id)}
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
                         />
-                        {item.isActive ? "Active" : "Inactive"}
-                      </button>
-                    </td>
+                      </td>
 
-                    {/* Actions */}
-                    <td 
-                      className="py-3 px-4 text-center"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="inline-flex items-center justify-center gap-1">
-                        {/* View Details */}
+                      {/* Code */}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-slate-900 bg-slate-100 font-semibold text-xs px-2 py-0.5 rounded border border-slate-200">
+                            {item.code}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Type Badge */}
+                      <td className="py-3 px-3">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                            item.type === "SAC"
+                              ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          }`}
+                        >
+                          {item.type}
+                        </span>
+                      </td>
+
+                      {/* Description */}
+                      <td className="py-3 px-4">
+                        <div className="font-medium text-slate-900 text-xs">
+                          {item.description}
+                        </div>
+                        {lang === "gu" && item.descriptionGujarati && (
+                          <div className="text-[11px] text-slate-500 font-normal mt-0.5">
+                            {item.descriptionGujarati}
+                          </div>
+                        )}
+                        {item.chapter && (
+                          <div className="text-[10px] text-slate-400 mt-0.5">
+                            Chapter {item.chapter}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* GST Rate */}
+                      <td className="py-3 px-3 text-center">
+                        <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-900 tabular-nums font-bold text-xs rounded border border-slate-200">
+                          {Number(item.gstRate)}%
+                        </span>
+                        {item.cessRate && Number(item.cessRate) > 0 ? (
+                          <div className="text-[10px] text-amber-600 font-medium mt-0.5">
+                            +{Number(item.cessRate)}% Cess
+                          </div>
+                        ) : null}
+                      </td>
+
+                      {/* Status */}
+                      <td
+                        className="py-3 px-3 text-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <button
                           type="button"
-                          onClick={() => handleViewDetails(item)}
-                          title="View Details"
-                          className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors"
+                          onClick={() => handleToggleStatus(item)}
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer ${
+                            item.isActive
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                              : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+                          }`}
+                          title={item.isActive ? "Click to deactivate" : "Click to activate"}
                         >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.8}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.8}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              item.isActive ? "bg-emerald-500" : "bg-slate-400"
+                            }`}
+                          />
+                          {item.isActive ? "Active" : "Inactive"}
                         </button>
+                      </td>
 
-                        {/* Edit (only company codes) */}
-                        {!item.isSystem ? (
+                      {/* Actions */}
+                      <td
+                        className="py-3 px-4 text-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-center gap-1">
+                          {/* View */}
+                          <button
+                            type="button"
+                            onClick={() => handleViewDetails(item)}
+                            title="View details"
+                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          {/* Edit - Enabled for all */}
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(item)}
-                            title="Edit Custom Code"
-                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                            title="Edit HSN/SAC"
+                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors cursor-pointer"
                           >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.8}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
+                            <Edit2 className="w-4 h-4" />
                           </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled
-                            title="Official GST schedule cannot be modified"
-                            className="p-1.5 text-slate-300 cursor-not-allowed"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.8}
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                              />
-                            </svg>
-                          </button>
-                        )}
 
-                        {/* Delete (only company codes) */}
-                        {!item.isSystem && (
+                          {/* Delete - Enabled for all */}
                           <button
                             type="button"
                             onClick={() => {
                               setDeletingItem(item);
                               setDeleteError(null);
                             }}
-                            title="Delete Custom Code"
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                            title="Delete HSN/SAC"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                           >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.8}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
+                            <Trash2 className="w-4 h-4" />
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -942,8 +896,7 @@ export default function HsnMasterPage() {
       <Modal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        title={lang === "gu" ? "નવો એચએસએન / એસએસી કોડ ઉમેરો" : "Add Custom HSN / SAC Code"}
-        titleGujarati="કંપની કસ્ટમ કોડ"
+        title={lang === "gu" ? "નવો એચએસએન / એસએસી કોડ ઉમેરો" : "Add HSN / SAC Code"}
         maxWidth="lg"
       >
         <form onSubmit={handleCreateSubmit} className="space-y-4">
@@ -954,47 +907,63 @@ export default function HsnMasterPage() {
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Code */}
+            <div>
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
+                HSN / SAC Code <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                maxLength={8}
+                value={formData.code}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    code: e.target.value.replace(/\D/g, "").slice(0, 8),
+                  })
+                }
+                placeholder="e.g. 1006 or 998311"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-10 font-mono"
+              />
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                2 to 8 numeric digits
+              </span>
+            </div>
+
             {/* Type */}
             <div>
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Classification Type <span className="text-rose-500">*</span>
               </label>
-              <CustomSelect
-                value={formData.type}
-                onChange={(val: any) =>
-                  setFormData({ ...formData, type: val as any })
-                }
-                options={[
-                  { value: "HSN", label: lang === "gu" ? "માલસામાન (Goods - HSN)" : "Goods (HSN)" },
-                  { value: "SAC", label: lang === "gu" ? "સેવાઓ (Services - SAC)" : "Services (SAC)" },
-                ]}
-                triggerClassName="rounded-lg border-slate-300 bg-white"
-              />
-            </div>
-
-            {/* Code */}
-            <div>
-              <label className="block text-[12px] font-medium text-slate-700 mb-1">
-                {formData.type} Code <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                placeholder={formData.type === "SAC" ? "e.g. 998311" : "e.g. 84799090"}
-                value={formData.code}
-                onChange={(e) =>
-                  setFormData({ ...formData, code: e.target.value.replace(/\D/g, "") })
-                }
-                maxLength={8}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums font-normal tracking-wider text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
-              />
-              <span className="text-[10px] text-slate-400">
-                2 to 8 numeric digits. Leading zeros are strictly preserved.
-              </span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, type: "HSN" })}
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                    formData.type === "HSN"
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  HSN (Goods)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, type: "SAC" })}
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                    formData.type === "SAC"
+                      ? "bg-indigo-50 border-indigo-300 text-indigo-800"
+                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  SAC (Services)
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Description */}
+          {/* Description (English) */}
           <div>
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Description (English) <span className="text-rose-500">*</span>
@@ -1002,118 +971,99 @@ export default function HsnMasterPage() {
             <input
               type="text"
               required
-              placeholder="e.g. Industrial Automation Machinery Parts"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
+              placeholder="Official statutory description of the goods or services"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-10"
             />
           </div>
 
-          {/* Description Gujarati */}
-          {lang === "gu" && (
+          {/* Rates Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
-                ગુજરાતી વિગત (વૈકલ્પિક)
+                GST Rate (%) <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                placeholder="દા.ત. ઔદ્યોગિક મશીનરી સ્પેરપાર્ટ્સ"
-                value={formData.descriptionGujarati}
+              <select
+                value={formData.gstRate}
                 onChange={(e) =>
-                  setFormData({ ...formData, descriptionGujarati: e.target.value })
+                  setFormData({ ...formData, gstRate: Number(e.target.value) })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* GST Rate */}
-            <div>
-              <label className="block text-[12px] font-medium text-slate-700 mb-1">
-                Applicable GST Rate <span className="text-rose-500">*</span>
-              </label>
-              <CustomSelect
-                value={String(formData.gstRate)}
-                onChange={(val: any) =>
-                  setFormData({ ...formData, gstRate: Number(val) })
-                }
-                options={STATUTORY_GST_RATES.map((r) => ({
-                  value: String(r),
-                  label: `${r}% Standard GST Slab`,
-                }))}
-                triggerClassName="rounded-lg border-slate-300 bg-white tabular-nums font-normal"
-              />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-10"
+              >
+                {STATUTORY_GST_RATES.map((rate) => (
+                  <option key={rate} value={rate}>
+                    {rate}%
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Cess Rate */}
             <div>
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Compensation Cess (%)
               </label>
               <input
                 type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={formData.cessRate === 0 || formData.cessRate === ("" as any) ? "" : formData.cessRate}
+                min={0}
+                max={100}
+                step={0.1}
+                value={formData.cessRate}
                 onChange={(e) =>
-                  setFormData({ ...formData, cessRate: e.target.value === "" ? ("" as any) : Number(e.target.value) })
+                  setFormData({ ...formData, cessRate: Number(e.target.value) })
                 }
-                placeholder="0.00"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-10"
               />
             </div>
-          </div>
 
-          {/* Chapter */}
-          <div>
-            <label className="block text-[12px] font-medium text-slate-700 mb-1">
-              Chapter / Tariff Heading
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Chapter 84 - Nuclear Reactors, Boilers, Machinery"
-              value={formData.chapter}
-              onChange={(e) =>
-                setFormData({ ...formData, chapter: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
-            />
+            <div>
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
+                Chapter / Section
+              </label>
+              <input
+                type="text"
+                value={formData.chapter}
+                onChange={(e) =>
+                  setFormData({ ...formData, chapter: e.target.value })
+                }
+                placeholder="e.g. 10 or 99"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-10"
+              />
+            </div>
           </div>
 
           {/* Notes */}
           <div>
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
-              Internal Classification Notes
+              Internal Business Notes
             </label>
             <textarea
               rows={2}
-              placeholder="Specific vendor or notification references..."
               value={formData.notes}
               onChange={(e) =>
                 setFormData({ ...formData, notes: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20"
+              placeholder="Optional notes for invoicing or billing staff..."
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
-          <div className="pt-3 border-t border-slate-200 flex justify-end gap-2.5">
+          <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setIsCreateOpen(false)}
-              className="h-9 px-3 border border-slate-300 text-slate-700 text-[13px] font-medium rounded-lg hover:bg-slate-50"
+              className="h-9 px-4 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg disabled:opacity-50"
+              className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-xs disabled:opacity-50 cursor-pointer"
             >
-              {isSubmitting ? "Creating..." : "Save HSN Code"}
+              {isSubmitting ? "Saving..." : "Save HSN Code"}
             </button>
           </div>
         </form>
@@ -1124,7 +1074,6 @@ export default function HsnMasterPage() {
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
         title={`Edit Code: ${editingItem?.code || ""}`}
-        titleGujarati="કોડમાં ફેરફાર કરો"
         maxWidth="lg"
       >
         <form onSubmit={handleUpdateSubmit} className="space-y-4">
@@ -1137,12 +1086,9 @@ export default function HsnMasterPage() {
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
             <div>
               <span className="text-slate-500">Classification:</span>{" "}
-              <strong className="tabular-nums text-slate-900">{editingItem?.code}</strong>{" "}
+              <strong className="font-mono text-slate-900">{editingItem?.code}</strong>{" "}
               ({editingItem?.type})
             </div>
-            <span className="text-[11px] text-sky-700 font-medium bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-              Company Custom Master
-            </span>
           </div>
 
           {/* Description */}
@@ -1157,94 +1103,73 @@ export default function HsnMasterPage() {
               onChange={(e) =>
                 setEditFormData({ ...editFormData, description: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-10"
             />
           </div>
 
-          {/* Description Gujarati */}
-          {lang === "gu" && (
-            <div>
-              <label className="block text-[12px] font-medium text-slate-700 mb-1">
-                ગુજરાતી વિગત (વૈકલ્પિક)
-              </label>
-              <input
-                type="text"
-                value={editFormData.descriptionGujarati}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    descriptionGujarati: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* GST Rate */}
+          {/* GST and Cess */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 GST Rate (%) <span className="text-rose-500">*</span>
               </label>
-              <CustomSelect
-                value={String(editFormData.gstRate)}
-                onChange={(val: any) =>
+              <select
+                value={editFormData.gstRate}
+                onChange={(e) =>
                   setEditFormData({
                     ...editFormData,
-                    gstRate: Number(val),
+                    gstRate: Number(e.target.value),
                   })
                 }
-                options={STATUTORY_GST_RATES.map((r) => ({
-                  value: String(r),
-                  label: `${r}% Standard GST Slab`,
-                }))}
-                triggerClassName="rounded-lg border-slate-300 bg-white tabular-nums font-normal"
-              />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-10"
+              >
+                {STATUTORY_GST_RATES.map((rate) => (
+                  <option key={rate} value={rate}>
+                    {rate}%
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Cess Rate */}
             <div>
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Compensation Cess (%)
               </label>
               <input
                 type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={editFormData.cessRate === 0 || editFormData.cessRate === ("" as any) ? "" : editFormData.cessRate}
+                min={0}
+                max={100}
+                step={0.1}
+                value={editFormData.cessRate}
                 onChange={(e) =>
                   setEditFormData({
                     ...editFormData,
-                    cessRate: e.target.value === "" ? ("" as any) : Number(e.target.value),
+                    cessRate: Number(e.target.value),
                   })
                 }
-                placeholder="0.00"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-10"
               />
             </div>
-          </div>
 
-          {/* Chapter */}
-          <div>
-            <label className="block text-[12px] font-medium text-slate-700 mb-1">
-              Chapter / Heading
-            </label>
-            <input
-              type="text"
-              value={editFormData.chapter}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, chapter: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
-            />
+            <div>
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
+                Chapter
+              </label>
+              <input
+                type="text"
+                value={editFormData.chapter}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, chapter: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-10"
+              />
+            </div>
           </div>
 
           {/* Notes */}
           <div>
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
-              Notes
+              Internal Notes
             </label>
             <textarea
               rows={2}
@@ -1252,22 +1177,22 @@ export default function HsnMasterPage() {
               onChange={(e) =>
                 setEditFormData({ ...editFormData, notes: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
-          <div className="pt-3 border-t border-slate-200 flex justify-end gap-2.5">
+          <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setIsEditOpen(false)}
-              className="h-9 px-3 border border-slate-300 text-slate-700 text-[13px] font-medium rounded-lg hover:bg-slate-50"
+              className="h-9 px-4 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg disabled:opacity-50"
+              className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-xs disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? "Updating..." : "Update Code"}
             </button>
@@ -1279,80 +1204,53 @@ export default function HsnMasterPage() {
       <Modal
         isOpen={!!viewingItem}
         onClose={() => setViewingItem(null)}
-        title={`HSN/SAC Details: ${viewingItem?.code || ""}`}
-        titleGujarati="વિગતો"
+        title={`Details: ${viewingItem?.code || ""}`}
         maxWidth="md"
       >
         {viewingItem && (
           <div className="space-y-4 text-xs">
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="tabular-nums text-base font-bold text-slate-900 bg-white px-2.5 py-1 rounded border border-slate-200">
+                <span className="font-mono text-base font-bold text-slate-900 bg-white px-2.5 py-0.5 rounded border border-slate-200">
                   {viewingItem.code}
                 </span>
                 <span
-                  className={`px-2.5 py-0.5 rounded text-[11px] font-bold ${
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                     viewingItem.type === "SAC"
                       ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
                       : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                   }`}
                 >
-                  {viewingItem.type === "SAC"
-                    ? "Services (SAC)"
-                    : "Goods (HSN)"}
+                  {viewingItem.type}
                 </span>
               </div>
-
-              <div>
-                <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">
-                  Description
-                </span>
-                <p className="text-slate-900 font-medium mt-0.5 text-sm">
-                  {viewingItem.description}
-                </p>
-                {lang === "gu" && viewingItem.descriptionGujarati && (
-                  <p className="text-slate-600 mt-1">
-                    {viewingItem.descriptionGujarati}
-                  </p>
-                )}
-              </div>
-
+              <p className="text-slate-800 text-xs font-medium">
+                {viewingItem.description}
+              </p>
               {viewingItem.chapter && (
-                <div>
-                  <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">
-                    Tariff Classification
-                  </span>
-                  <p className="text-slate-700 mt-0.5">{viewingItem.chapter}</p>
-                </div>
+                <p className="text-[11px] text-slate-500">
+                  Chapter: {viewingItem.chapter}
+                </p>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-white border border-slate-200 rounded-lg">
-                <span className="text-slate-500 block text-[11px]">
-                  Applicable GST Slab
-                </span>
+                <span className="text-slate-500 block text-[11px]">GST Rate</span>
                 <span className="text-base font-bold tabular-nums text-emerald-700 mt-0.5 block">
                   {Number(viewingItem.gstRate)}%
                 </span>
               </div>
               <div className="p-3 bg-white border border-slate-200 rounded-lg">
-                <span className="text-slate-500 block text-[11px]">
-                  Compensation Cess
-                </span>
+                <span className="text-slate-500 block text-[11px]">Cess Rate</span>
                 <span className="text-base font-bold tabular-nums text-slate-900 mt-0.5 block">
                   {Number(viewingItem.cessRate || 0)}%
                 </span>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-white border border-slate-200 rounded-lg">
-                <span className="text-slate-500 block text-[11px]">Origin Scope</span>
+                <span className="text-slate-500 block text-[11px]">Status</span>
                 <span className="font-semibold text-slate-800 mt-0.5 block">
-                  {viewingItem.isSystem
-                    ? "Official Statutory GST"
-                    : "Company Specific"}
+                  {viewingItem.isActive ? "Active" : "Inactive"}
                 </span>
               </div>
               <div className="p-3 bg-white border border-slate-200 rounded-lg">
@@ -1364,7 +1262,7 @@ export default function HsnMasterPage() {
                     ? "..."
                     : viewingItem.itemCount !== undefined
                     ? `${viewingItem.itemCount} items`
-                    : "—"}
+                    : "0 items"}
                 </span>
               </div>
             </div>
@@ -1378,11 +1276,22 @@ export default function HsnMasterPage() {
               </div>
             )}
 
-            <div className="pt-2 flex justify-end">
+            <div className="pt-3 border-t border-slate-200 flex justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  const it = viewingItem;
+                  setViewingItem(null);
+                  handleOpenEdit(it);
+                }}
+                className="h-8 px-3 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+              >
+                Edit Code
+              </button>
               <button
                 type="button"
                 onClick={() => setViewingItem(null)}
-                className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-[13px]"
+                className="h-8 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -1391,38 +1300,37 @@ export default function HsnMasterPage() {
         )}
       </Modal>
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* SINGLE DELETE MODAL */}
       <Modal
         isOpen={!!deletingItem}
         onClose={() => setDeletingItem(null)}
-        title="Delete Custom HSN Code?"
-        titleGujarati="કોડ દૂર કરો"
+        title="Delete HSN / SAC Code"
         maxWidth="sm"
       >
         <div className="space-y-3 text-xs">
           {deleteError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">
-              {deleteError}
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <span>{deleteError}</span>
             </div>
           )}
 
           <p className="text-slate-600">
-            Are you sure you want to permanently delete custom HSN code{" "}
-            <strong className="tabular-nums text-slate-900">
+            Are you sure you want to delete HSN/SAC code{" "}
+            <strong className="font-mono text-slate-900">
               {deletingItem?.code}
-            </strong>
-            ?
+            </strong>{" "}
+            ({deletingItem?.description})?
           </p>
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11px]">
-            Codes linked to items in your catalog cannot be deleted to preserve
-            audit and transaction integrity.
+            If this code is linked to any active item in your catalog, the system will prevent deletion to preserve statutory transaction integrity.
           </div>
 
           <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setDeletingItem(null)}
-              className="h-9 px-3 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50"
+              className="h-9 px-3 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -1430,13 +1338,67 @@ export default function HsnMasterPage() {
               type="button"
               disabled={isDeleting}
               onClick={handleDeleteSubmit}
-              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg disabled:opacity-50"
+              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg disabled:opacity-50 transition-colors cursor-pointer"
             >
               {isDeleting ? "Deleting..." : "Delete Code"}
             </button>
           </div>
         </div>
       </Modal>
+
+      {/* BULK DELETE MODAL */}
+      <Modal
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+        title="Delete Selected HSN / SAC Codes"
+        maxWidth="sm"
+      >
+        <div className="space-y-3 text-xs">
+          {bulkDeleteError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <span>{bulkDeleteError}</span>
+            </div>
+          )}
+
+          <p className="text-slate-600">
+            Are you sure you want to permanently delete{" "}
+            <strong className="text-slate-900">{selectedIds.size}</strong> selected HSN/SAC code(s)?
+          </p>
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11px]">
+            Any code currently linked to items in your catalog will be skipped or protected to maintain billing integrity.
+          </div>
+
+          <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setIsBulkDeleteModalOpen(false)}
+              className="h-9 px-3 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isBulkDeleting}
+              onClick={handleBulkDeleteSubmit}
+              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg disabled:opacity-50 transition-colors cursor-pointer"
+            >
+              {isBulkDeleting ? "Deleting..." : `Delete ${selectedIds.size} Codes`}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* EXCEL / CSV IMPORT WIZARD MODAL */}
+      <ImportWizardModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        preselectedModule={ImportModuleType.HSN_MASTERS}
+        onSuccess={() => {
+          fetchHsnList();
+          showNotification("HSN / SAC codes imported successfully!");
+        }}
+      />
     </div>
   );
 }
