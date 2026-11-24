@@ -61,24 +61,24 @@ function getStatusDisplay(status?: string, lang: "en" | "gu" = "en") {
   ) {
     return {
       label: lang === "gu" ? "બાકી" : (status || "Unpaid"),
-      pillClass: "bg-rose-50 text-rose-600 border border-rose-200",
-      dotColor: "bg-rose-500",
+      textColor: "text-[#DC2626]",
+      dotColor: "bg-[#DC2626]",
     };
   }
 
   if (norm.includes("part")) {
     return {
       label: lang === "gu" ? "અંશતઃ ચૂકવેલ" : "Partial",
-      pillClass: "bg-amber-50 text-amber-700 border border-amber-200",
-      dotColor: "bg-amber-500",
+      textColor: "text-[#D97706]",
+      dotColor: "bg-[#D97706]",
     };
   }
 
   if (norm.includes("cancel")) {
     return {
       label: lang === "gu" ? "રદ કરેલ" : "Cancelled",
-      pillClass: "bg-slate-100 text-slate-500 border border-slate-200",
-      dotColor: "bg-slate-400",
+      textColor: "text-[#64748B]",
+      dotColor: "bg-[#94A3B8]",
     };
   }
 
@@ -87,8 +87,8 @@ function getStatusDisplay(status?: string, lang: "en" | "gu" = "en") {
     label: isCompleted
       ? (lang === "gu" ? "પૂર્ણ" : "Completed")
       : (lang === "gu" ? "ચૂકવેલ" : (status || "Paid")),
-    pillClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    dotColor: "bg-emerald-500",
+    textColor: "text-[#16A34A]",
+    dotColor: "bg-[#16A34A]",
   };
 }
 
@@ -155,7 +155,7 @@ export function DashboardTransactionsTable({
                     <td className="px-3 sm:px-4 py-3.5"><div className="h-4 w-20 bg-slate-100 rounded" /></td>
                     <td className="px-4 sm:px-5 py-3.5"><div className="h-4 w-28 bg-slate-100 rounded" /></td>
                     <td className="px-4 sm:px-5 py-3.5 text-right"><div className="h-4 w-20 bg-slate-100 rounded ml-auto" /></td>
-                    <td className="px-4 sm:px-5 py-3.5 text-center"><div className="h-5 w-16 bg-slate-100 rounded-full mx-auto" /></td>
+                    <td className="px-4 sm:px-5 py-3.5 text-center"><div className="h-4 w-16 bg-slate-100 rounded mx-auto" /></td>
                   </tr>
                 ))
               ) : rows.length === 0 ? (
@@ -203,11 +203,11 @@ export function DashboardTransactionsTable({
                         {formatInr(row.amount)}
                       </td>
 
-                      {/* Status — pill badge */}
+                      {/* Status — clean text with dot, no pastel badges */}
                       <td className="px-4 sm:px-5 py-3 sm:py-3.5 text-center whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full typo-badge ${statusInfo.pillClass}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusInfo.dotColor}`} />
-                          <span>{statusInfo.label}</span>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                          {/* <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusInfo.dotColor}`} /> */}
+                          <span className={statusInfo.textColor}>{statusInfo.label}</span>
                         </span>
                       </td>
                     </tr>
