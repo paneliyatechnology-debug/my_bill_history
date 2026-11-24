@@ -513,11 +513,6 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
                             <span className="text-[13px] font-semibold text-slate-900 truncate">
                               {p.name}
                             </span>
-                            {p.nameGujarati && (
-                              <span className="text-[11px] text-slate-500 font-gujarati truncate">
-                                ({p.nameGujarati})
-                              </span>
-                            )}
                           </div>
                           <div className="text-[11px] text-slate-500 flex items-center gap-2 truncate mt-0.5">
                             {p.phone && (
@@ -738,11 +733,6 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
                             <span className="text-[13px] font-semibold text-slate-900 truncate">
                               {it.name}
                             </span>
-                            {it.nameGujarati && (
-                              <span className="text-[11px] text-slate-500 font-gujarati truncate">
-                                ({it.nameGujarati})
-                              </span>
-                            )}
                           </div>
                           <div className="text-[11px] text-slate-500 flex items-center gap-2 truncate mt-0.5">
                             {it.sku && <span>SKU: {it.sku}</span>}

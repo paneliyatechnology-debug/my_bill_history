@@ -24,20 +24,14 @@ export default function NotFound() {
           404 · Record / Page Not Found
         </span>
 
-        {/* Bilingual Heading */}
+        {/* Heading */}
         <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
           Document or Record Not Found
         </h1>
-        <p className="text-sm font-semibold text-[#0F172A] mt-0.5">
-          દસ્તાવેજ અથવા રેકોર્ડ મળેલ નથી
-        </p>
 
         {/* Description */}
         <p className="mt-3 text-xs sm:text-sm text-slate-500 leading-relaxed">
           The requested invoice, sales return, or page may have been deleted, cancelled, or the link may be invalid. All corresponding effects have been cleanly maintained.
-        </p>
-        <p className="mt-1 text-xs text-slate-400">
-          આ બિલ અથવા વાઉચર સિસ્ટમમાંથી કાઢી નાખવામાં આવ્યું હોઈ શકે છે.
         </p>
 
         {/* Quick Navigation Action Grid */}
@@ -51,7 +45,7 @@ export default function NotFound() {
               <line x1="19" y1="12" x2="5" y2="12" />
               <polyline points="12 19 5 12 12 5" />
             </svg>
-            <span>Go Back to Previous Screen (પાછા જાઓ)</span>
+            <span>Go Back to Previous Screen</span>
           </button>
 
           <div className="grid grid-cols-2 gap-2">
@@ -87,7 +81,7 @@ export default function NotFound() {
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            <span>Return to Dashboard (ડેશબોર્ડ પર જાઓ)</span>
+            <span>Return to Dashboard</span>
           </Link>
         </div>
       </div>

@@ -44,7 +44,6 @@ export function MyownbillbookLanding() {
       {/* 2. HEADER & NAVIGATION */}
       <Navbar
         lang={lang}
-        onToggleLang={handleToggleLang}
         onOpenDemo={handleOpenDemo}
       />
 
@@ -101,7 +100,6 @@ export function MyownbillbookLanding() {
       {/* 16. FOOTER (DEEP NAVY 5-COLUMN FOOTER) */}
       <Footer
         lang={lang}
-        onToggleLang={handleToggleLang}
       />
 
       {/* INTERACTIVE BOOK A DEMO MODAL */}

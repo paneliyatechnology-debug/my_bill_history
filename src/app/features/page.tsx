@@ -349,7 +349,6 @@ export default function FeaturesPage() {
       {/* 1. Official Sticky Navbar */}
       <Navbar
         lang={lang}
-        onToggleLang={() => setLang(gu ? "en" : "gu")}
         onOpenDemo={() => setIsDemoOpen(true)}
       />
 
@@ -586,7 +585,6 @@ export default function FeaturesPage() {
       {/* 6. Official Footer */}
       <Footer
         lang={lang}
-        onToggleLang={() => setLang(gu ? "en" : "gu")}
       />
 
       {/* 7. Book a Demo Modal */}

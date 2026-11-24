@@ -1045,7 +1045,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         onRetry={() => retryWorkspace()}
         onLogout={() => logout()}
         lang={lang}
-        onToggleLang={setLang}
       />
     );
   }

@@ -74,35 +74,29 @@ function LoginContent() {
       id: "starter",
       tier: "RETAIL_BASIC",
       name: "Starter Plan",
-      nameGu: "સ્ટાર્ટર પ્લાન",
       monthlyPrice: 499,
       yearlyPrice: 399,
       annualTotal: 4788,
       desc: "1 Business • Up to 3,000 Invoices/yr",
-      descGu: "૧ બિઝનેસ • વાર્ષિક ૩,૦૦૦ ઇન્વૉઇસ",
     },
     {
       id: "professional",
       tier: "WHOLESALE_PRO",
       name: "Professional Plan",
-      nameGu: "પ્રોફેશનલ પ્લાન",
       monthlyPrice: 999,
       yearlyPrice: 799,
       annualTotal: 9588,
       popular: true,
       desc: "Up to 3 Businesses • AI OCR Scanner • WhatsApp",
-      descGu: "૩ બિઝનેસ • AI કેમેરા સ્કેનર • WhatsApp",
     },
     {
       id: "enterprise",
       tier: "DISTRIBUTION_ENTERPRISE",
       name: "Enterprise Plan",
-      nameGu: "એન્ટરપ્રાઇઝ પ્લાન",
       monthlyPrice: 1999,
       yearlyPrice: 1599,
       annualTotal: 19188,
       desc: "Unlimited Businesses • Govt E-Invoice API",
-      descGu: "અનલિમિટેડ બિઝનેસ • સરકારી E-Invoice API",
     },
   ];
 
@@ -178,16 +172,14 @@ function LoginContent() {
         router.push(dest);
       } else {
         setError(
-          lang === "gu"
-            ? "સર્વર તરફથી અમાન્ય પ્રતિસાદ મળ્યો."
-            : "Invalid response from authentication server."
+          "Invalid response from authentication server."
         );
       }
     } catch (err: any) {
       setError(
         lang === "gu" && err.messageGujarati
           ? err.messageGujarati
-          : err.message || (lang === "gu" ? "લોગિન નિષ્ફળ ગયું. ઓળખપત્ર ચકાસો." : "Login failed. Please check your credentials.")
+          : err.message || ("Login failed. Please check your credentials.")
       );
     } finally {
       setIsLoading(false);
@@ -205,15 +197,15 @@ function LoginContent() {
     const email = signupData.email.trim().toLowerCase();
 
     if (!name) {
-      setError(lang === "gu" ? "કૃપા કરીને તમારું પૂરું નામ દાખલ કરો." : "Please enter your full name.");
+      setError("Please enter your full name.");
       return;
     }
     if (!phone || phone.length < 10) {
-      setError(lang === "gu" ? "કૃપા કરીને ૧૦-અંકનો માન્ય મોબાઇલ નંબર દાખલ કરો." : "Please enter a valid 10-digit mobile number.");
+      setError("Please enter a valid 10-digit mobile number.");
       return;
     }
     if (!email || !email.includes("@")) {
-      setError(lang === "gu" ? "કૃપા કરીને માન્ય ઈમેલ દાખલ કરો." : "Please enter a valid email address.");
+      setError("Please enter a valid email address.");
       return;
     }
 
@@ -229,9 +221,7 @@ function LoginContent() {
 
       if (checkRes && !checkRes.available) {
         setError(
-          lang === "gu"
-            ? (checkRes.messageGujarati || "આ ફોન નંબર અથવા ઈમેલ ધરાવતો એકાઉન્ટ પહેલેથી હાજર છે. પ્લાન અપગ્રેડ કરવા માટે કૃપા કરીને સાઇન ઇન કરો.")
-            : (checkRes.message || "An account with this phone number or email already exists. Please switch to Sign In to upgrade your account, or use a new phone/email.")
+          checkRes.message || "An account with this phone number or email already exists. Please switch to Sign In to upgrade your account, or use a new phone/email."
         );
         setIsPaying(false);
         return;
@@ -282,9 +272,7 @@ function LoginContent() {
             }));
           }
           setSuccessMsg(
-            lang === "gu"
-              ? "પેમેન્ટ સફળ થયું! હવે તમારો પાસવર્ડ અને પેઢીનું નામ સેટ કરીને સોફ્ટવેર શરૂ કરો."
-              : "Payment verified successfully! Complete registration below to access your account.",
+            "Payment verified successfully! Complete registration below to access your account.",
           );
           setIsPaying(false);
         },
@@ -311,9 +299,7 @@ function LoginContent() {
     e.preventDefault();
     if (!verifiedPayment) {
       setError(
-        lang === "gu"
-          ? "નોંધણી માટે પહેલા પેમેન્ટ જરૂરી છે."
-          : "Payment verification required before registration.",
+        "Payment verification required before registration.",
       );
       return;
     }
@@ -323,12 +309,12 @@ function LoginContent() {
       `${signupData.fullName.trim() || "My"} Enterprises`;
 
     if (!signupData.password || signupData.password.length < 6) {
-      setError(lang === "gu" ? "પાસવર્ડ ઓછામાં ઓછો ૬ અક્ષરનો હોવો જોઈએ." : "Password must be at least 6 characters.");
+      setError("Password must be at least 6 characters.");
       return;
     }
 
     if (signupData.password !== confirmPassword) {
-      setError(lang === "gu" ? "પાસવર્ડ મેળ ખાતો નથી." : "Passwords do not match.");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -363,9 +349,7 @@ function LoginContent() {
         router.push(dest);
       } else {
         setSuccessMsg(
-          lang === "gu"
-            ? "નોંધણી સફળ થઈ! તમારા એકાઉન્ટમાં લોગિન કરી રહ્યાં છીએ..."
-            : "Account created successfully! Launching your workspace...",
+          "Account created successfully! Launching your workspace...",
         );
         router.push("/dashboard");
       }
@@ -373,7 +357,7 @@ function LoginContent() {
       setError(
         lang === "gu" && err.messageGujarati
           ? err.messageGujarati
-          : err.message || (lang === "gu" ? "નોંધણી નિષ્ફળ ગઈ. કૃપા કરીને માહિતી તપાસો." : "Registration failed. Please check your details.")
+          : err.message || ("Registration failed. Please check your details.")
       );
     } finally {
       setIsLoading(false);
@@ -394,22 +378,16 @@ function LoginContent() {
       setDevOtp(otpRes?.devOtp || null);
       setSuccessMsg(
         otpRes?.delivered
-          ? lang === "gu"
-            ? "જો આ ઈમેલનું ખાતું હોય તો કોડ મોકલાયો છે."
-            : "If an account exists for this email, a code has been sent."
+          ? "If an account exists for this email, a code has been sent."
           : otpRes?.devOtp
-            ? lang === "gu"
-              ? "ઈમેલ સર્વર ગોઠવેલું નથી. નીચેનો કોડ વાપરો."
-              : "Email server is not configured. Use the code shown below."
-            : lang === "gu"
-              ? "જો આ ઈમેલનું ખાતું હોય તો કોડ મોકલાયો છે."
-              : "If an account exists for this email, a code has been sent."
+            ? "Email server is not configured. Use the code shown below."
+            : "If an account exists for this email, a code has been sent."
       );
     } catch (err: any) {
       setError(
         lang === "gu" && err.messageGujarati
           ? err.messageGujarati
-          : err.message || (lang === "gu" ? "કોડ મોકલી શકાયો નથી." : "Could not send the code.")
+          : err.message || ("Could not send the code.")
       );
     } finally {
       setIsLoading(false);
@@ -437,13 +415,13 @@ function LoginContent() {
       setSuccessMsg(
         lang === "gu" && res?.messageGujarati
           ? res.messageGujarati
-          : res?.message || (lang === "gu" ? "પાસવર્ડ અપડેટ થયો." : "Password updated. Sign in with the new password.")
+          : res?.message || ("Password updated. Sign in with the new password.")
       );
     } catch (err: any) {
       setError(
         lang === "gu" && err.messageGujarati
           ? err.messageGujarati
-          : err.message || (lang === "gu" ? "પાસવર્ડ રીસેટ નિષ્ફળ." : "Password reset failed.")
+          : err.message || ("Password reset failed.")
       );
     } finally {
       setIsLoading(false);
@@ -471,29 +449,7 @@ function LoginContent() {
           className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#F8FAFC] text-xs font-semibold text-[#667085] hover:text-[#172033] rounded-xl border border-[#E5EAF1] shadow-xs transition-all"
         >
           <span>←</span>
-          <span>{lang === "gu" ? "મુખ્ય પૃષ્ઠ" : "Home"}</span>
-        </button>
-      </div>
-
-      {/* Language Switcher in top corner */}
-      <div className="absolute top-5 right-5 z-10 flex items-center bg-white p-1 rounded-xl border border-[#E5EAF1] shadow-xs">
-        <button
-          type="button"
-          onClick={() => setLang("en")}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-            lang === "en" ? "bg-[#EFF6FF] text-[#172033]" : "text-[#667085] hover:text-[#172033]"
-          }`}
-        >
-          English
-        </button>
-        <button
-          type="button"
-          onClick={() => setLang("gu")}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all font-gujarati ${
-            lang === "gu" ? "bg-[#EFF6FF] text-[#172033]" : "text-[#667085] hover:text-[#172033]"
-          }`}
-        >
-          ગુજરાતી
+          <span>Home</span>
         </button>
       </div>
 
@@ -511,9 +467,7 @@ function LoginContent() {
             />
           </Link>
           <p className="text-xs text-[#667085] font-medium max-w-xs mx-auto">
-            {lang === "gu"
-              ? "ભારતીય જીએસટી વેપાર અને દેશી નામા પ્લેટફોર્મ"
-              : "Indian GST Billing, Inventory & Double-Entry Accounting"}
+            Indian GST Billing, Inventory & Double-Entry Accounting
           </p>
         </div>
 
@@ -531,7 +485,7 @@ function LoginContent() {
                 : "text-[#667085] hover:text-[#172033]"
             }`}
           >
-            {lang === "gu" ? "પ્રવેશ કરો (Sign In)" : "Sign In"}
+            Sign In
           </button>
           <button
             type="button"
@@ -545,7 +499,7 @@ function LoginContent() {
                 : "text-[#667085] hover:text-[#172033]"
             }`}
           >
-            {lang === "gu" ? "નવું ખાતું બનાવો (Register)" : "Create Account"}
+            Create Account
           </button>
         </div>
 
@@ -553,9 +507,7 @@ function LoginContent() {
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-semibold flex items-center gap-2 animate-fadeIn">
             <Lock className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
-              {lang === "gu"
-                ? "તમારું સત્ર સમાપ્ત થઈ ગયું છે. કૃપા કરીને ફરીથી લોગિન કરો."
-                : "Your session has expired. Please sign in again."}
+              Your session has expired. Please sign in again.
             </span>
           </div>
         )}
@@ -564,9 +516,7 @@ function LoginContent() {
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center gap-2 animate-fadeIn">
             <Ban className="w-4 h-4 text-rose-600 shrink-0" />
             <span>
-              {lang === "gu"
-                ? "તમારું ટેનન્ટ સુપરએડમિન દ્વારા સસ્પેન્ડ કરવામાં આવ્યું છે."
-                : "Your organization account has been suspended by the platform administrator."}
+              Your organization account has been suspended by the platform administrator.
             </span>
           </div>
         )}
@@ -575,9 +525,7 @@ function LoginContent() {
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-semibold flex items-center gap-2 animate-fadeIn">
             <Lock className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
-              {lang === "gu"
-                ? "સુરક્ષા ફેરફારને કારણે સત્ર બંધ કરવામાં આવ્યું છે. ફરી લોગિન કરો."
-                : "Your session was closed because of a security change. Please sign in again."}
+              Your session was closed because of a security change. Please sign in again.
             </span>
           </div>
         )}
@@ -608,7 +556,7 @@ function LoginContent() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-[#202124] uppercase mb-1.5 tracking-wider">
-                {lang === "gu" ? "મોબાઇલ નંબર અથવા ઇમેઇલ *" : "Phone Number or Email *"}
+                Phone Number or Email *
               </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-3 text-[#98A2B3]">
@@ -619,7 +567,7 @@ function LoginContent() {
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder={lang === "gu" ? "98989 90001 અથવા email" : "98989 90001 or email@domain.com"}
+                  placeholder="98989 90001 or email@domain.com"
                   className="w-full pl-10 pr-3 py-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:border-transparent focus:outline-none transition-all"
                 />
               </div>
@@ -628,14 +576,14 @@ function LoginContent() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-semibold text-[#202124] uppercase tracking-wider">
-                  {lang === "gu" ? "પાસવર્ડ *" : "Password *"}
+                  Password *
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="text-[11px] font-semibold text-[#667085] hover:text-[#202124]"
                 >
-                  {showPassword ? (lang === "gu" ? "છુપાવો" : "Hide") : (lang === "gu" ? "બતાવો" : "Show")}
+                  {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
               <div className="relative">
@@ -666,7 +614,7 @@ function LoginContent() {
                 }}
                 className="text-[11px] font-semibold text-[#2563EB] hover:underline"
               >
-                {lang === "gu" ? "પાસવર્ડ ભૂલી ગયા?" : "Forgot password?"}
+                Forgot password?
               </button>
             </div>
 
@@ -681,10 +629,10 @@ function LoginContent() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  <span>{lang === "gu" ? "ચકાસી રહ્યું છે..." : "Signing in..."}</span>
+                  <span>Signing in...</span>
                 </>
               ) : (
-                <span>{lang === "gu" ? "પ્રવેશ કરો (Sign In)" : "Sign In"}</span>
+                <span>Sign In</span>
               )}
             </button>
           </form>
@@ -692,7 +640,7 @@ function LoginContent() {
           <form onSubmit={resetSent ? handleResetPassword : handleSendResetOtp} className="space-y-3.5">
             <div>
               <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                {lang === "gu" ? "ખાતાનો ઈમેલ *" : "Account Email *"}
+                Account Email *
               </label>
               <input
                 type="email"
@@ -707,7 +655,7 @@ function LoginContent() {
               <>
                 <div>
                   <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                    {lang === "gu" ? "ઈમેલ કોડ *" : "Email Code *"}
+                    Email Code *
                   </label>
                   <input
                     inputMode="numeric"
@@ -722,7 +670,7 @@ function LoginContent() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                    {lang === "gu" ? "નવો પાસવર્ડ *" : "New Password *"}
+                    New Password *
                   </label>
                   <input
                     type="password"
@@ -738,7 +686,7 @@ function LoginContent() {
             )}
             {devOtp && (
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
-                {lang === "gu" ? "સ્થાનિક કોડ (SMTP બંધ છે): " : "Local code (SMTP is off): "}
+                Local code (SMTP is off):{" "}
                 <strong className="tabular-nums tracking-widest">{devOtp}</strong>
               </div>
             )}
@@ -748,10 +696,10 @@ function LoginContent() {
               className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all disabled:opacity-50"
             >
               {isLoading
-                ? lang === "gu" ? "રાહ જુઓ..." : "Please wait..."
+                ? "Please wait..."
                 : resetSent
-                  ? lang === "gu" ? "પાસવર્ડ અપડેટ કરો" : "Update Password"
-                  : lang === "gu" ? "ઈમેલ પર કોડ મોકલો" : "Send Email Code"}
+                  ? "Update Password"
+                  : "Send Email Code"}
             </button>
             <button
               type="button"
@@ -762,7 +710,7 @@ function LoginContent() {
               }}
               className="w-full text-xs font-semibold text-[#667085] hover:text-[#202124]"
             >
-              {lang === "gu" ? "પાછા સાઇન ઇન પર" : "Back to sign in"}
+              Back to sign in
             </button>
           </form>
         ) : (
@@ -775,9 +723,7 @@ function LoginContent() {
                 <div className="p-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl flex items-center gap-2.5 text-xs text-[#1D4ED8] font-medium">
                   <CreditCard className="w-4 h-4 shrink-0 text-[#2563EB]" />
                   <span>
-                    {lang === "gu"
-                      ? "પ્રથમ પેમેન્ટ, પછી એક્સેસ: રેઝરપે દ્વારા પ્લાન ચુકવ્યા બાદ તમારું રજીસ્ટ્રેશન અનલોક થશે."
-                      : "First Payment, Then Access: Complete plan payment via Razorpay to unlock your business registration."}
+                    First Payment, Then Access: Complete plan payment via Razorpay to unlock your business registration.
                   </span>
                 </div>
 
@@ -792,7 +738,7 @@ function LoginContent() {
                         : "text-slate-500 hover:text-slate-900"
                     }`}
                   >
-                    {lang === "gu" ? "માસિક બિલિંગ (Monthly)" : "Monthly Billing"}
+                    Monthly Billing
                   </button>
                   <button
                     type="button"
@@ -803,7 +749,7 @@ function LoginContent() {
                         : "text-slate-500 hover:text-slate-900"
                     }`}
                   >
-                    <span>{lang === "gu" ? "વાર્ષિક (Yearly)" : "Yearly Billing"}</span>
+                    <span>Yearly Billing</span>
                     <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950">
                       -20%
                     </span>
@@ -833,10 +779,10 @@ function LoginContent() {
                         )}
                         <div>
                           <div className="text-xs font-bold text-slate-900">
-                            {lang === "gu" ? p.nameGu : p.name}
+                            {p.name}
                           </div>
                           <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">
-                            {lang === "gu" ? p.descGu : p.desc}
+                            {p.desc}
                           </div>
                         </div>
                         <div className="mt-2 pt-2 border-t border-slate-200/60">
@@ -867,7 +813,7 @@ function LoginContent() {
                     <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5 text-xs">
                       <div className="flex justify-between text-slate-600">
                         <span>
-                          {lang === "gu" ? currentPlan.nameGu : currentPlan.name} (
+                          {currentPlan.name} (
                           {signupCycle === "yearly" ? "12 Months" : "1 Month"}):
                         </span>
                         <span className="font-semibold text-slate-900 tabular-nums">
@@ -881,7 +827,7 @@ function LoginContent() {
                         </span>
                       </div>
                       <div className="pt-2 border-t border-slate-200 flex justify-between text-sm font-semibold text-slate-900">
-                        <span>{lang === "gu" ? "કુલ રકમ (Total Payable):" : "Total Payable:"}</span>
+                        <span>Total Payable:</span>
                         <span className="text-[#2563EB] tabular-nums font-bold text-base">
                           ₹ {total.toLocaleString("en-IN")}
                         </span>
@@ -894,14 +840,14 @@ function LoginContent() {
                 <div className="space-y-3 pt-1">
                   <div>
                     <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                      {lang === "gu" ? "તમારું પૂરું નામ *" : "Your Full Name *"}
+                      Your Full Name *
                     </label>
                     <input
                       type="text"
                       required
                       value={signupData.fullName}
                       onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
-                      placeholder={lang === "gu" ? "દા.ત. રમેશભાઈ પટેલ" : "e.g. Ramesh Patel"}
+                      placeholder="e.g. Ramesh Patel"
                       className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                     />
                   </div>
@@ -909,7 +855,7 @@ function LoginContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                        {lang === "gu" ? "મોબાઇલ નંબર *" : "Phone Number *"}
+                        Phone Number *
                       </label>
                       <input
                         type="tel"
@@ -924,7 +870,7 @@ function LoginContent() {
 
                     <div>
                       <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                        {lang === "gu" ? "ઈમેલ *" : "Email *"}
+                        Email *
                       </label>
                       <input
                         type="email"
@@ -948,14 +894,12 @@ function LoginContent() {
                   {isPaying ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span>{lang === "gu" ? "રેઝરપે ખુલી રહ્યું છે..." : "Opening Razorpay..."}</span>
+                      <span>Opening Razorpay...</span>
                     </>
                   ) : (
                     <>
                       <span>
-                        {lang === "gu"
-                          ? "રેઝરપે દ્વારા પેમેન્ટ કરો અને રજીસ્ટ્રેશન ખોલો"
-                          : "Pay via Razorpay & Unlock Registration"}
+                        Pay via Razorpay & Unlock Registration
                       </span>
                       <ArrowRight className="w-4 h-4" />
                     </>
@@ -972,7 +916,7 @@ function LoginContent() {
                   </div>
                   <div className="text-xs">
                     <span className="font-semibold text-emerald-900 block">
-                      {lang === "gu" ? "પેમેન્ટ વેરિફાઇ થયું!" : "Payment Verified!"} (Order #{verifiedPayment.orderId.slice(-8)})
+                      Payment Verified! (Order #{verifiedPayment.orderId.slice(-8)})
                     </span>
                     <span className="text-emerald-700 text-[11px]">
                       {verifiedPayment.planName || "Selected Plan"} (
@@ -984,7 +928,7 @@ function LoginContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                      {lang === "gu" ? "તમારું નામ *" : "Your Name *"}
+                      Your Name *
                     </label>
                     <input
                       type="text"
@@ -996,13 +940,13 @@ function LoginContent() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                      {lang === "gu" ? "પેઢી / બિઝનેસનું નામ *" : "Business / Store Name *"}
+                      Business / Store Name *
                     </label>
                     <input
                       type="text"
                       value={signupData.organizationName}
                       onChange={(e) => setSignupData({ ...signupData, organizationName: e.target.value })}
-                      placeholder={lang === "gu" ? "દા.ત. શ્રી ગણેશ ટ્રેડિંગ" : "e.g. Shree Ganesh Trading"}
+                      placeholder="e.g. Shree Ganesh Trading"
                       className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                     />
                   </div>
@@ -1011,7 +955,7 @@ function LoginContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                      {lang === "gu" ? "મોબાઇલ નંબર *" : "Phone *"}
+                      Phone *
                     </label>
                     <input
                       type="tel"
@@ -1024,7 +968,7 @@ function LoginContent() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                      {lang === "gu" ? "ઈમેલ *" : "Email *"}
+                      Email *
                     </label>
                     <input
                       type="email"
@@ -1037,14 +981,12 @@ function LoginContent() {
                 </div>
 
                 <p className="text-[11px] text-[#667085] leading-relaxed">
-                  {lang === "gu"
-                    ? "નોંધ: જો આ ઈમેલ વાળો એકાઉન્ટ પહેલેથી હાજર હોય, તો નીચે તમારો જૂનો પાસવર્ડ દાખલ કરો જેથી પ્લાન તમારા એકાઉન્ટ સાથે લિંક થઈ જશે, અથવા ઉપર નવો ઈમેલ દાખલ કરો."
-                    : "Note: If an account already exists with this email, enter your existing password below to link this subscription, or edit the email above to register a new account."}
+                  Note: If an account already exists with this email, enter your existing password below to link this subscription, or edit the email above to register a new account.
                 </p>
 
                 <div>
                   <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                    {lang === "gu" ? "જીએસટી નંબર (મરજિયાત)" : "GSTIN (Optional)"}
+                    GSTIN (Optional)
                   </label>
                   <input
                     type="text"
@@ -1059,7 +1001,7 @@ function LoginContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                      {lang === "gu" ? "પાસવર્ડ સેટ કરો *" : "Create Password *"}
+                      Create Password *
                     </label>
                     <input
                       type="password"
@@ -1073,7 +1015,7 @@ function LoginContent() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
-                      {lang === "gu" ? "પાસવર્ડ કન્ફર્મ કરો *" : "Confirm Password *"}
+                      Confirm Password *
                     </label>
                     <input
                       type="password"
@@ -1095,10 +1037,10 @@ function LoginContent() {
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span>{lang === "gu" ? "ખાતું બનાવી રહ્યાં છીએ..." : "Creating Account & Launching..."}</span>
+                      <span>Creating Account & Launching...</span>
                     </>
                   ) : (
-                    <span>{lang === "gu" ? "નોંધણી પૂર્ણ કરો અને સોફ્ટવેર શરૂ કરો" : "Complete Registration & Access Workspace"}</span>
+                    <span>Complete Registration & Access Workspace</span>
                   )}
                 </button>
               </form>
@@ -1112,7 +1054,7 @@ function LoginContent() {
             onClick={handleFillDemoBusiness}
             className="text-[11px] text-[#667085] hover:text-[#172033] hover:underline font-semibold"
           >
-            {lang === "gu" ? "ડેમો બિઝનેસ ભરો" : "Demo Business User"}
+            Demo Business User
           </button>
 
         </div>

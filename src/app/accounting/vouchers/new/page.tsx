@@ -135,7 +135,7 @@ function SearchableAccountSelect({
         value: acc.id,
         label: acc.name,
         code: acc.code,
-        sublabel: acc.nameGujarati,
+        sublabel: acc.code ? `Code: ${acc.code}` : undefined,
         secondaryText: acc.group?.name,
         badge: acc.group?.name,
         group: acc.group?.nature || "General",
@@ -236,12 +236,6 @@ function SearchableAccountSelect({
                 )}
               </div>
               <div className="flex items-center gap-1.5 mt-1 ml-6 text-[11px] text-slate-500">
-                {acc.nameGujarati && (
-                  <span className="text-slate-400 truncate max-w-[120px]">
-                    {acc.nameGujarati}
-                  </span>
-                )}
-                {acc.nameGujarati && acc.group?.name && <span>·</span>}
                 {acc.group?.name && (
                   <span className="truncate max-w-[140px] font-medium text-slate-600">
                     {acc.group.name}

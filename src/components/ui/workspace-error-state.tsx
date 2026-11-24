@@ -106,17 +106,6 @@ export function WorkspaceErrorState({
             </span>
             <span>{isGu ? "સર્વર કનેક્શન સ્થગિત" : "Connection Paused"}</span>
           </div>
-
-          {/* Optional Language Switcher */}
-          {onToggleLang && (
-            <button
-              type="button"
-              onClick={() => onToggleLang(isGu ? "en" : "gu")}
-              className="px-2.5 py-1 text-[13px] font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
-            >
-              {isGu ? "English" : "ગુજરાતી"}
-            </button>
-          )}
         </div>
       </header>
 

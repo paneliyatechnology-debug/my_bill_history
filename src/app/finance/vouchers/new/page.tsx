@@ -131,7 +131,7 @@ function SearchableAccountSelect({
         value: acc.id,
         label: acc.name,
         code: acc.code,
-        sublabel: acc.nameGujarati,
+        sublabel: acc.code ? `Code: ${acc.code}` : undefined,
         secondaryText: acc.group?.name,
         badge: acc.group?.name,
         group: acc.group?.nature || "General",

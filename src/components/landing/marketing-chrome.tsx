@@ -134,16 +134,6 @@ export function MarketingHeader({
             ))}
           </nav>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              data-testid="lang-toggle"
-              aria-label={gu ? "Switch to English" : "Switch to Gujarati"}
-              onClick={() => setLang(gu ? "en" : "gu")}
-              className="rounded-full border border-[#102033]/15 px-2.5 py-1.5 text-[0.68rem] tracking-[0.12em] sm:px-3 sm:text-[0.72rem]"
-              style={mono}
-            >
-              {gu ? "ગુજ/ EN" : "EN / ગુજ"}
-            </button>
             <Link href="/login" data-testid="nav-sign-in" className="hidden text-sm font-medium md:inline">
               {gu ? "લોગિન" : "Sign In"}
             </Link>

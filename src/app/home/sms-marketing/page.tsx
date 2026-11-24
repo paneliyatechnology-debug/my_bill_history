@@ -44,15 +44,7 @@ interface PartyItem {
 
 export default function SmsMarketingPage() {
   const router = useRouter();
-  const [lang, setLang] = useState<"en" | "gu">("en");
-
-  // Read language preference
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("billing_language") as "en" | "gu";
-      if (stored) setLang(stored);
-    }
-  }, []);
+  const [lang] = useState<"en" | "gu">("en");
 
   // Main Tabs: "campaigns" | "smart_greetings" | "templates"
   const [activeTab, setActiveTab] = useState<"campaigns" | "smart_greetings" | "templates">("campaigns");

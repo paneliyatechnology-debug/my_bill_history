@@ -135,30 +135,13 @@ function DashboardContent() {
         if (effStart) txnsParams.startDate = effStart;
         if (effEnd) txnsParams.endDate = effEnd;
 
-        const invoicesParams: any = {
-          page: 1,
-          limit: 1,
-          financialYearId: activeFyId,
-        };
-        if (effStart) invoicesParams.startDate = effStart;
-        if (effEnd) invoicesParams.endDate = effEnd;
-
-        const [finRes, txnsRes, partiesRes, itemsRes, invoicesRes]: any =
+        const [finRes, txnsRes]: any =
           await Promise.all([
             apiClient
               .get("/dashboard/summary", summaryParams)
               .catch(() => null),
             apiClient
               .get("/dashboard/all-transactions", txnsParams)
-              .catch(() => null),
-            apiClient
-              .get("/masters/parties", { page: 1, limit: 1 })
-              .catch(() => null),
-            apiClient
-              .get("/masters/items", { page: 1, limit: 1 })
-              .catch(() => null),
-            apiClient
-              .get("/sales/invoices", invoicesParams)
               .catch(() => null),
           ]);
 
@@ -196,17 +179,17 @@ function DashboardContent() {
           totalParties:
             typeof finRes?.totalParties === "number"
               ? finRes.totalParties
-              : readCount(partiesRes),
+              : 0,
           totalItems:
             typeof finRes?.totalItems === "number"
               ? finRes.totalItems
-              : readCount(itemsRes),
+              : 0,
           totalInvoices:
             typeof finRes?.totalInvoices === "number"
               ? finRes.totalInvoices
               : typeof finRes?.invoicesCount === "number"
                 ? finRes.invoicesCount
-                : readCount(invoicesRes),
+                : 0,
           pendingBills: pendingFromSummary,
         });
 
@@ -325,27 +308,7 @@ function DashboardContent() {
 
         const salesRows = itemSalesRes?.items || itemSalesRes?.data || [];
         const returnRows = returnsRes?.returns || returnsRes?.items || [];
-        let categoryByItemId = new Map<string, string>();
-        const needsLookup =
-          Array.isArray(salesRows) &&
-          salesRows.some((row: any) => {
-            const name = String(row?.category || row?.categoryName || "").trim();
-            return !name || name === "—" || name === "-";
-          });
-        if (needsLookup) {
-          const itemsRes: any = await apiClient
-            .get("/masters/items", { page: 1, limit: 500 })
-            .catch(() => null);
-          const items = itemsRes?.items || itemsRes?.data || [];
-          if (Array.isArray(items)) {
-            categoryByItemId = new Map(
-              items.map((item: any) => [
-                String(item.id),
-                String(item.category?.name || item.categoryName || "").trim(),
-              ])
-            );
-          }
-        }
+        const categoryByItemId = new Map<string, string>();
 
         if (!itemSalesRes) {
           setCategorySplit([]);

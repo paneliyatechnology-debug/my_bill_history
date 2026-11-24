@@ -15,7 +15,7 @@ import { formatDate } from "@/lib/date-utils";
 
 export default function AutomatedBillingPage() {
   const router = useRouter();
-  const [lang, setLang] = useState<"en" | "gu">("en");
+  const [lang] = useState<"en" | "gu">("en");
   const [schedules, setSchedules] = useState<AutomatedBillingSchedule[]>([]);
   const [summary, setSummary] = useState<AutomatedBillingSummary>({
     activeSchedulesCount: 0,
@@ -36,17 +36,6 @@ export default function AutomatedBillingPage() {
   const [scheduleToStop, setScheduleToStop] = useState<AutomatedBillingSchedule | null>(null);
   const [isStopping, setIsStopping] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
-  // Sync language
-  useEffect(() => {
-    const handleStorage = () => {
-      const stored = localStorage.getItem("preferred_language");
-      if (stored === "gu" || stored === "en") setLang(stored);
-    };
-    handleStorage();
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);

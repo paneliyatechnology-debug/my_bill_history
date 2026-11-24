@@ -245,20 +245,33 @@ export default function PurchasesPage() {
 
   const fetchDependencies = async () => {
     try {
-      const [partiesRes, itemsRes, whRes]: any = await Promise.all([
-        apiClient.get("/masters/parties", { type: "SUPPLIER", limit: 500 }).catch(() => apiClient.get("/masters/parties", { type: "SUPPLIER" })),
-        apiClient.get("/masters/items"),
-        apiClient.get("/masters/warehouses"),
-      ]);
+      const partiesRes: any = await apiClient
+        .get("/masters/parties", { type: "SUPPLIER", limit: 500 })
+        .catch(() => apiClient.get("/masters/parties", { type: "SUPPLIER" }));
       const pRaw = Array.isArray(partiesRes) ? partiesRes : partiesRes?.items || [];
       const supplierParties = pRaw.filter((p: any) => p.type === "SUPPLIER" || p.type === "BOTH");
       setParties(supplierParties);
-      setItemsList(Array.isArray(itemsRes) ? itemsRes : itemsRes?.items || []);
-      setWarehouses(Array.isArray(whRes) ? whRes : []);
     } catch (err) {
-      console.error("Failed to load purchase dependencies", err);
+      console.error("Failed to load purchase parties", err);
     }
   };
+
+  // Lazy-load scanner modal dependencies only when scanner modal is opened
+  useEffect(() => {
+    if (isScannerModalOpen && (itemsList.length === 0 || warehouses.length === 0)) {
+      Promise.all([
+        apiClient.get("/masters/items").catch(() => null),
+        apiClient.get("/masters/warehouses").catch(() => null),
+      ]).then(([itemsRes, whRes]: any) => {
+        if (itemsRes) {
+          setItemsList(Array.isArray(itemsRes) ? itemsRes : itemsRes?.items || []);
+        }
+        if (whRes) {
+          setWarehouses(Array.isArray(whRes) ? whRes : whRes?.items || []);
+        }
+      });
+    }
+  }, [isScannerModalOpen, itemsList.length, warehouses.length]);
 
   useEffect(() => {
     if (tenantContext.companyId) {

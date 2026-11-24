@@ -1558,17 +1558,6 @@ export function MyownbillbookLanding() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Bilingual toggle */}
-            <button
-              type="button"
-              onClick={() => setLang(gu ? "en" : "gu")}
-              className="px-2.5 sm:px-3.5 py-1.5 rounded-full border border-[#0C1827]/15 bg-white text-xs font-semibold text-[#0C1827] hover:border-[#E87536] transition-colors cursor-pointer shadow-2xs shrink-0"
-              style={monoFont}
-              aria-label="Switch Language"
-            >
-              {gu ? "EN | ગુજરાતી" : "En | ગુજરાતી"}
-            </button>
-
             <Link
               href="/login"
               className="hidden sm:inline-block text-sm font-semibold text-[#0C1827] hover:text-[#E87536] px-3.5 py-2 transition-colors"
@@ -2515,14 +2504,6 @@ export function MyownbillbookLanding() {
             <p>© {new Date().getFullYear()} Paneliya Technology. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <span>Made for Indian businesses 🇮🇳</span>
-              <span>·</span>
-              <button
-                type="button"
-                onClick={() => setLang(gu ? "en" : "gu")}
-                className="hover:text-[#0C1827] font-semibold cursor-pointer"
-              >
-                {gu ? "English" : "ગુજરાતી"}
-              </button>
             </div>
           </div>
         </div>

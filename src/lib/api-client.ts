@@ -282,7 +282,7 @@ async function request<T>(
       throw new ApiError(
         408,
         `Request to ${cleanPath} timed out after ${Math.round(timeoutMs / 1000)}s. If the backend is on a free tier (Render), it may be waking up from sleep. Please try again in a few moments.`,
-        "સર્વર શરૂ થવામાં સમય લાગી રહ્યો છે (Render Cold Start). કૃપા કરીને ૧૦-૧૫ સેકન્ડ પછી ફરી પ્રયાસ કરો.",
+        undefined,
         fetchError,
         true,
         false,
@@ -292,7 +292,7 @@ async function request<T>(
     throw new ApiError(
       0,
       `Unable to reach backend server (${fetchError?.message || "Connection failed"}).`,
-      "સર્વર સાથે કનેક્ટ કરવામાં અસમર્થ. સર્વર ચાલુ છે કે કેમ તે ચકાસો.",
+      undefined,
       fetchError,
       false,
       true,

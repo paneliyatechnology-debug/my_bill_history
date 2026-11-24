@@ -147,19 +147,6 @@ export function HomepageFooter({ lang = "en", onToggleLang }: HomepageFooterProp
               <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
               <span>for Indian businesses 🇮🇳</span>
             </span>
-
-            {onToggleLang && (
-              <>
-                <span>·</span>
-                <button
-                  type="button"
-                  onClick={onToggleLang}
-                  className="hover:text-[#2563EB] font-medium cursor-pointer"
-                >
-                  {gu ? "Switch to English" : "ગુજરાતીમાં જુઓ"}
-                </button>
-              </>
-            )}
           </div>
         </div>
       </div>

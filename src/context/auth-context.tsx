@@ -241,7 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
-  const [lang, setLangState] = useState<"en" | "gu">("en");
+  const [lang] = useState<"en" | "gu">("en");
   const [tenantContext, setTenantContext] = useState<TenantContextState>({});
 
   const [companies, setCompanies] = useState<CompanyInfo[]>([]);
@@ -253,40 +253,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // In-flight promise ref to deduplicate concurrent refreshTenantMetadata requests
   const inFlightRefreshRef = useRef<Promise<void> | null>(null);
 
-  const setLang = (newLang: "en" | "gu") => {
-    setLangState(newLang);
+  const setLang = (_newLang?: "en" | "gu") => {
     if (typeof window !== "undefined") {
       try {
-        localStorage.setItem("billing_lang", newLang);
-        document.documentElement.lang = newLang;
-        document.documentElement.setAttribute("data-lang", newLang);
-        if (newLang === "gu") {
-          document.documentElement.classList.add("lang-gu");
-          document.documentElement.classList.remove("lang-en");
-        } else {
-          document.documentElement.classList.add("lang-en");
-          document.documentElement.classList.remove("lang-gu");
-        }
+        localStorage.setItem("billing_lang", "en");
+        localStorage.removeItem("preferred_language");
+        localStorage.removeItem("billing_language");
+        document.documentElement.lang = "en";
+        document.documentElement.setAttribute("data-lang", "en");
+        document.documentElement.classList.add("lang-en");
+        document.documentElement.classList.remove("lang-gu");
       } catch {
         // Storage failover
       }
     }
   };
 
-  // Keep document element lang and class synchronized with lang state
+  // Keep document element lang and class synchronized with English-only mode
   useEffect(() => {
     if (typeof document !== "undefined") {
-      document.documentElement.lang = lang;
-      document.documentElement.setAttribute("data-lang", lang);
-      if (lang === "gu") {
-        document.documentElement.classList.add("lang-gu");
-        document.documentElement.classList.remove("lang-en");
-      } else {
-        document.documentElement.classList.add("lang-en");
-        document.documentElement.classList.remove("lang-gu");
-      }
+      document.documentElement.lang = "en";
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.classList.add("lang-en");
+      document.documentElement.classList.remove("lang-gu");
     }
-  }, [lang]);
+  }, []);
 
   const refreshTenantMetadata = useCallback(async () => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("billing_auth_token") : null;
@@ -379,8 +370,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (dismissed !== String(ent.subscriptionEnds || "")) {
               setSubscriptionNotice({
                 message: "Your subscription has ended. Renew the plan to continue billing.",
-                messageGujarati:
-                  "તમારું સબ્સ્ક્રિપ્શન પૂરું થઈ ગયું છે. બિલિંગ ચાલુ રાખવા પ્લાન રિન્યૂ કરો.",
                 subscriptionEnds: ent.subscriptionEnds,
                 daysRemaining: ent.daysRemaining,
                 tier: ent.tier,
@@ -421,11 +410,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const savedToken = localStorage.getItem("billing_auth_token");
       const savedUser = localStorage.getItem("billing_user_profile");
       const savedTenant = localStorage.getItem("billing_tenant_context");
-      const savedLang = localStorage.getItem("billing_lang") as "en" | "gu" | null;
 
-      if (savedLang === "en" || savedLang === "gu") {
-        setLangState(savedLang);
-      }
+      localStorage.removeItem("preferred_language");
+      localStorage.removeItem("billing_language");
+      localStorage.setItem("billing_lang", "en");
+      document.documentElement.lang = "en";
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.classList.add("lang-en");
+      document.documentElement.classList.remove("lang-gu");
 
       if (savedToken && savedUser) {
         setToken(savedToken);
@@ -480,8 +472,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (dismissed !== String(cached.entitlements.subscriptionEnds || "")) {
               setSubscriptionNotice({
                 message: "Your subscription has ended. Renew the plan to continue billing.",
-                messageGujarati:
-                  "તમારું સબ્સ્ક્રિપ્શન પૂરું થઈ ગયું છે. બિલિંગ ચાલુ રાખવા પ્લાન રિન્યૂ કરો.",
                 subscriptionEnds: cached.entitlements.subscriptionEnds,
                 daysRemaining: cached.entitlements.daysRemaining,
                 tier: cached.entitlements.tier,
@@ -594,7 +584,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const next: PlanEntitlementsInfo = {
           tier: payload?.tier || prev?.tier || "TRIAL",
           name: prev?.name || payload?.tier || "Plan",
-          nameGujarati: prev?.nameGujarati || prev?.name || "પ્લાન",
+          nameGujarati: prev?.nameGujarati || prev?.name || "Plan",
           maxCompanies: prev?.maxCompanies ?? 1,
           currentCount: prev?.currentCount ?? 0,
           canAddCompany: prev?.canAddCompany ?? false,
@@ -1255,32 +1245,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/45 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 p-6">
             <div className="text-[11px] font-bold uppercase tracking-wider text-[#C24E1D]">
-              {lang === "gu" ? "સબ્સ્ક્રિપ્શન" : "Subscription"}
+              Subscription
             </div>
             <h2 className="mt-1 text-[15px] font-semibold text-[#182230]">
-              {lang === "gu" ? "લાઇસન્સ પૂરું થયું" : "Licence has ended"}
+              Licence has ended
             </h2>
             <p className="mt-2 text-sm text-slate-600">
-              {lang === "gu"
-                ? subscriptionNotice.messageGujarati || subscriptionNotice.message
-                : subscriptionNotice.message}
+              {subscriptionNotice.message}
             </p>
             <div className="mt-4 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700 space-y-1">
               {subscriptionNotice.tier && (
                 <div>
-                  <span className="font-semibold">{lang === "gu" ? "પ્લાન: " : "Plan: "}</span>
+                  <span className="font-semibold">Plan: </span>
                   {subscriptionNotice.tier}
                 </div>
               )}
               {subscriptionNotice.subscriptionEnds && (
                 <div>
-                  <span className="font-semibold">{lang === "gu" ? "સમાપ્તિ: " : "Ended: "}</span>
+                  <span className="font-semibold">Ended: </span>
                   {formatDate(subscriptionNotice.subscriptionEnds)}
                 </div>
               )}
               {typeof subscriptionNotice.daysRemaining === "number" && (
                 <div>
-                  <span className="font-semibold">{lang === "gu" ? "બાકી દિવસ: " : "Days left: "}</span>
+                  <span className="font-semibold">Days left: </span>
                   {subscriptionNotice.daysRemaining}
                 </div>
               )}
@@ -1290,14 +1278,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 href="/settings/pricing"
                 className="flex-1 h-10 rounded-xl bg-[#C24E1D] text-white text-[13px] font-medium inline-flex items-center justify-center"
               >
-                {lang === "gu" ? "પ્લાન જુઓ" : "View plans"}
+                View plans
               </a>
               <button
                 type="button"
                 onClick={dismissSubscriptionNotice}
                 className="flex-1 h-10 rounded-xl border border-slate-200 text-[13px] font-medium text-slate-700"
               >
-                {lang === "gu" ? "પછી" : "Later"}
+                Later
               </button>
             </div>
           </div>

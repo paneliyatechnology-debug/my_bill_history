@@ -319,19 +319,8 @@ export function HomepageNavbar({
           </div>
         </nav>
 
-        {/* Right Actions: Lang Switch, Login, Book Demo, Start Free */}
+        {/* Right Actions: Login, Book Demo, Start Free */}
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          {/* Language Toggle */}
-          {onToggleLang && (
-            <button
-              type="button"
-              onClick={onToggleLang}
-              className="px-2.5 py-1.5 rounded-lg border border-[#E5EAF1] bg-white hover:bg-slate-50 text-[11px] font-medium text-[#172033] transition-colors cursor-pointer shrink-0"
-              title="Switch Language"
-            >
-              {gu ? "English" : "ગુજરાતી"}
-            </button>
-          )}
 
           {/* Login Button */}
           <Link
