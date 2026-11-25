@@ -1413,19 +1413,14 @@ function AccountSettingsView() {
                   {planName}
                 </span>
 
-                {/* Accurate Dynamic Expiry Badge */}
+                {/* Clean Plan Status Badge */}
                 {isExpired ? (
-                  <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-300 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                    {lang === "gu" ? "સમાપ્ત થયેલ (Expired)" : "Expired"}
-                  </span>
-                ) : daysRemaining <= 7 ? (
-                  <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
-                    {lang === "gu" ? `ટૂંક સમયમાં સમાપ્ત (${daysRemaining} દિવસ)` : `Expiring Soon (${daysRemaining}d left)`}
+                  <span className="text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    {lang === "gu" ? "સમાપ્ત થયેલ" : "Expired"}
                   </span>
                 ) : (
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     {lang === "gu" ? "સક્રિય" : "Active"}
                   </span>
@@ -1437,16 +1432,31 @@ function AccountSettingsView() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3.5">
             <div className="text-left md:text-right">
-              <span className={`text-xs block ${isExpired ? "text-rose-600 font-bold" : "text-slate-500"}`}>
-                {isExpired
-                  ? lang === "gu" ? "તમારો પ્લાન આ તારીખે સમાપ્ત થયો:" : "Your Plan expired on:"
-                  : lang === "gu" ? "તમારો પ્લાન આ તારીખે સમાપ્ત થશે:" : "Your Plan ends on:"}
-              </span>
-              <span className={`text-sm font-bold tabular-nums ${isExpired ? "text-rose-700 font-semibold" : "text-slate-900"}`}>
-                {planEndsOn}
-              </span>
+              {!isExpired && daysRemaining <= 7 ? (
+                <>
+                  <span className="text-xs font-semibold text-amber-700 block tabular-nums">
+                    {lang === "gu"
+                      ? `બાકી ${daysRemaining} દિવસ`
+                      : `${daysRemaining} ${daysRemaining === 1 ? "day" : "days"} remaining`}
+                  </span>
+                  <span className="text-xs text-slate-500 tabular-nums">
+                    {lang === "gu" ? `સમાપ્ત: ${planEndsOn}` : `Ends ${planEndsOn}`}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className={`text-xs block ${isExpired ? "text-rose-600 font-semibold" : "text-slate-500"}`}>
+                    {isExpired
+                      ? lang === "gu" ? "તમારો પ્લાન આ તારીખે સમાપ્ત થયો:" : "Your Plan expired on:"
+                      : lang === "gu" ? "તમારો પ્લાન આ તારીખે સમાપ્ત થશે:" : "Your Plan ends on:"}
+                  </span>
+                  <span className={`text-sm font-semibold tabular-nums ${isExpired ? "text-rose-700" : "text-slate-900"}`}>
+                    {planEndsOn}
+                  </span>
+                </>
+              )}
             </div>
 
             <button
