@@ -462,13 +462,6 @@ const navigationSections: NavSection[] = [
         planKey: "userManagementRbac",
       },
       {
-        name: "Activity Logs",
-        nameGujarati: "પ્રવૃત્તિ લૉગ્સ",
-        href: "/settings/activity-logs",
-        module: "settings",
-        action: "view",
-      },
-      {
         name: "Branch Management",
         nameGujarati: "બ્રાન્ચ મેનેજમેન્ટ",
         href: "/settings/company",
