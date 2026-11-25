@@ -42,7 +42,7 @@ interface ProductionOrder {
       id: string;
       name: string;
       sku?: string;
-      primaryUom?: { name: string; code: string };
+      primaryUom?: { name: string; symbol?: string; code?: string };
     };
     items?: Array<{
       id: string;

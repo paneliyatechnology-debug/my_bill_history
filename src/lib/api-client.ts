@@ -115,6 +115,8 @@ const SESSION_CACHEABLE_PREFIXES = [
   "/masters/units",
   "/categories",
   "/masters/categories",
+  "/hsn",
+  "/accounting/groups",
   "/invoice-settings",
   "/notifications/unread-count",
 ];

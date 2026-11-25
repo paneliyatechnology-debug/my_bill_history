@@ -19,7 +19,7 @@ interface BomItem {
     id: string;
     name: string;
     sku?: string;
-    primaryUom?: { name: string; code: string };
+    primaryUom?: { name: string; symbol?: string; code?: string };
   };
 }
 
@@ -36,7 +36,7 @@ interface BillOfMaterial {
     id: string;
     name: string;
     sku?: string;
-    primaryUom?: { name: string; code: string };
+    primaryUom?: { name: string; symbol?: string; code?: string };
   };
   items: BomItem[];
 }
@@ -318,7 +318,7 @@ export default function BomPage() {
         <div className="text-right tabular-nums font-semibold text-slate-700">
           {Number(bom.batchYieldQty).toLocaleString()}{" "}
           <span className="text-xs font-normal text-slate-500">
-            {bom.finishedItem?.primaryUom?.code || "Unit"}
+            {bom.finishedItem?.primaryUom?.symbol || bom.finishedItem?.primaryUom?.code || "Unit"}
           </span>
         </div>
       ),
@@ -486,7 +486,7 @@ export default function BomPage() {
               <div>
                 <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "બેચ આઉટપુટ" : "Yield Qty"}</span>
                 <span className="tabular-nums font-medium text-slate-700">
-                  {Number(bom.batchYieldQty).toLocaleString()} {bom.finishedItem?.primaryUom?.code || "Unit"}
+                  {Number(bom.batchYieldQty).toLocaleString()} {bom.finishedItem?.primaryUom?.symbol || bom.finishedItem?.primaryUom?.code || "Unit"}
                 </span>
               </div>
               <div>
@@ -957,7 +957,7 @@ export default function BomPage() {
                 </span>
                 <span className="font-semibold tabular-nums text-slate-800">
                   {Number(selectedBom.batchYieldQty).toLocaleString()}{" "}
-                  {selectedBom.finishedItem?.primaryUom?.code || "Unit"}
+                  {selectedBom.finishedItem?.primaryUom?.symbol || selectedBom.finishedItem?.primaryUom?.code || "Unit"}
                 </span>
               </div>
               <div>

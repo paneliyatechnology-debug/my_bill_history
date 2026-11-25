@@ -103,3 +103,50 @@ export interface ItemSummary {
   categoryId: string | null;
   categoryName: string | null;
 }
+
+export interface VoucherPaymentListItem {
+  id: string;
+  paymentNumber: string;
+  voucherNumber?: string;
+  paymentDate: string;
+  partyId: string | null;
+  partyName: string;
+  totalSettled: number;
+  amountReceived?: number;
+  amountPaid?: number;
+  discount: number;
+  paymentMode: string;
+  paymentModeLabel: string;
+  narration?: string;
+  referenceNo?: string;
+  isCancelled: boolean;
+}
+
+export interface BomSummary {
+  id: string;
+  companyId: string;
+  finishedItemId: string;
+  bomName: string;
+  batchYieldQty: number;
+  laborCostEst?: number | null;
+  overheadCostEst?: number | null;
+  createdAt: string;
+  finishedItem?: {
+    id: string;
+    name: string;
+    sku?: string | null;
+    primaryUom?: { name: string; symbol?: string | null; code?: string };
+  };
+  items: Array<{
+    id: string;
+    rawItemId: string;
+    quantity: number;
+    wastagePercent?: number | null;
+    rawItem?: {
+      id: string;
+      name: string;
+      sku?: string | null;
+      primaryUom?: { name: string; symbol?: string | null; code?: string };
+    };
+  }>;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
@@ -367,6 +367,7 @@ const navigationSections: NavSection[] = [
     planKey: "cashBank",
     icon: <Landmark className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
+  /*
   {
     id: "gst_returns",
     name: "GST & Tax Filing",
@@ -389,6 +390,7 @@ const navigationSections: NavSection[] = [
     planKey: "automatedBills",
     icon: <Repeat className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
+  */
   {
     id: "pos",
     name: "POS Billing",
@@ -496,6 +498,7 @@ const navigationSections: NavSection[] = [
     planKey: "dataImport",
     icon: <UploadCloud className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
+  /*
   {
     id: "ai_collections",
     name: "Payment Reminders",
@@ -519,6 +522,7 @@ const navigationSections: NavSection[] = [
     planKey: "payrollStaff",
     icon: <CalendarCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
+  */
   {
     id: "users",
     name: "Manage Users",
@@ -582,6 +586,51 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [loadingWatchdogTriggered, setLoadingWatchdogTriggered] =
     useState(false);
+  const [hoveredCollapsedMenu, setHoveredCollapsedMenu] = useState<{
+    sectionId: string;
+    top: number;
+    left: number;
+  } | null>(null);
+  const flyoutCloseTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelCloseCollapsedFlyout = useCallback(() => {
+    if (flyoutCloseTimerRef.current) {
+      clearTimeout(flyoutCloseTimerRef.current);
+      flyoutCloseTimerRef.current = null;
+    }
+  }, []);
+
+  const openCollapsedFlyout = useCallback(
+    (sectionId: string, el: HTMLElement) => {
+      cancelCloseCollapsedFlyout();
+      const rect = el.getBoundingClientRect();
+      setHoveredCollapsedMenu({
+        sectionId,
+        top: rect.top,
+        left: rect.right + 8,
+      });
+    },
+    [cancelCloseCollapsedFlyout],
+  );
+
+  const scheduleCloseCollapsedFlyout = useCallback(() => {
+    cancelCloseCollapsedFlyout();
+    flyoutCloseTimerRef.current = setTimeout(() => {
+      setHoveredCollapsedMenu(null);
+    }, 120);
+  }, [cancelCloseCollapsedFlyout]);
+
+  useEffect(() => {
+    setHoveredCollapsedMenu(null);
+  }, [pathname, isSidebarCollapsed]);
+
+  useEffect(() => {
+    return () => {
+      if (flyoutCloseTimerRef.current) {
+        clearTimeout(flyoutCloseTimerRef.current);
+      }
+    };
+  }, []);
 
   // Safety watchdog: If loading takes longer than 3.5 seconds, show graceful recovery options
   useEffect(() => {
@@ -1246,6 +1295,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       )}
                       <Link
                         href={section.href}
+                        onMouseEnter={
+                          isSidebarCollapsed
+                            ? (e) => openCollapsedFlyout(section.id, e.currentTarget)
+                            : undefined
+                        }
+                        onMouseLeave={
+                          isSidebarCollapsed ? scheduleCloseCollapsedFlyout : undefined
+                        }
                         className={`flex items-center transition-all ${isSidebarCollapsed
                             ? `w-11 h-11 mx-auto justify-center rounded-xl ${isActive
                               ? "text-[#2563EB] typo-nav-active bg-[#EFF6FF] shadow-2xs"
@@ -1257,7 +1314,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             }`
                           }`}
                         title={
-                          lang === "gu" ? section.nameGujarati : section.name
+                          isSidebarCollapsed
+                            ? undefined
+                            : lang === "gu"
+                              ? section.nameGujarati
+                              : section.name
                         }
                       >
                         <span
@@ -1285,18 +1346,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 const isExpanded = expandedSections[section.id] || hasActiveChild;
 
                 if (isSidebarCollapsed) {
-                  // Collapsed mode: Icon button with hover flyout menu
+                  // Collapsed mode: Icon button with floating flyout menu rendered outside overflow-y-auto nav
                   return (
-                    <div key={section.id} className="relative group my-0.5">
+                    <div
+                      key={section.id}
+                      className="relative my-0.5"
+                      onMouseEnter={(e) => openCollapsedFlyout(section.id, e.currentTarget)}
+                      onMouseLeave={scheduleCloseCollapsedFlyout}
+                    >
                       <Link
                         href={section.items?.[0]?.href || "#"}
                         className={`w-11 h-11 mx-auto flex items-center justify-center rounded-xl text-xs font-medium transition-all ${hasActiveChild
                             ? "text-[#2563EB] font-bold bg-[#EFF6FF] shadow-2xs"
                             : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                           }`}
-                        title={
-                          lang === "gu" ? section.nameGujarati : section.name
-                        }
                       >
                         <span
                           className={
@@ -1306,44 +1369,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           {section.icon}
                         </span>
                       </Link>
-
-                      {/* Floating Flyout Menu on Hover when Collapsed */}
-                      <div
-                        className="hidden group-hover:block absolute left-full top-0 ml-2 w-56 rounded-xl shadow-2xl border border-slate-200 bg-white py-2 z-50 animate-fadeIn"
-                      >
-                        <div className="px-3.5 py-1.5 border-b border-slate-100 mb-1">
-                          <p className="text-xs font-bold text-slate-900">
-                            {section.name}
-                          </p>
-                          {lang === "gu" && (
-                            <p className="text-[10px] text-slate-500 font-gujarati">
-                              {section.nameGujarati}
-                            </p>
-                          )}
-                        </div>
-                        <div className="space-y-0.5 px-1.5">
-                          {section.items?.map((item) => {
-                            const isSubActive = activeNav.isSubItemActive(item.href);
-                            return (
-                              <Link
-                                key={`${item.name}-${item.href}`}
-                                href={item.href}
-                                className={`block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isSubActive
-                                    ? "text-white font-bold bg-[#1677E8]"
-                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                                  }`}
-                              >
-                                <div className="truncate">{item.name}</div>
-                                {lang === "gu" && (
-                                  <div className="text-[10px] text-slate-400 font-gujarati truncate">
-                                    {item.nameGujarati}
-                                  </div>
-                                )}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      </div>
                     </div>
                   );
                 }
@@ -1436,6 +1461,100 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               });
             })()}
           </nav>
+
+          {/* Floating Flyout Menu on Hover when Collapsed (outside overflow-y-auto nav) */}
+          {isSidebarCollapsed &&
+            hoveredCollapsedMenu &&
+            (() => {
+              const hoveredSection = visibleNavigationSections.find(
+                (s) => s.id === hoveredCollapsedMenu.sectionId,
+              );
+              if (!hoveredSection) return null;
+              const hasSubItems = Boolean(hoveredSection.items && hoveredSection.items.length > 0);
+              const estimatedHeight = hasSubItems
+                ? Math.min(360, 64 + (hoveredSection.items?.length || 0) * 38)
+                : 52;
+              const clampedTop =
+                typeof window !== "undefined"
+                  ? Math.max(8, Math.min(hoveredCollapsedMenu.top, window.innerHeight - estimatedHeight - 12))
+                  : hoveredCollapsedMenu.top;
+
+              return (
+                <div
+                  onMouseEnter={cancelCloseCollapsedFlyout}
+                  onMouseLeave={scheduleCloseCollapsedFlyout}
+                  style={{
+                    top: clampedTop,
+                    left: hoveredCollapsedMenu.left,
+                  }}
+                  className="fixed z-50 animate-fadeIn"
+                >
+                  {hasSubItems ? (
+                    <div className="w-56 rounded-xl shadow-[0_12px_32px_-8px_rgba(15,23,42,0.14)] border border-slate-200/90 bg-white py-2 max-h-[75vh] overflow-y-auto">
+                      <div className="px-3.5 py-1.5 border-b border-slate-100 mb-1">
+                        <p className="text-xs font-semibold text-slate-900">
+                          {lang === "gu" ? hoveredSection.nameGujarati : hoveredSection.name}
+                        </p>
+                      </div>
+                      <div className="space-y-0.5 px-1.5">
+                        {hoveredSection.items?.map((item) => {
+                          const isSubActive = activeNav.isSubItemActive(item.href);
+                          return (
+                            <Link
+                              key={`${item.name}-${item.href}`}
+                              href={item.href}
+                              onClick={() => setHoveredCollapsedMenu(null)}
+                              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                isSubActive
+                                  ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
+                                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                              }`}
+                            >
+                              {isSubActive && (
+                                <span
+                                  aria-hidden="true"
+                                  className="w-1.5 h-1.5 rounded-full bg-[#2563EB] shrink-0"
+                                />
+                              )}
+                              <span className="truncate">
+                                {lang === "gu" ? item.nameGujarati : item.name}
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : hoveredSection.href ? (
+                    (() => {
+                      const isDirectActive = activeNav.isDirectLinkActive(
+                        hoveredSection.id,
+                        hoveredSection.href,
+                      );
+                      return (
+                        <Link
+                          href={hoveredSection.href}
+                          onClick={() => setHoveredCollapsedMenu(null)}
+                          className={`flex items-center justify-between gap-3 min-w-[168px] px-3.5 py-2.5 rounded-xl border shadow-[0_12px_32px_-8px_rgba(15,23,42,0.14)] text-xs font-medium transition-colors ${
+                            isDirectActive
+                              ? "bg-[#EFF6FF] border-blue-200 text-[#2563EB] font-semibold"
+                              : "bg-white border-slate-200/90 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+                          }`}
+                        >
+                          <span className="truncate">
+                            {lang === "gu" ? hoveredSection.nameGujarati : hoveredSection.name}
+                          </span>
+                          {hoveredSection.badge && (
+                            <span className="px-1.5 py-0.5 bg-rose-500 text-white text-[9px] font-bold rounded">
+                              {hoveredSection.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })()
+                  ) : null}
+                </div>
+              );
+            })()}
         </aside>
       )}
 

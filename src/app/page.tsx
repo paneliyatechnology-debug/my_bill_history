@@ -93,23 +93,6 @@ function DashboardContent() {
     setLastUpdate(`${dateFormatted}, ${timeFormatted}`);
   }, []);
 
-  const readCount = (res: any): number | null => {
-    if (!res || typeof res !== "object") return null;
-    const candidates = [
-      res.total,
-      res.totalCount,
-      res.count,
-      res.meta?.total,
-      res.meta?.totalCount,
-      res.pagination?.total,
-      res.pagination?.totalCount,
-    ];
-    for (const value of candidates) {
-      if (typeof value === "number" && Number.isFinite(value)) return value;
-    }
-    return null;
-  };
-
   const fetchDashboardData = useCallback(
     async (customStart?: string, customEnd?: string) => {
       setIsRefreshing(true);
