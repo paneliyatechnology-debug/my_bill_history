@@ -101,9 +101,34 @@ function resolveApiBase(): string {
 /** Bumped by writes so a refetch after a mutation never reuses a list GET that started earlier. */
 let getEpoch = 0;
 const inflightGets = new Map<string, Promise<unknown>>();
+const sessionGetCache = new Map<string, { value: unknown; expiresAt: number }>();
+const SESSION_CACHE_TTL_MS = 2 * 60 * 1000;
+const SESSION_CACHEABLE_PREFIXES = [
+  "/auth/me",
+  "/tenants/companies",
+  "/tenants/branches",
+  "/tenants/financial-years",
+  "/tenants/warehouses",
+  "/masters/warehouses",
+  "/warehouses",
+  "/units",
+  "/masters/units",
+  "/categories",
+  "/masters/categories",
+  "/invoice-settings",
+  "/notifications/unread-count",
+];
+
+function isSessionCacheablePath(path: string): boolean {
+  const clean = path.split("?")[0].replace(/^\/api\/v1/, "");
+  return SESSION_CACHEABLE_PREFIXES.some(
+    (prefix) => clean === prefix || clean.startsWith(`${prefix}/`),
+  );
+}
 
 function invalidateInflightGets() {
   getEpoch += 1;
+  sessionGetCache.clear();
 }
 
 function tenantScopeKey(custom?: TenantHeaders): string {
@@ -428,12 +453,30 @@ export const apiClient = {
     }
 
     const key = normalizedGetKey(fullPath, tenant, options?.timeoutMs);
+    const cacheable = isSessionCacheablePath(fullPath);
+    if (cacheable) {
+      const cached = sessionGetCache.get(key);
+      if (cached && cached.expiresAt > Date.now()) {
+        return Promise.resolve(cached.value as T);
+      }
+    }
+
     const existing = inflightGets.get(key);
     if (existing) return existing as Promise<T>;
 
-    const promise = request<T>(fullPath, { method: "GET", ...options }, tenant).finally(() => {
-      if (inflightGets.get(key) === promise) inflightGets.delete(key);
-    });
+    const promise = request<T>(fullPath, { method: "GET", ...options }, tenant)
+      .then((res) => {
+        if (cacheable) {
+          sessionGetCache.set(key, {
+            value: res,
+            expiresAt: Date.now() + SESSION_CACHE_TTL_MS,
+          });
+        }
+        return res;
+      })
+      .finally(() => {
+        if (inflightGets.get(key) === promise) inflightGets.delete(key);
+      });
     inflightGets.set(key, promise);
     return promise;
   },

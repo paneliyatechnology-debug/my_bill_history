@@ -38,6 +38,7 @@ interface SalesInvoice {
   totalTax?: number;
   grandTotal: number;
   paidAmount: number;
+  balanceAmount?: number;
   outstandingBalance: number;
   isB2B?: boolean;
   notes?: string;
@@ -1544,7 +1545,7 @@ export default function SalesInvoicesDashboardPage() {
                   {lang === "gu" ? "કુલ બાકી રકમ:" : "Total Outstanding Balance:"}
                 </span>
                 <span className="tabular-nums font-semibold text-[#0F172A] typo-amount-secondary">
-                  {formatInr(paymentInvoice.outstandingBalance)}
+                  {formatInr(paymentInvoice.balanceAmount ?? paymentInvoice.outstandingBalance ?? 0)}
                 </span>
               </div>
 

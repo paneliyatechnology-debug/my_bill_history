@@ -140,8 +140,8 @@ export default function CreateEInvoicePage() {
           apiClient.get<any[]>("/parties"),
           apiClient.get<any[]>("/items"),
         ]);
-        setParties(Array.isArray(partiesRes) ? partiesRes : (partiesRes as any)?.data || []);
-        setCatalogItems(Array.isArray(itemsRes) ? itemsRes : (itemsRes as any)?.data || []);
+        setParties(Array.isArray(partiesRes) ? partiesRes : (partiesRes as any)?.items || (partiesRes as any)?.data || []);
+        setCatalogItems(Array.isArray(itemsRes) ? itemsRes : (itemsRes as any)?.items || (itemsRes as any)?.data || []);
       } catch (e) {
         console.warn("Could not load initial master data", e);
       }

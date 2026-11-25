@@ -69,12 +69,35 @@ export function NotificationCenter() {
     }
   }, []);
 
-  // Fetch unread count
-  const fetchUnreadCount = useCallback(async () => {
+  // Fetch unread count with session cache (2-min TTL; invalidated on SSE/mutation)
+  const fetchUnreadCount = useCallback(async (force = false) => {
+    const cacheKey = "billing_unread_count_cache";
+    if (!force && typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem(cacheKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (
+            typeof parsed?.count === "number" &&
+            typeof parsed?.ts === "number" &&
+            Date.now() - parsed.ts < 2 * 60 * 1000
+          ) {
+            setUnreadCount(parsed.count);
+            return;
+          }
+        }
+      } catch {}
+    }
     try {
       const res = await apiClient.get<{ unreadCount: number }>("/api/v1/notifications/unread-count");
       if (typeof res?.unreadCount === "number") {
         setUnreadCount(res.unreadCount);
+        try {
+          sessionStorage.setItem(
+            cacheKey,
+            JSON.stringify({ count: res.unreadCount, ts: Date.now() }),
+          );
+        } catch {}
       }
     } catch {
       // Graceful ignore
@@ -125,8 +148,23 @@ export function NotificationCenter() {
       const detail = e?.detail;
       if (typeof detail?.unreadCount === "number") {
         setUnreadCount(detail.unreadCount);
+        try {
+          sessionStorage.setItem(
+            "billing_unread_count_cache",
+            JSON.stringify({ count: detail.unreadCount, ts: Date.now() }),
+          );
+        } catch {}
       } else {
-        setUnreadCount((prev) => prev + 1);
+        setUnreadCount((prev) => {
+          const next = prev + 1;
+          try {
+            sessionStorage.setItem(
+              "billing_unread_count_cache",
+              JSON.stringify({ count: next, ts: Date.now() }),
+            );
+          } catch {}
+          return next;
+        });
       }
       if (isOpen) {
         fetchNotifications();

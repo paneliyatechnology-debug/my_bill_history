@@ -294,20 +294,20 @@ export default function SharedLedgerPage() {
       // Fallback: fetch sales and purchase invoices directly for this party
       try {
         const [salesRes, purchRes]: any[] = await Promise.all([
-          apiClient.get("/sales/invoices", { partyId: selectedParty.id }).catch(() => ({ data: [] })),
-          apiClient.get("/purchases/invoices", { partyId: selectedParty.id }).catch(() => ({ data: [] })),
+          apiClient.get("/sales/invoices", { partyId: selectedParty.id }).catch(() => ({ items: [] })),
+          apiClient.get("/purchases/invoices", { partyId: selectedParty.id }).catch(() => ({ items: [] })),
         ]);
-        const sales = Array.isArray(salesRes?.data)
-          ? salesRes.data
-          : Array.isArray(salesRes?.items)
+        const sales = Array.isArray(salesRes?.items)
           ? salesRes.items
+          : Array.isArray(salesRes?.data)
+          ? salesRes.data
           : Array.isArray(salesRes)
           ? salesRes
           : [];
-        const purch = Array.isArray(purchRes?.data)
-          ? purchRes.data
-          : Array.isArray(purchRes?.items)
+        const purch = Array.isArray(purchRes?.items)
           ? purchRes.items
+          : Array.isArray(purchRes?.data)
+          ? purchRes.data
           : Array.isArray(purchRes)
           ? purchRes
           : [];

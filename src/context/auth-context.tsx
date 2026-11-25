@@ -119,6 +119,8 @@ export interface TenantContextState {
 const WORKSPACE_CACHE_KEY = "billing_workspace_cache";
 const LOGOUT_NOTICE_KEY = "billing_logout_notice";
 const SUBSCRIPTION_DISMISS_KEY = "billing_subscription_dismissed";
+const ME_VALIDATED_AT_KEY = "billing_me_validated_at";
+const WORKSPACE_CACHE_TTL_MS = 5 * 60 * 1000;
 
 interface WorkspaceCache {
   companyId: string;
@@ -127,6 +129,7 @@ interface WorkspaceCache {
   branches: BranchInfo[];
   financialYears: FinancialYearInfo[];
   entitlements: PlanEntitlementsInfo | null;
+  cachedAt?: number;
 }
 
 export interface SubscriptionNotice {
@@ -162,7 +165,11 @@ function readWorkspaceCache(): WorkspaceCache | null {
 function writeWorkspaceCache(cache: WorkspaceCache) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(WORKSPACE_CACHE_KEY, JSON.stringify(cache));
+    const stamped: WorkspaceCache = {
+      ...cache,
+      cachedAt: cache.cachedAt ?? Date.now(),
+    };
+    localStorage.setItem(WORKSPACE_CACHE_KEY, JSON.stringify(stamped));
     // Clean up stale copy from sessionStorage so it doesn't cause divergence
     sessionStorage.removeItem(WORKSPACE_CACHE_KEY);
   } catch {
@@ -360,6 +367,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             branches: nextBranches || previous?.branches || [],
             financialYears: nextYears || previous?.financialYears || [],
             entitlements: nextEntitlements || previous?.entitlements || null,
+            cachedAt: Date.now(),
           });
           const ent = nextEntitlements || previous?.entitlements || null;
           if (ent?.isExpired) {
@@ -431,27 +439,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
         }
 
-        // Live Server Validation: Ensure fresh permissions from database immediately on session load
-        apiClient
-          .get<any>("/auth/me")
-          .then((res) => {
-            if (res && res.user) {
-              const freshUser: UserProfile = {
-                ...res.user,
-                name: res.user.name || res.user.fullName || "User",
-              };
-              setUser(freshUser);
-              try {
-                localStorage.setItem("billing_user_profile", JSON.stringify(freshUser));
-              } catch {}
-              if (res.companies && Array.isArray(res.companies) && res.companies.length > 0) {
-                setCompanies(res.companies);
+        // Live Server Validation: validate /auth/me once per session window (5 min TTL)
+        const lastMeCheck = Number(sessionStorage.getItem(ME_VALIDATED_AT_KEY) || 0);
+        if (!lastMeCheck || Date.now() - lastMeCheck > WORKSPACE_CACHE_TTL_MS) {
+          apiClient
+            .get<any>("/auth/me")
+            .then((res) => {
+              if (res && res.user) {
+                try {
+                  sessionStorage.setItem(ME_VALIDATED_AT_KEY, String(Date.now()));
+                } catch {}
+                const freshUser: UserProfile = {
+                  ...res.user,
+                  name: res.user.name || res.user.fullName || "User",
+                };
+                setUser(freshUser);
+                try {
+                  localStorage.setItem("billing_user_profile", JSON.stringify(freshUser));
+                } catch {}
+                if (res.companies && Array.isArray(res.companies) && res.companies.length > 0) {
+                  setCompanies(res.companies);
+                }
               }
-            }
-          })
-          .catch(() => {
-            // Offline fallback
-          });
+            })
+            .catch(() => {
+              // Offline fallback
+            });
+        }
 
         if (savedTenant) {
           try {
@@ -494,21 +508,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Read companies, branches, and financial years from the cache for instant render,
-  // then always revalidate in the background so all tabs and server updates stay 100% in sync.
+  // Read companies, branches, and financial years from session/workspace cache.
+  // Only hit /tenants/companies, /tenants/branches, /tenants/financial-years when cache is missing,
+  // belongs to a different company, or TTL has expired.
   useEffect(() => {
     if (!token || !tenantContext.companyId) return;
     const cached = readWorkspaceCache();
-    if (
+    const isSameCompany =
       cached &&
       cached.companyId === tenantContext.companyId &&
-      cached.companies.length > 0
-    ) {
+      cached.companies.length > 0;
+
+    if (isSameCompany) {
       setCompanies(cached.companies);
       setBranches(cached.branches || []);
       setFinancialYears(cached.financialYears || []);
       setEntitlements(cached.entitlements);
       setWorkspaceError(null);
+      const isFresh =
+        typeof cached.cachedAt === "number" &&
+        Date.now() - cached.cachedAt < WORKSPACE_CACHE_TTL_MS;
+      if (isFresh) {
+        return;
+      }
     }
     refreshTenantMetadata().catch(() => {});
   }, [token, tenantContext.companyId, refreshTenantMetadata]);
@@ -550,7 +572,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setCompanies(cached.companies);
           }
         }
-        refreshTenantMetadata().catch(() => {});
+        const isFresh =
+          cached &&
+          cached.companyId === tenantContext.companyId &&
+          typeof cached.cachedAt === "number" &&
+          Date.now() - cached.cachedAt < WORKSPACE_CACHE_TTL_MS;
+        if (!isFresh) {
+          refreshTenantMetadata().catch(() => {});
+        }
       }
     };
 
@@ -749,7 +778,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // ignore
       }
     };
-  }, [token, user, tenantContext.organizationId]);
+  }, [token, user?.id, user?.role, tenantContext.organizationId]);
 
   const login = async (data: {
     accessToken: string;

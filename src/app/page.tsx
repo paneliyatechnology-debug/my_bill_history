@@ -244,7 +244,7 @@ function DashboardContent() {
 
       const activeFyId = tenantContext?.financialYearId || currentFY?.id;
       try {
-        const [chartRes, itemSalesRes, returnsRes, salesRegRes]: any = await Promise.all([
+        const [chartRes, itemSalesRes, salesRegRes]: any = await Promise.all([
           apiClient
             .get("/dashboard/sales-overview", {
               days: Math.min(30, range.days),
@@ -253,14 +253,6 @@ function DashboardContent() {
             .catch(() => null),
           apiClient
             .get("/reports/item-sales-report", {
-              startDate: range.startDate,
-              endDate: range.endDate,
-              fromDate: range.startDate,
-              toDate: range.endDate,
-            })
-            .catch(() => null),
-          apiClient
-            .get("/reports/sales-returns", {
               startDate: range.startDate,
               endDate: range.endDate,
               fromDate: range.startDate,
@@ -307,7 +299,6 @@ function DashboardContent() {
         }
 
         const salesRows = itemSalesRes?.items || itemSalesRes?.data || [];
-        const returnRows = returnsRes?.returns || returnsRes?.items || [];
         const categoryByItemId = new Map<string, string>();
 
         if (!itemSalesRes) {
@@ -318,7 +309,6 @@ function DashboardContent() {
             aggregateItemSalesByCategory(
               Array.isArray(salesRows) ? salesRows : [],
               categoryByItemId,
-              Array.isArray(returnRows) ? returnRows : []
             )
           );
         }

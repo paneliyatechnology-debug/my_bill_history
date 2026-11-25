@@ -65,130 +65,130 @@
   --font-playfair: var(--font-heading);
   --font-dm-mono: var(--font-mono);
 
-  /* Centralized Typography Scale & Tokens (Official Standard) */
-  --text-page-title: 22px;
+  /* Centralized Typography Scale & Tokens (Compact Standard) */
+  --text-page-title: 20px;
   --fw-page-title: 600;
-  --lh-page-title: 30px;
+  --lh-page-title: 28px;
 
-  --text-page-subtitle: 13px;
+  --text-page-subtitle: 12px;
   --fw-page-subtitle: 400;
-  --lh-page-subtitle: 20px;
+  --lh-page-subtitle: 18px;
 
-  --text-section-heading: 16px;
+  --text-section-heading: 14.5px;
   --fw-section-heading: 600;
-  --lh-section-heading: 24px;
+  --lh-section-heading: 21px;
 
-  --text-card-heading: 14px;
+  --text-card-heading: 13px;
   --fw-card-heading: 500;
-  --lh-card-heading: 20px;
+  --lh-card-heading: 18px;
 
-  --text-card-desc: 12px;
+  --text-card-desc: 11px;
   --fw-card-desc: 400;
-  --lh-card-desc: 18px;
+  --lh-card-desc: 16px;
 
-  --text-kpi: 24px;
+  --text-kpi: 21px;
   --fw-kpi: 600;
-  --lh-kpi: 32px;
+  --lh-kpi: 28px;
 
-  --text-amount-secondary: 18px;
+  --text-amount-secondary: 16px;
   --fw-amount-secondary: 500;
-  --lh-amount-secondary: 26px;
+  --lh-amount-secondary: 24px;
 
-  --text-table-th: 12px;
+  --text-table-th: 11px;
   --fw-table-th: 500;
-  --lh-table-th: 18px;
+  --lh-table-th: 16px;
 
-  --text-table-td: 13px;
+  --text-table-td: 12px;
   --fw-table-td: 400;
-  --lh-table-td: 20px;
+  --lh-table-td: 18px;
 
-  --text-table-amount: 13px;
+  --text-table-amount: 12px;
   --fw-table-amount: 500;
-  --lh-table-amount: 20px;
+  --lh-table-amount: 18px;
 
-  --text-nav: 13px;
+  --text-nav: 12px;
   --fw-nav: 400;
-  --lh-nav: 20px;
+  --lh-nav: 18px;
 
-  --text-nav-active: 13px;
+  --text-nav-active: 12px;
   --fw-nav-active: 500;
-  --lh-nav-active: 20px;
+  --lh-nav-active: 18px;
 
-  --text-btn-primary: 13px;
+  --text-btn-primary: 12px;
   --fw-btn-primary: 500;
-  --lh-btn-primary: 18px;
+  --lh-btn-primary: 17px;
 
-  --text-btn-secondary: 12px;
+  --text-btn-secondary: 11.5px;
   --fw-btn-secondary: 500;
-  --lh-btn-secondary: 18px;
+  --lh-btn-secondary: 16px;
 
-  --text-input: 13px;
+  --text-input: 12px;
   --fw-input: 400;
-  --lh-input: 20px;
+  --lh-input: 18px;
 
-  --text-label: 12px;
+  --text-label: 11px;
   --fw-label: 500;
-  --lh-label: 18px;
+  --lh-label: 16px;
 
-  --text-placeholder: 13px;
+  --text-placeholder: 12px;
   --fw-placeholder: 400;
-  --lh-placeholder: 20px;
+  --lh-placeholder: 18px;
 
-  --text-dropdown-item: 13px;
+  --text-dropdown-item: 12px;
   --fw-dropdown-item: 400;
-  --lh-dropdown-item: 20px;
+  --lh-dropdown-item: 18px;
 
-  --text-badge: 11px;
+  --text-badge: 10.5px;
   --fw-badge: 500;
-  --lh-badge: 16px;
+  --lh-badge: 15px;
 
-  --text-tooltip: 12px;
+  --text-tooltip: 11px;
   --fw-tooltip: 400;
-  --lh-tooltip: 18px;
+  --lh-tooltip: 16px;
 
-  --text-breadcrumb: 12px;
+  --text-breadcrumb: 11px;
   --fw-breadcrumb: 400;
-  --lh-breadcrumb: 18px;
+  --lh-breadcrumb: 16px;
 
-  --text-tab: 13px;
+  --text-tab: 12px;
   --fw-tab: 500;
-  --lh-tab: 20px;
+  --lh-tab: 18px;
 
-  --text-modal-title: 18px;
+  --text-modal-title: 16px;
   --fw-modal-title: 600;
-  --lh-modal-title: 26px;
+  --lh-modal-title: 24px;
 
-  --text-modal-desc: 13px;
+  --text-modal-desc: 12px;
   --fw-modal-desc: 400;
-  --lh-modal-desc: 20px;
+  --lh-modal-desc: 18px;
 
-  --text-form-section: 15px;
+  --text-form-section: 14px;
   --fw-form-section: 600;
-  --lh-form-section: 22px;
+  --lh-form-section: 20px;
 
-  --text-invoice-no: 12px;
+  --text-invoice-no: 11px;
   --fw-invoice-no: 500;
-  --lh-invoice-no: 18px;
+  --lh-invoice-no: 16px;
 
-  --text-tx-id: 11px;
+  --text-tx-id: 10.5px;
   --fw-tx-id: 400;
-  --lh-tx-id: 16px;
+  --lh-tx-id: 15px;
 
-  --text-chart-label: 11px;
+  --text-chart-label: 10.5px;
   --fw-chart-label: 400;
-  --lh-chart-label: 16px;
+  --lh-chart-label: 15px;
 
-  --text-chart-value: 12px;
+  --text-chart-value: 11px;
   --fw-chart-value: 500;
-  --lh-chart-value: 18px;
+  --lh-chart-value: 16px;
 
-  --text-empty-title: 17px;
+  --text-empty-title: 15px;
   --fw-empty-title: 600;
-  --lh-empty-title: 24px;
+  --lh-empty-title: 22px;
 
-  --text-empty-desc: 13px;
+  --text-empty-desc: 12px;
   --fw-empty-desc: 400;
-  --lh-empty-desc: 20px;
+  --lh-empty-desc: 18px;
 
   --radius-card: 12px;
   --radius-control: 10px;
@@ -222,8 +222,8 @@ body {
   background: var(--bg-main);
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 12px;
+  line-height: 18px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -556,8 +556,8 @@ textarea {
 
 /* Typography Hierarchy & Tokens for Accounting SaaS */
 .page-title {
-  font-size: 1.25rem;
-  line-height: 1.6rem;
+  font-size: 18px;
+  line-height: 24px;
   font-weight: 600;
   color: var(--text-main);
   letter-spacing: -0.02em;
@@ -565,14 +565,14 @@ textarea {
 
 @media (min-width: 1024px) {
   .page-title {
-    font-size: 1.375rem;
-    line-height: 1.75rem;
+    font-size: 20px;
+    line-height: 26px;
   }
 }
 
 .page-description {
-  font-size: 0.75rem;
-  line-height: 1.25rem;
+  font-size: 11.5px;
+  line-height: 17px;
   color: var(--text-secondary);
   margin-top: 0.25rem;
   font-weight: 400;
@@ -580,13 +580,13 @@ textarea {
 
 @media (min-width: 640px) {
   .page-description {
-    font-size: 0.875rem;
-    line-height: 1.35rem;
+    font-size: 12.5px;
+    line-height: 18px;
   }
 }
 
 .section-heading {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.35;
   font-weight: 600;
   color: var(--text-main);
@@ -594,7 +594,7 @@ textarea {
 }
 
 .card-label {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.3;
   font-weight: 500;
   color: var(--text-secondary);
@@ -613,7 +613,7 @@ textarea {
 
 /* App-wide type scale. Weights stay at 400–600 so long working sessions stay readable. */
 #main-content {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.45;
   color: #182230;
 }
@@ -629,7 +629,7 @@ textarea {
 }
 
 #main-content h1 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.3;
@@ -648,30 +648,30 @@ textarea {
 }
 
 #main-content h2 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.015em;
   line-height: 1.35;
 }
 
 #main-content h3 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.35;
 }
 
 #main-content label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: #64748B;
 }
 
 #main-content table {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 #main-content table th {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.04em;
 }
@@ -685,7 +685,7 @@ textarea {
 /* Portaled dialogs sit outside #main-content, so they carry the same scale themselves. */
 .bb-overlay {
   font-family: var(--font-inter), var(--font-noto-gujarati), sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   color: #182230;
 }
@@ -698,12 +698,12 @@ textarea {
 }
 
 .bb-overlay h3 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .bb-overlay label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: #64748B;
 }
@@ -1482,7 +1482,7 @@ input[type="radio"] {
 #main-content textarea {
   border-radius: 10px;
   border-color: #E3EAF3;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 #main-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not(.bg-transparent):not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="border-0"]):focus,

@@ -9,22 +9,22 @@ import { useAuth } from "@/context/auth-context";
 
 export interface DueInvoiceItem {
   id: string;
+  type: "SALES_INVOICE" | "PURCHASE_INVOICE";
   invoiceNumber: string;
-  invoiceDate: string;
-  dueDate: string;
-  hasExplicitDueDate: boolean;
-  daysRemaining: number;
-  urgencyStatus: "OVERDUE" | "DUE_TODAY" | "DUE_SOON";
   partyId?: string;
   partyName: string;
-  partyPhone?: string;
-  grandTotal: number;
-  paidAmount: number;
+  dueDate: string;
+  daysRemaining: number;
   balanceAmount: number;
-  type: "SALES_INVOICE" | "PURCHASE_INVOICE";
-  deepLink: string;
-  actionLink: string;
-  actionLabel: string;
+  invoiceDate?: string;
+  hasExplicitDueDate?: boolean;
+  urgencyStatus?: "OVERDUE" | "DUE_TODAY" | "DUE_SOON";
+  partyPhone?: string;
+  grandTotal?: number;
+  paidAmount?: number;
+  deepLink?: string;
+  actionLink?: string;
+  actionLabel?: string;
 }
 
 interface UpcomingDuesResponse {
@@ -164,29 +164,25 @@ export function UpcomingDuesAlertCard() {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="typo-section-heading text-[#1E293B]">
-                {lang === "gu" ? "આગામી બાકી રકમ (ડ્યુ)" : "Upcoming Dues"}
+                Upcoming Dues
               </h2>
               {duesList.length > 0 && (
                 <span className="typo-badge text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
-                  {duesList.length} {lang === "gu" ? "બિલ બાકી" : "Bills Due"}
+                  {duesList.length} Bills Due
                 </span>
               )}
             </div>
 
             <p className="typo-page-subtitle text-[#64748B] mt-0.5 truncate">
-              {lang === "gu"
-                ? `આગામી ${daysFilter} દિવસમાં બાકી લેણી/ચૂકવણી`
-                : `Due within next ${daysFilter} days`}
+              Due within next {daysFilter} days
               {activeTotalDue > 0 && (
                 <span className="ml-1.5 font-medium text-[#1E293B]">
-                  • {lang === "gu" ? "કુલ: " : "Total: "}
-                  {formatCurrency(activeTotalDue)}
+                  • Total: {formatCurrency(activeTotalDue)}
                 </span>
               )}
               {activeOverdue > 0 && (
                 <span className="ml-1.5 font-medium text-[#D45B5B]">
-                  ({formatCurrency(activeOverdue)}{" "}
-                  {lang === "gu" ? "મુદત વીતી ગઈ" : "overdue"})
+                  ({formatCurrency(activeOverdue)} overdue)
                 </span>
               )}
             </p>
@@ -206,7 +202,7 @@ export function UpcomingDuesAlertCard() {
                   : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
-              {lang === "gu" ? "બધા" : "All"} ({totalCount})
+              All ({totalCount})
             </button>
             <button
               type="button"
@@ -217,7 +213,7 @@ export function UpcomingDuesAlertCard() {
                   : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
-              {lang === "gu" ? "લેવાના" : "Receivables"} ({salesCount})
+              Receivables ({salesCount})
             </button>
             <button
               type="button"
@@ -228,7 +224,7 @@ export function UpcomingDuesAlertCard() {
                   : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
-              {lang === "gu" ? "ચૂકવવાના" : "Payables"} ({purchaseCount})
+              Payables ({purchaseCount})
             </button>
           </div>
 
@@ -243,7 +239,7 @@ export function UpcomingDuesAlertCard() {
                   : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
-              3 {lang === "gu" ? "દિવસ" : "Days"}
+              3 Days
             </button>
             <button
               type="button"
@@ -254,7 +250,7 @@ export function UpcomingDuesAlertCard() {
                   : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
-              7 {lang === "gu" ? "દિવસ" : "Days"}
+              7 Days
             </button>
           </div>
         </div>
@@ -273,11 +269,7 @@ export function UpcomingDuesAlertCard() {
           <div className="py-8 px-4 text-center flex flex-col items-center justify-center">
             <p className="text-xs font-medium text-[#64748B]">
               {typeFilter === "SALES"
-                ? lang === "gu"
-                  ? "કોઈ સેલ્સ લેણી બાકી નથી."
-                  : "No sales receivables due in this period."
-                : lang === "gu"
-                ? "કોઈ પરચેઝ બિલ ચૂકવવાના બાકી નથી."
+                ? "No sales receivables due in this period."
                 : "No purchase bills due in this period."}
             </p>
             <button
@@ -285,7 +277,7 @@ export function UpcomingDuesAlertCard() {
               onClick={() => setTypeFilter("ALL")}
               className="mt-2 text-xs font-semibold text-[#2563EB] hover:underline cursor-pointer"
             >
-              {lang === "gu" ? "તમામ ડ્યુ જુઓ" : "Show All Dues"}
+              Show All Dues
             </button>
           </div>
         ) : (
@@ -310,19 +302,11 @@ export function UpcomingDuesAlertCard() {
                 : "bg-[#E58A45]";
 
               const statusText = isOverdue
-                ? lang === "gu"
-                  ? `${Math.abs(item.daysRemaining)} દિવસ મોડું`
-                  : `Overdue ${Math.abs(item.daysRemaining)}d`
+                ? `Overdue ${Math.abs(item.daysRemaining)}d`
                 : isToday
-                ? lang === "gu"
-                  ? "આજે બાકી"
-                  : "Due Today"
+                ? "Due Today"
                 : isTomorrow
-                ? lang === "gu"
-                  ? "આવતીકાલે"
-                  : "Due in 1d"
-                : lang === "gu"
-                ? `${item.daysRemaining} દિવસમાં`
+                ? "Due in 1d"
                 : `Due in ${item.daysRemaining}d`;
 
               return (
@@ -358,7 +342,12 @@ export function UpcomingDuesAlertCard() {
                   {/* Row 2: Invoice No • Due Date */}
                   <div className="flex items-center justify-between gap-1.5 text-xs text-[#64748B]">
                     <Link
-                      href={item.deepLink}
+                      href={
+                        item.deepLink ||
+                        (isSales
+                          ? `/sales/invoices/${item.id}`
+                          : `/purchases/${item.id}`)
+                      }
                       className="font-mono text-xs text-[#2563EB] hover:underline truncate"
                       title={item.invoiceNumber}
                     >
@@ -373,13 +362,7 @@ export function UpcomingDuesAlertCard() {
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#EDF0F4]">
                     <div className="min-w-0">
                       <span className="text-[10px] uppercase tracking-wider font-semibold text-[#64748B] block leading-none mb-0.5">
-                        {isSales
-                          ? lang === "gu"
-                            ? "બાકી રકમ"
-                            : "Balance"
-                          : lang === "gu"
-                            ? "ચૂકવવાપાત્ર"
-                            : "Payable"}
+                        {isSales ? "Balance" : "Payable"}
                       </span>
                       <span className="text-sm font-bold text-[#0F172A] tabular-nums block leading-tight">
                         {formatCurrency(item.balanceAmount)}
@@ -399,13 +382,7 @@ export function UpcomingDuesAlertCard() {
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] hover:bg-slate-50 hover:border-slate-400 transition-colors shadow-2xs flex items-center gap-1.5 shrink-0"
                     >
                       <span>
-                        {isSales
-                          ? lang === "gu"
-                            ? "ઉઘરાણી"
-                            : "Collect"
-                          : lang === "gu"
-                            ? "ચૂકવો"
-                            : "Pay"}
+                        {isSales ? "Collect" : "Pay"}
                       </span>
                       <span className="text-xs">→</span>
                     </Link>
