@@ -4,30 +4,35 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import {
-  History,
   Search,
-  Filter,
-  Download,
   RefreshCw,
-  Clock,
-  User,
-  ShieldCheck,
   FileSpreadsheet,
   ChevronRight,
   Eye,
-  SlidersHorizontal,
   Building2,
-  Calendar,
-  Layers,
+  ArrowRight,
+  Activity,
+  Users,
+  Clock,
+  GitCompare,
+  FilterX,
 } from "lucide-react";
 import {
   ActivityDetailDrawer,
   ActivityEventDetail,
 } from "../../components/audit/activity-detail-drawer";
+import {
+  extractRecordSubject,
+  formatActivityAction,
+  formatActivityModule,
+  formatCompactValue,
+  getActionToneClasses,
+  getMeaningfulChanges,
+} from "../../lib/activity-formatter";
 import * as XLSX from "xlsx";
 
 export default function ActivityLogsPage() {
-  const { user, lang, currentCompany, companies } = useAuth();
+  const { user, lang, companies } = useAuth();
 
   const [logs, setLogs] = useState<ActivityEventDetail[]>([]);
   const [totalEntries, setTotalEntries] = useState(0);
@@ -41,13 +46,14 @@ export default function ActivityLogsPage() {
   const [selectedAction, setSelectedAction] = useState("ALL");
   const [dateFilter, setDateFilter] = useState("THIS_FY");
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const [hideAuthNoise, setHideAuthNoise] = useState(true);
 
   // Summary Metrics
   const [summary, setSummary] = useState({
     totalEvents: 0,
     todayEvents: 0,
     distinctOperators: 0,
-    eventsWithDiffs: 0,
+    changesTracked: 0,
   });
 
   // Drawer
@@ -56,7 +62,6 @@ export default function ActivityLogsPage() {
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
-  // Calculate Date Ranges
   const dateRange = useMemo(() => {
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
@@ -92,41 +97,36 @@ export default function ActivityLogsPage() {
   const fetchLogs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const params: any = {
+      const params: Record<string, any> = {
         page: currentPage,
         limit: pageSize,
       };
 
-      if (searchQuery.trim()) {
-        params.search = searchQuery.trim();
-      }
-      if (selectedModule !== "ALL") {
-        params.module = selectedModule;
-      }
-      if (selectedAction !== "ALL") {
-        params.action = selectedAction;
-      }
-      if (dateRange.fromDate) {
-        params.fromDate = dateRange.fromDate;
-      }
-      if (dateRange.toDate) {
-        params.toDate = dateRange.toDate;
-      }
-      if (isSuperAdmin && selectedCompanyId) {
-        params.companyId = selectedCompanyId;
-      }
+      if (searchQuery.trim()) params.search = searchQuery.trim();
+      if (selectedModule !== "ALL") params.module = selectedModule;
+      if (selectedAction !== "ALL") params.action = selectedAction;
+      if (dateRange.fromDate) params.fromDate = dateRange.fromDate;
+      if (dateRange.toDate) params.toDate = dateRange.toDate;
+      if (isSuperAdmin && selectedCompanyId) params.companyId = selectedCompanyId;
 
       const res = await apiClient.get<any>("/activity-logs", params);
-      const itemsList = (res && (res.items || res.logs)) || [];
+      const itemsList: ActivityEventDetail[] = (res && (res.items || res.logs)) || [];
       if (res) {
         setLogs(itemsList);
         setTotalEntries(res.total || itemsList.length);
+        const pageWithChanges = itemsList.filter(
+          (l) => Array.isArray(l.changes) && l.changes.length > 0,
+        ).length;
+
         if (res.summary) {
           setSummary({
             totalEvents: res.summary.total || res.summary.totalEvents || res.total || 0,
             todayEvents: res.summary.today || res.summary.todayEvents || 0,
             distinctOperators: res.summary.activeUsers || res.summary.distinctOperators || 0,
-            eventsWithDiffs: res.summary.updatesCount || res.summary.eventsWithDiffs || 0,
+            changesTracked:
+              res.summary.updatesCount ||
+              res.summary.createsCount ||
+              pageWithChanges,
           });
         }
       }
@@ -150,23 +150,64 @@ export default function ActivityLogsPage() {
     fetchLogs();
   }, [fetchLogs]);
 
+  // Client-side filter to hide noisy token refreshes when toggle is active
+  // (only applies when user hasn't explicitly filtered to AUTH or User module)
+  const displayedLogs = useMemo(() => {
+    if (!hideAuthNoise || selectedAction === "AUTH" || selectedModule === "User") {
+      return logs;
+    }
+    return logs.filter((l) => l.action !== "AUTH_REFRESH_TOKEN");
+  }, [logs, hideAuthNoise, selectedAction, selectedModule]);
+
   const handleInspect = (item: ActivityEventDetail) => {
     setSelectedEvent(item);
     setIsDrawerOpen(true);
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setSelectedModule("ALL");
+    setSelectedAction("ALL");
+    setDateFilter("THIS_FY");
+    setSelectedCompanyId("");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    selectedModule !== "ALL" ||
+    selectedAction !== "ALL" ||
+    dateFilter !== "THIS_FY" ||
+    selectedCompanyId !== "";
+
   const handleExportExcel = () => {
-    if (logs.length === 0) return;
-    const rows = logs.map((l) => ({
-      "Timestamp": new Date(l.timestamp).toLocaleString("en-IN"),
-      "Operator": l.userName || "System",
-      "Phone": l.phone || "-",
-      "Action": l.action,
-      "Module / Entity": l.entityName,
-      "Reference ID": l.entityId,
-      "IP Address": l.ipAddress || "-",
-      "Fields Changed Count": l.changes?.length || 0,
-    }));
+    if (displayedLogs.length === 0) return;
+    const rows = displayedLogs.map((l) => {
+      const actionInfo = formatActivityAction(l.action, l.entityName);
+      const moduleInfo = formatActivityModule(l.entityName);
+      const subject = extractRecordSubject(l.changes);
+      const meaningful = getMeaningfulChanges(l.changes);
+      const summaryText = meaningful
+        .slice(0, 4)
+        .map((c) =>
+          c.oldValue !== undefined && c.oldValue !== null
+            ? `${c.label || c.field}: ${formatCompactValue(c.oldValue)} -> ${formatCompactValue(c.newValue)}`
+            : `${c.label || c.field}: ${formatCompactValue(c.newValue)}`,
+        )
+        .join(" | ");
+
+      return {
+        "Timestamp": new Date(l.timestamp).toLocaleString("en-IN"),
+        "Performed By": l.userName || "System",
+        "Phone": l.userPhone || l.phone || "-",
+        "Action Summary": actionInfo.title,
+        "Action Code": l.action,
+        "Module": moduleInfo.label,
+        "Record": subject || l.entityId,
+        "Changes Summary": summaryText || "-",
+        "IP Address": l.ipAddress || "-",
+      };
+    });
 
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -177,105 +218,114 @@ export default function ActivityLogsPage() {
   const totalPages = Math.ceil(totalEntries / pageSize) || 1;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto min-h-screen">
-      {/* 1. Header & Breadcrumb */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto min-h-screen">
+      {/* 1. Header & Actions */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5 text-xs text-[#64748B]">
-            <span>{lang === "gu" ? "મુખ્ય પૃષ્ઠ" : "Dashboard"}</span>
+            <span>{lang === "gu" ? "ડેશબોર્ડ" : "Dashboard"}</span>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-[#0F172A] font-semibold">
-              {lang === "gu" ? "પ્રવૃત્તિ લૉગ્સ (Audit Trail)" : "Activity Logs"}
+              {lang === "gu" ? "પ્રવૃત્તિ લૉગ્સ" : "Activity Logs"}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight mt-1">
+          <h1 className="page-title mt-1">
             {lang === "gu"
-              ? "સિસ્ટમ પ્રવૃત્તિ લૉગ્સ & સંપૂર્ણ ઓડિટ ટ્રેઇલ"
-              : "System Activity Logs & Enterprise Audit Trail"}
+              ? "સિસ્ટમ પ્રવૃત્તિ લૉગ્સ & ફેરફાર ઇતિહાસ"
+              : "Activity Logs & Change History"}
           </h1>
-          <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
+          <p className="page-description">
             {lang === "gu"
-              ? "તમામ મેનૂ, દસ્તાવેજો અને વ્યવહારોમાં થયેલા ફેરફારોની જૂની & નવી કિંમતો સાથે સુરક્ષિત ટ્રેકિંગ."
-              : "Cryptographically verified, immutable record of every user action with field-level Old vs. New value diffs."}
+              ? "કોણે, ક્યારે અને કયા રેકોર્ડમાં શું ફેરફાર કર્યો તેની સરળ અને સ્પષ્ટ વિગત."
+              : "Clear record of who performed each action and exactly what changed across your business."}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={fetchLogs}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F8FAFC] shadow-2xs transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F8FAFC] transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
             {lang === "gu" ? "રીફ્રેશ" : "Refresh"}
           </button>
           <button
             onClick={handleExportExcel}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F8FAFC] shadow-2xs transition-colors"
+            disabled={displayedLogs.length === 0}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F8FAFC] disabled:opacity-50 transition-colors cursor-pointer"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-[#0F172A]" />
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
             {lang === "gu" ? "એક્સેલ ડાઉનલોડ" : "Export Excel"}
           </button>
         </div>
       </div>
 
-      {/* 2. Executive KPI Summary Cards (Clean Corporate UI - text-[#0F172A], NO pastel pills) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
-          <span className="text-[11px] text-[#64748B] uppercase font-semibold block">
-            {lang === "gu" ? "કુલ સુરક્ષા ઇવેન્ટ્સ" : "Total Security Events"}
-          </span>
-          <p className="tabular-nums font-bold text-xl sm:text-2xl text-[#0F172A] mt-1">
-            {summary.totalEvents.toLocaleString("en-IN")}
-          </p>
-          <span className="text-[10px] text-[#64748B] block mt-0.5">
-            {lang === "gu" ? "સંપૂર્ણ ઓડિટ ટ્રેઇલ રેકોર્ડ્સ" : "All-time logged actions"}
-          </span>
+      {/* 2. Compact Summary KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl flex items-start justify-between">
+          <div>
+            <span className="card-label uppercase block">
+              {lang === "gu" ? "કુલ ઇવેન્ટ્સ" : "Total Logged Events"}
+            </span>
+            <p className="tabular-nums font-semibold text-xl text-[#0F172A] mt-1">
+              {summary.totalEvents.toLocaleString("en-IN")}
+            </p>
+          </div>
+          <div className="p-2 rounded-lg bg-[#F1F5F9] text-[#475569]">
+            <Activity className="w-4 h-4" />
+          </div>
         </div>
 
-        <div className="p-4 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
-          <span className="text-[11px] text-[#64748B] uppercase font-semibold block">
-            {lang === "gu" ? "આજના વ્યવહારો" : "Today's Actions"}
-          </span>
-          <p className="tabular-nums font-bold text-xl sm:text-2xl text-[#0F172A] mt-1">
-            {summary.todayEvents.toLocaleString("en-IN")}
-          </p>
-          <span className="text-[10px] text-[#64748B] block mt-0.5">
-            {lang === "gu" ? "આજના દિવસમાં થયેલી ક્રિયાઓ" : "Logged in current session date"}
-          </span>
+        <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl flex items-start justify-between">
+          <div>
+            <span className="card-label uppercase block">
+              {lang === "gu" ? "આજના કાર્યો" : "Today's Activity"}
+            </span>
+            <p className="tabular-nums font-semibold text-xl text-[#0F172A] mt-1">
+              {summary.todayEvents.toLocaleString("en-IN")}
+            </p>
+          </div>
+          <div className="p-2 rounded-lg bg-blue-50 text-[#1677E8]">
+            <Clock className="w-4 h-4" />
+          </div>
         </div>
 
-        <div className="p-4 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
-          <span className="text-[11px] text-[#64748B] uppercase font-semibold block">
-            {lang === "gu" ? "સક્રિય ઓપરેટર્સ" : "Active Operators"}
-          </span>
-          <p className="tabular-nums font-bold text-xl sm:text-2xl text-[#0F172A] mt-1">
-            {summary.distinctOperators.toLocaleString("en-IN")}
-          </p>
-          <span className="text-[10px] text-[#64748B] block mt-0.5">
-            {lang === "gu" ? "પ્રમાણિત યુઝર્સ & સ્ટાફ" : "Authorized team members"}
-          </span>
+        <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl flex items-start justify-between">
+          <div>
+            <span className="card-label uppercase block">
+              {lang === "gu" ? "સક્રિય યુઝર્સ" : "Active Team Members"}
+            </span>
+            <p className="tabular-nums font-semibold text-xl text-[#0F172A] mt-1">
+              {summary.distinctOperators.toLocaleString("en-IN")}
+            </p>
+          </div>
+          <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+            <Users className="w-4 h-4" />
+          </div>
         </div>
 
-        <div className="p-4 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
-          <span className="text-[11px] text-[#64748B] uppercase font-semibold block">
-            {lang === "gu" ? "ફેરફાર થયેલા મૂલ્યો" : "Value Diffs Tracked"}
-          </span>
-          <p className="tabular-nums font-bold text-xl sm:text-2xl text-[#0F172A] mt-1">
-            {summary.eventsWithDiffs.toLocaleString("en-IN")}
-          </p>
-          <span className="text-[10px] text-[#64748B] block mt-0.5">
-            {lang === "gu" ? "જૂની vs નવી કિંમતો સાથે" : "With Old vs New field values"}
-          </span>
+        <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl flex items-start justify-between">
+          <div>
+            <span className="card-label uppercase block">
+              {lang === "gu" ? "ટ્રેક થયેલા ફેરફારો" : "Data Changes (Page)"}
+            </span>
+            <p className="tabular-nums font-semibold text-xl text-[#0F172A] mt-1">
+              {displayedLogs.filter((l) => (l.changes?.length || 0) > 0).length}
+            </p>
+          </div>
+          <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+            <GitCompare className="w-4 h-4" />
+          </div>
         </div>
       </div>
 
-      {/* 3. Filter Bar */}
-      <div className="p-4 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs space-y-3">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+      {/* 3. Filter & Quick View Bar */}
+      <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl space-y-2.5">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
           {/* Search Box */}
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
               value={searchQuery}
@@ -285,15 +335,14 @@ export default function ActivityLogsPage() {
               }}
               placeholder={
                 lang === "gu"
-                  ? "યુઝર, એક્શન, મોડ્યુલ, દસ્તાવેજ આઈડી અથવા આઈપી શોધો..."
-                  : "Search operator, action, module, reference ID, IP..."
+                  ? "યુઝર, મોડ્યુલ, એક્શન અથવા ID શોધો..."
+                  : "Search by user, module, action, or record ID..."
               }
-              className="w-full pl-9 pr-3 py-2 text-xs border border-[#CBD5E1] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1677E8] text-[#0F172A] placeholder:text-[#94A3B8]"
+              className="w-full pl-8 pr-3 py-1.5 text-xs border border-[#CBD5E1] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1677E8] text-[#0F172A] placeholder:text-[#94A3B8]"
             />
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* SuperAdmin Multi-Tenant Company Selector */}
             {isSuperAdmin && (
               <div className="flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-[#64748B]" />
@@ -303,7 +352,7 @@ export default function ActivityLogsPage() {
                     setSelectedCompanyId(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="px-2.5 py-1.5 text-xs font-semibold border border-[#CBD5E1] rounded-lg text-[#0F172A] bg-white focus:outline-none focus:ring-1 focus:ring-[#1677E8]"
+                  className="px-2.5 py-1.5 text-xs font-medium border border-[#CBD5E1] rounded-lg text-[#0F172A] bg-white"
                 >
                   <option value="">{lang === "gu" ? "બધી કંપનીઓ" : "All Companies"}</option>
                   {(companies || []).map((c) => (
@@ -315,104 +364,159 @@ export default function ActivityLogsPage() {
               </div>
             )}
 
-            {/* Module Filter */}
             <select
               value={selectedModule}
               onChange={(e) => {
                 setSelectedModule(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-2.5 py-1.5 text-xs font-semibold border border-[#CBD5E1] rounded-lg text-[#0F172A] bg-white focus:outline-none focus:ring-1 focus:ring-[#1677E8]"
+              className="px-2.5 py-1.5 text-xs font-medium border border-[#CBD5E1] rounded-lg text-[#0F172A] bg-white"
             >
               <option value="ALL">{lang === "gu" ? "બધા મોડ્યુલ્સ" : "All Modules"}</option>
-              <option value="SalesInvoice">Sales (વેચાણ)</option>
-              <option value="PurchaseInvoice">Purchases (ખરીદી)</option>
-              <option value="Voucher">Accounting Vouchers (વાઉચર)</option>
-              <option value="Item">Inventory Items (આઇટમ)</option>
-              <option value="Party">Parties / Khata (પાર્ટી)</option>
-              <option value="LedgerAccount">Ledger Accounts (ખાતાવહી)</option>
-              <option value="User">Users & Staff (વપરાશકર્તા)</option>
-              <option value="HsnMaster">HSN / SAC Masters</option>
-              <option value="ImportJob">Data Imports (ડેટા આયાત)</option>
+              <option value="SalesInvoice">{lang === "gu" ? "વેચાણ (Sales)" : "Sales Invoices"}</option>
+              <option value="PurchaseInvoice">{lang === "gu" ? "ખરીદી (Purchases)" : "Purchase Bills"}</option>
+              <option value="Voucher">{lang === "gu" ? "વાઉચર (Vouchers)" : "Vouchers & Payments"}</option>
+              <option value="Item">{lang === "gu" ? "આઇટમ / સ્ટોક" : "Inventory Items"}</option>
+              <option value="Party">{lang === "gu" ? "પાર્ટી / ખાતા" : "Parties"}</option>
+              <option value="LedgerAccount">{lang === "gu" ? "ખાતાવહી (Ledgers)" : "Ledger Accounts"}</option>
+              <option value="User">{lang === "gu" ? "યુઝર્સ અને લોગિન" : "Users & Auth"}</option>
+              <option value="HsnMaster">HSN / SAC</option>
+              <option value="ImportJob">{lang === "gu" ? "ડેટા આયાત" : "Data Imports"}</option>
             </select>
 
-            {/* Action Filter */}
             <select
               value={selectedAction}
               onChange={(e) => {
                 setSelectedAction(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-2.5 py-1.5 text-xs font-semibold border border-[#CBD5E1] rounded-lg text-[#0F172A] bg-white focus:outline-none focus:ring-1 focus:ring-[#1677E8]"
+              className="px-2.5 py-1.5 text-xs font-medium border border-[#CBD5E1] rounded-lg text-[#0F172A] bg-white"
             >
               <option value="ALL">{lang === "gu" ? "બધી ક્રિયાઓ" : "All Actions"}</option>
-              <option value="CREATE">Created (નવું ઉમેરેલ)</option>
-              <option value="UPDATE">Updated (ફેરફાર કરેલ)</option>
-              <option value="DELETE">Deleted (કાઢી નાખેલ)</option>
-              <option value="POST">Posted / Approved (મંજૂર)</option>
-              <option value="CANCEL">Cancelled (રદ કરેલ)</option>
-              <option value="IMPORT">Imported (આયાત)</option>
-              <option value="AUTH">Authentication / Login</option>
+              <option value="CREATE">{lang === "gu" ? "નવું બનાવેલ (Created)" : "Created"}</option>
+              <option value="UPDATE">{lang === "gu" ? "ફેરફાર કરેલ (Updated)" : "Updated"}</option>
+              <option value="DELETE">{lang === "gu" ? "કાઢી નાખેલ (Deleted)" : "Deleted"}</option>
+              <option value="POST">{lang === "gu" ? "મંજૂર કરેલ (Posted)" : "Posted / Approved"}</option>
+              <option value="CANCEL">{lang === "gu" ? "રદ કરેલ (Cancelled)" : "Cancelled"}</option>
+              <option value="IMPORT">{lang === "gu" ? "આયાત (Imported)" : "Imported"}</option>
+              <option value="AUTH">{lang === "gu" ? "લોગિન / સુરક્ષા" : "Login & Security"}</option>
             </select>
 
-            {/* Date Filter */}
             <select
               value={dateFilter}
               onChange={(e) => {
                 setDateFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-2.5 py-1.5 text-xs font-semibold border border-[#CBD5E1] rounded-lg text-[#0F172A] bg-white focus:outline-none focus:ring-1 focus:ring-[#1677E8]"
+              className="px-2.5 py-1.5 text-xs font-medium border border-[#CBD5E1] rounded-lg text-[#0F172A] bg-white"
             >
               <option value="TODAY">{lang === "gu" ? "આજે" : "Today"}</option>
               <option value="YESTERDAY">{lang === "gu" ? "ગઈકાલે" : "Yesterday"}</option>
-              <option value="THIS_WEEK">{lang === "gu" ? "આ અઠવાડિયે" : "This Week"}</option>
+              <option value="THIS_WEEK">{lang === "gu" ? "છેલ્લા ૭ દિવસ" : "Last 7 Days"}</option>
               <option value="THIS_MONTH">{lang === "gu" ? "આ મહિને" : "This Month"}</option>
               <option value="THIS_FY">{lang === "gu" ? "ચાલુ નાણાકીય વર્ષ" : "This FY"}</option>
               <option value="ALL">{lang === "gu" ? "બધો સમય" : "All Time"}</option>
             </select>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-[#64748B] hover:text-[#0F172A] bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg cursor-pointer"
+              >
+                <FilterX className="w-3.5 h-3.5" />
+                {lang === "gu" ? "ક્લિયર" : "Reset"}
+              </button>
+            )}
           </div>
+        </div>
+
+        {/* Quick Toggle Row */}
+        <div className="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-[#F1F5F9]">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setHideAuthNoise((v) => !v)}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors cursor-pointer ${
+                hideAuthNoise
+                  ? "bg-blue-50 text-[#1677E8] border-blue-200"
+                  : "bg-white text-[#64748B] border-[#E2E8F0] hover:text-[#0F172A]"
+              }`}
+            >
+              {hideAuthNoise
+                ? lang === "gu"
+                  ? "✓ સેશન રિફ્રેશ છુપાયેલ છે (ફક્ત મુખ્ય ફેરફારો)"
+                  : "✓ Hiding Session Refreshes (Cleaner View)"
+                : lang === "gu"
+                  ? "સેશન રિફ્રેશ સહિત બધું દેખાય છે"
+                  : "Showing All Including Session Refreshes"}
+            </button>
+          </div>
+          <span className="text-[11px] text-[#64748B]">
+            {lang === "gu"
+              ? `કોઈપણ લાઈન પર ક્લિક કરીને પહેલાં અને પછીના બધા ફેરફારો જુઓ`
+              : `Click any row to inspect full Before vs. After changes`}
+          </span>
         </div>
       </div>
 
-      {/* 4. Main Activity Logs Table */}
-      <div className="border border-[#E2E8F0] rounded-xl overflow-hidden shadow-2xs bg-white">
-        <div className="overflow-x-auto w-full -webkit-overflow-scrolling-touch">
-          <table className="w-full min-w-[850px] text-left text-xs border-collapse">
+      {/* 4. Clean Human-Readable Activity Table */}
+      <div className="border border-[#E2E8F0] rounded-xl overflow-hidden bg-white">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full min-w-[880px] text-left border-collapse">
             <thead>
               <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase font-semibold text-[11px]">
-                <th className="py-3 px-4">{lang === "gu" ? "સમય & તારીખ" : "Timestamp"}</th>
-                <th className="py-3 px-4">{lang === "gu" ? "ઓપરેટર / સ્ટાફ" : "Performed By"}</th>
-                <th className="py-3 px-4">{lang === "gu" ? "ક્રિયા (Action)" : "Action"}</th>
-                <th className="py-3 px-4">{lang === "gu" ? "મોડ્યુલ / એન્ટિટી" : "Module / Entity"}</th>
-                <th className="py-3 px-4">{lang === "gu" ? "સંદર્ભ આઈડી" : "Reference ID"}</th>
-                <th className="py-3 px-4">{lang === "gu" ? "મૂલ્ય ફેરફાર (Diff)" : "Diff Summary"}</th>
-                <th className="py-3 px-4 text-right">{lang === "gu" ? "કાર્ય" : "Action"}</th>
+                <th className="py-2.5 px-4 w-[15%]">{lang === "gu" ? "સમય" : "When"}</th>
+                <th className="py-2.5 px-4 w-[16%]">{lang === "gu" ? "કોણે કર્યું" : "Who"}</th>
+                <th className="py-2.5 px-4 w-[24%]">{lang === "gu" ? "શું કાર્ય કર્યું" : "Action Performed"}</th>
+                <th className="py-2.5 px-4 w-[35%]">{lang === "gu" ? "શું બદલાયું / વિગત" : "What Changed / Details"}</th>
+                <th className="py-2.5 px-4 text-right w-[10%]">{lang === "gu" ? "વિગત" : "Details"}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8F0]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#64748B]">
+                  <td colSpan={5} className="py-12 text-center text-[#64748B]">
                     <div className="flex items-center justify-center gap-2">
                       <RefreshCw className="w-4 h-4 animate-spin text-[#1677E8]" />
-                      <span>{lang === "gu" ? "લૉગ્સ લોડ થઈ રહ્યા છે..." : "Loading activity trail..."}</span>
+                      <span>{lang === "gu" ? "લૉગ્સ લોડ થઈ રહ્યા છે..." : "Loading activity history..."}</span>
                     </div>
                   </td>
                 </tr>
-              ) : logs.length === 0 ? (
+              ) : displayedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#64748B]">
-                    {lang === "gu"
-                      ? "કોઈ પ્રવૃત્તિ લૉગ્સ મળ્યા નથી."
-                      : "No activity logs match the selected filters."}
+                  <td colSpan={5} className="py-12 text-center text-[#64748B]">
+                    <p className="font-medium text-[#0F172A]">
+                      {lang === "gu"
+                        ? "કોઈ પ્રવૃત્તિ લૉગ્સ મળ્યા નથી."
+                        : "No matching activity logs found."}
+                    </p>
+                    {hideAuthNoise && logs.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setHideAuthNoise(false)}
+                        className="mt-2 text-xs text-[#1677E8] font-semibold hover:underline cursor-pointer"
+                      >
+                        {lang === "gu"
+                          ? "સેશન રિફ્રેશ ઇવેન્ટ્સ પણ બતાવો"
+                          : "Include session refresh events on this page"}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (
-                logs.map((item) => {
-                  const hasDiff = item.changes && item.changes.length > 0;
-                  const isCreate = item.action.includes("CREATE");
-                  const isDelete = item.action.includes("DELETE");
+                displayedLogs.map((item) => {
+                  const actionInfo = formatActivityAction(item.action, item.entityName);
+                  const moduleInfo = formatActivityModule(item.entityName);
+                  const tone = getActionToneClasses(actionInfo.tone);
+                  const meaningful = getMeaningfulChanges(item.changes);
+                  const subject = extractRecordSubject(item.changes);
+                  const isUpdateLike =
+                    actionInfo.tone === "update" || actionInfo.tone === "post";
+                  const isCreate = actionInfo.tone === "create";
+                  const isAuth = actionInfo.tone === "auth";
+                  const userInitial = (item.userName || "S").charAt(0).toUpperCase();
+                  const phone = item.userPhone || item.phone;
 
                   return (
                     <tr
@@ -420,66 +524,142 @@ export default function ActivityLogsPage() {
                       className="hover:bg-[#F8FAFC] transition-colors cursor-pointer group"
                       onClick={() => handleInspect(item)}
                     >
-                      <td className="py-3 px-4 tabular-nums text-[#64748B] whitespace-nowrap">
-                        {new Date(item.timestamp).toLocaleString("en-IN", {
-                          dateStyle: "short",
-                          timeStyle: "medium",
-                        })}
+                      {/* When */}
+                      <td className="py-3 px-4 tabular-nums text-[#475569] whitespace-nowrap align-top">
+                        <div className="font-medium text-[#0F172A]">
+                          {new Date(item.timestamp).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </div>
+                        <div className="text-[11px] text-[#64748B]">
+                          {new Date(item.timestamp).toLocaleTimeString("en-IN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
+                        </div>
                       </td>
 
-                      <td className="py-3 px-4 font-semibold text-[#0F172A] whitespace-nowrap">
-                        <div>{item.userName || "System"}</div>
-                        {item.phone && (
-                          <span className="text-[10px] text-[#64748B] font-normal block tabular-nums">
-                            {item.phone}
+                      {/* Who */}
+                      <td className="py-3 px-4 whitespace-nowrap align-top">
+                        <div className="flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-full bg-[#EFF6FF] text-[#1677E8] font-semibold text-xs flex items-center justify-center shrink-0">
+                            {userInitial}
                           </span>
-                        )}
+                          <div className="min-w-0">
+                            <div className="font-semibold text-[#0F172A] truncate">
+                              {item.userName || "System"}
+                            </div>
+                            {phone && (
+                              <span className="text-[11px] text-[#64748B] tabular-nums block">
+                                {phone}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
 
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#0F172A]" />
-                          <span className="font-mono text-xs font-semibold text-[#0F172A]">
-                            {item.action}
+                      {/* Action Performed */}
+                      <td className="py-3 px-4 align-top">
+                        <div className="font-semibold text-[#0F172A]">
+                          {lang === "gu" ? actionInfo.titleGu : actionInfo.title}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.2 rounded-full text-[10.5px] font-semibold border ${tone.badge}`}
+                          >
+                            {lang === "gu" ? actionInfo.badgeGu : actionInfo.badge}
+                          </span>
+                          <span className="text-[11px] text-[#64748B]">
+                            • {lang === "gu" ? moduleInfo.labelGu : moduleInfo.label}
                           </span>
                         </div>
                       </td>
 
-                      <td className="py-3 px-4 tabular-nums text-[#0F172A] whitespace-nowrap">
-                        {item.entityName}
-                      </td>
+                      {/* What Changed / Details */}
+                      <td className="py-3 px-4 align-top">
+                        {subject && (
+                          <div className="font-semibold text-[#0F172A] mb-1 truncate max-w-[340px]">
+                            {subject}
+                          </div>
+                        )}
 
-                      <td className="py-3 px-4 tabular-nums font-mono text-[#64748B] whitespace-nowrap">
-                        {item.entityId ? item.entityId.slice(0, 14) + "..." : "—"}
-                      </td>
-
-                      <td className="py-3 px-4 text-[#0F172A]">
-                        {hasDiff ? (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs font-semibold text-[#0F172A]">
-                              {item.changes!.length}{" "}
-                              {item.changes!.length === 1 ? "field changed" : "fields changed"}
-                            </span>
-                            <span className="text-[10px] text-[#64748B] truncate max-w-[150px]">
-                              ({item.changes!.map((c) => c.label || c.field).slice(0, 2).join(", ")}
-                              {item.changes!.length > 2 ? "..." : ""})
-                            </span>
+                        {isAuth ? (
+                          <div className="text-xs text-[#64748B]">
+                            {item.action === "AUTH_LOGIN"
+                              ? lang === "gu"
+                                ? "સફળતાપૂર્વક લોગિન કર્યું"
+                                : "User logged in"
+                              : lang === "gu"
+                                ? "સેશન / બ્રાન્ચ ટોકન રિફ્રેશ થયું"
+                                : "Session / branch context refreshed"}
+                            {item.ipAddress && item.ipAddress !== "-" && (
+                              <span className="ml-1.5 font-mono text-[11px] text-[#94A3B8]">
+                                ({item.ipAddress})
+                              </span>
+                            )}
+                          </div>
+                        ) : meaningful.length > 0 ? (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {meaningful.slice(0, 2).map((ch, idx) => {
+                              const hasOld =
+                                isUpdateLike &&
+                                ch.oldValue !== null &&
+                                ch.oldValue !== undefined &&
+                                ch.oldValue !== "";
+                              return (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F8FAFC] border border-[#E2E8F0] text-[11px] text-[#334155]"
+                                >
+                                  <span className="font-medium text-[#64748B]">
+                                    {ch.label || ch.field}:
+                                  </span>
+                                  {hasOld && (
+                                    <>
+                                      <span className="line-through text-rose-600">
+                                        {formatCompactValue(ch.oldValue)}
+                                      </span>
+                                      <ArrowRight className="w-2.5 h-2.5 text-[#94A3B8]" />
+                                    </>
+                                  )}
+                                  <span className="font-semibold text-[#0F172A]">
+                                    {formatCompactValue(ch.newValue ?? ch.oldValue)}
+                                  </span>
+                                </span>
+                              );
+                            })}
+                            {meaningful.length > 2 && (
+                              <span className="text-[11px] font-medium text-[#1677E8]">
+                                +{meaningful.length - 2}{" "}
+                                {lang === "gu" ? "વધુ" : "more"}
+                              </span>
+                            )}
                           </div>
                         ) : isCreate ? (
-                          <span className="text-xs text-[#64748B]">New Record Created</span>
-                        ) : isDelete ? (
-                          <span className="text-xs text-[#64748B]">Record Deleted</span>
+                          <span className="text-xs text-[#64748B]">
+                            {lang === "gu" ? "નવો રેકોર્ડ ઉમેરાયો" : "New record created"}
+                          </span>
                         ) : (
-                          <span className="text-xs text-[#94A3B8]">—</span>
+                          <span className="text-[11px] font-mono text-[#94A3B8]">
+                            ID: {item.entityId ? `${item.entityId.slice(0, 12)}…` : "—"}
+                          </span>
                         )}
                       </td>
 
-                      <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      {/* View Details */}
+                      <td
+                        className="py-3 px-4 text-right whitespace-nowrap align-top"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <button
                           onClick={() => handleInspect(item)}
-                          className="px-2.5 py-1 text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded hover:bg-[#F1F5F9] transition-colors"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9] hover:border-[#94A3B8] transition-colors cursor-pointer"
                         >
-                          {lang === "gu" ? "વિગત જુઓ" : "Inspect Diff"}
+                          <Eye className="w-3.5 h-3.5 text-[#475569]" />
+                          {lang === "gu" ? "જુઓ" : "View"}
                         </button>
                       </td>
                     </tr>
@@ -491,15 +671,15 @@ export default function ActivityLogsPage() {
         </div>
 
         {/* Pagination Controls */}
-        <div className="p-4 border-t border-[#E2E8F0] bg-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
+        <div className="px-4 py-3 border-t border-[#E2E8F0] bg-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
           <div className="flex items-center gap-2">
             <span>
               {lang === "gu" ? "કુલ રેકોર્ડ્સ:" : "Total Records:"}{" "}
               <strong className="text-[#0F172A]">{totalEntries}</strong>
             </span>
             <span>•</span>
-            <div className="flex items-center gap-1">
-              <span>{lang === "gu" ? "પ્રતિ પેજ:" : "Rows per page:"}</span>
+            <div className="flex items-center gap-1.5">
+              <span>{lang === "gu" ? "પ્રતિ પેજ:" : "Rows:"}</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -520,17 +700,17 @@ export default function ActivityLogsPage() {
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage <= 1}
-              className="px-2.5 py-1 border border-[#CBD5E1] rounded hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-2.5 py-1 border border-[#CBD5E1] rounded hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               {lang === "gu" ? "પાછળ" : "Prev"}
             </button>
-            <span className="px-3 py-1 font-semibold text-[#0F172A]">
+            <span className="px-3 py-1 font-semibold text-[#0F172A] tabular-nums">
               {currentPage} / {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage >= totalPages}
-              className="px-2.5 py-1 border border-[#CBD5E1] rounded hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-2.5 py-1 border border-[#CBD5E1] rounded hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               {lang === "gu" ? "આગળ" : "Next"}
             </button>
@@ -538,7 +718,7 @@ export default function ActivityLogsPage() {
         </div>
       </div>
 
-      {/* 5. Diff Inspection Drawer */}
+      {/* 5. Detail Drawer */}
       <ActivityDetailDrawer
         event={selectedEvent}
         isOpen={isDrawerOpen}
