@@ -300,6 +300,16 @@ export default function EditInvoicePage() {
   });
 
   const freightVal = Number(freightAmount) || 0;
+  const freightTaxRate = rows.reduce((max, r) => Math.max(max, Number(r.taxRate) || 0), 0);
+  if (freightVal > 0 && freightTaxRate > 0) {
+    const freightTax = (freightVal * freightTaxRate) / 100;
+    if (isInterState) {
+      totalIgst += freightTax;
+    } else {
+      totalCgst += freightTax / 2;
+      totalSgst += freightTax / 2;
+    }
+  }
   const totalTax = totalCgst + totalSgst + totalIgst;
   const rawTotal = totalTaxable + totalTax + freightVal;
   const grandTotal = Math.round(rawTotal);
@@ -328,12 +338,14 @@ export default function EditInvoicePage() {
       paymentMode,
       placeOfSupply,
       notes,
-      additionalCharges: freightVal > 0 ? [{ name: "Freight", amount: freightVal }] : [],
+      additionalCharges: freightVal > 0 ? [{ name: "Freight", amount: freightVal, taxRate: freightTaxRate }] : [],
       freightAmount: freightVal > 0 ? freightVal : 0,
+      freightTaxRate,
       vehicleNumber: vehicleNo || undefined,
       shippingAddress: {
         freight: freightVal,
         freightAmount: freightVal,
+        freightTaxRate,
         ...(vehicleNo ? { vehicleNo } : {}),
         ...(transportMode ? { transportMode } : {}),
         ...(ewayBillNo ? { ewayBillNo } : {}),
