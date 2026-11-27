@@ -91,6 +91,7 @@ interface InvoiceItemRow {
   unitPrice: number | "";
   discountPercent: number | "";
   taxRate: number;
+  isManualRate?: boolean;
 }
 
 interface AdditionalChargeItem {
@@ -571,15 +572,15 @@ export default function NewInvoicePage() {
       if (st) setPlaceOfSupply(st);
     }
 
-    // Automatically recalculate item prices in existing rows according to the selected party's prices
+    // Automatically recalculate item prices in existing rows only if not manually overridden
     setRows((prevRows) =>
       prevRows.map((r) => {
-        if (!r.itemId) return r;
+        if (!r.itemId || r.isManualRate) return r;
         const it = items.find((i) => i.id === r.itemId);
         const partyPrice = getPartyItemPrice(id, r.itemId, selected?.name, it?.name);
         if (partyPrice !== null) {
           return { ...r, unitPrice: partyPrice };
-        } else if (it) {
+        } else if (it && (Number(r.unitPrice) || 0) === 0) {
           return { ...r, unitPrice: it.retailPrice };
         }
         return r;
@@ -603,6 +604,7 @@ export default function NewInvoicePage() {
       hsnCode: item.hsnCode || "1001",
       unitPrice: effectiveUnitPrice,
       taxRate: item.taxRate,
+      isManualRate: false,
     };
     setRows(updated);
   };
@@ -613,7 +615,11 @@ export default function NewInvoicePage() {
     val: any
   ) => {
     const updated = [...rows];
-    updated[idx] = { ...updated[idx], [field]: val };
+    updated[idx] = {
+      ...updated[idx],
+      [field]: val,
+      ...(field === "unitPrice" ? { isManualRate: true } : {}),
+    };
     setRows(updated);
   };
 

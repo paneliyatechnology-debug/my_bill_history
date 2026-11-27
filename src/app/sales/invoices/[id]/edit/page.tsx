@@ -40,6 +40,7 @@ interface InvoiceItemRow {
   unitPrice: number | "";
   discountPercent: number | "";
   taxRate: number;
+  isManualRate?: boolean;
 }
 
 export default function EditInvoicePage() {
@@ -191,15 +192,15 @@ export default function EditInvoicePage() {
       setPlaceOfSupply(selected.stateCode);
     }
 
-    // Automatically recalculate item prices in existing rows according to the selected party's prices
+    // Automatically recalculate item prices in existing rows only if not manually overridden
     setRows((prevRows) =>
       prevRows.map((r) => {
-        if (!r.itemId) return r;
+        if (!r.itemId || r.isManualRate) return r;
         const it = items.find((i) => i.id === r.itemId);
         const partyPrice = getPartyItemPrice(pId, r.itemId, selected?.name, it?.name);
         if (partyPrice !== null) {
           return { ...r, unitPrice: partyPrice };
-        } else if (it) {
+        } else if (it && (Number(r.unitPrice) || 0) === 0) {
           return { ...r, unitPrice: it.retailPrice };
         }
         return r;
@@ -224,6 +225,7 @@ export default function EditInvoicePage() {
       hsnCode: item.hsnCode || "1001",
       unitPrice: effectiveUnitPrice,
       taxRate: item.taxRate,
+      isManualRate: false,
     };
     setRows(updated);
   };
@@ -234,7 +236,11 @@ export default function EditInvoicePage() {
     val: any,
   ) => {
     const updated = [...rows];
-    updated[idx] = { ...updated[idx], [field]: val };
+    updated[idx] = {
+      ...updated[idx],
+      [field]: val,
+      ...(field === "unitPrice" ? { isManualRate: true } : {}),
+    };
     setRows(updated);
   };
 
