@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   Clock,
   KeyRound,
+  PanelLeft,
 } from "lucide-react";
 
 export interface SettingsSidebarProps {
@@ -71,6 +72,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
     activeTab ||
     (() => {
       if (rawTab === "company" || rawTab === "manage-business") return "company";
+      if (rawTab === "sidebar" || rawTab === "sidebar-settings") return "sidebar";
       if (rawTab === "invoice" || rawTab === "invoice-settings") return "invoice";
       if (rawTab === "e-invoice" || rawTab === "einvoice" || rawTab === "e-invoices")
         return "e-invoice";
@@ -111,6 +113,13 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
           label: "Company Settings",
           labelGujarati: "કંપની સેટિંગ્સ",
           icon: <Building2 className="w-4 h-4 shrink-0" strokeWidth={1.8} />,
+        },
+        {
+          id: "sidebar",
+          href: "/settings/sidebar",
+          label: "Sidebar Settings",
+          labelGujarati: "સાઇડબાર સેટિંગ્સ",
+          icon: <PanelLeft className="w-4 h-4 shrink-0" strokeWidth={1.8} />,
         },
       ],
     },

@@ -5,7 +5,8 @@ import { useAuth } from "@/context/auth-context";
 import { apiClient } from "@/lib/api-client";
 import { formatInr } from "@/components/design-system/tokens";
 import { formatDate } from "@/lib/date-utils";
-import { TrendingUp, Users, FileSpreadsheet, Download, Percent } from "lucide-react";
+import { CustomDatePicker } from "@/components/ui/custom-datepicker";
+import { TrendingUp, Users, Download, Percent } from "lucide-react";
 
 type TabType = "pnl" | "salesperson" | "tds_tcs";
 
@@ -141,20 +142,26 @@ export default function TallyInsightsReportsPage() {
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="h-8 px-2.5 text-xs border border-slate-200 rounded-lg"
-          />
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-36">
+            <CustomDatePicker
+              size="sm"
+              value={fromDate}
+              onChange={(val) => setFromDate(val)}
+              maxDate={toDate || undefined}
+              placeholder="From Date"
+            />
+          </div>
           <span className="text-xs text-slate-400">to</span>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="h-8 px-2.5 text-xs border border-slate-200 rounded-lg"
-          />
+          <div className="w-36">
+            <CustomDatePicker
+              size="sm"
+              value={toDate}
+              onChange={(val) => setToDate(val)}
+              minDate={fromDate || undefined}
+              placeholder="To Date"
+            />
+          </div>
         </div>
       </div>
 

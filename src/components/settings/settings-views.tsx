@@ -60,7 +60,14 @@ import {
   ArrowRight,
   Clock,
   RefreshCw,
+  PanelLeft,
 } from "lucide-react";
+import {
+  getSidebarAutoCollapse,
+  setSidebarAutoCollapse,
+  getSidebarCollapsedPreference,
+  setSidebarCollapsedPreference,
+} from "../../lib/sidebar-navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
@@ -78,6 +85,9 @@ export function SettingsView({ tab }: SettingsViewProps) {
     case "company":
     case "manage-business":
       return <ManageBusinessSettingsView />;
+    case "sidebar":
+    case "sidebar-settings":
+      return <SidebarSettingsView />;
     case "invoice":
     case "invoice-settings":
       return <InvoiceSettingsView />;
@@ -5828,6 +5838,187 @@ function HelpSupportView() {
           </form>
         )}
         {callbackError && <p className="text-xs text-amber-800 font-semibold">{callbackError}</p>}
+      </div>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------------------
+// Sidebar Settings View
+// -------------------------------------------------------------------------
+function SidebarSettingsView() {
+  const { lang } = useAuth();
+  const [autoCollapse, setAutoCollapse] = useState<boolean>(() => getSidebarAutoCollapse());
+  const [defaultCollapsed, setDefaultCollapsed] = useState<boolean>(() => getSidebarCollapsedPreference());
+  const [savedNotice, setSavedNotice] = useState<string | null>(null);
+
+  const showSaved = (msg: string) => {
+    setSavedNotice(msg);
+    setTimeout(() => setSavedNotice(null), 2200);
+  };
+
+  const handleToggleAutoCollapse = () => {
+    const next = !autoCollapse;
+    setAutoCollapse(next);
+    setSidebarAutoCollapse(next);
+    showSaved(
+      next
+        ? lang === "gu"
+          ? "પેજ લોડ પર સાઇડબાર ઓટો-કોલેપ્સ ચાલુ કર્યું."
+          : "Auto-collapse on page load enabled."
+        : lang === "gu"
+          ? "સાઇડબાર ઓટો-કોલેપ્સ બંધ કર્યું. હવે સાઇડબાર ખુલ્લું રહેશે."
+          : "Auto-collapse disabled. Sidebar will stay open."
+    );
+  };
+
+  const handleDefaultModeChange = (collapsed: boolean) => {
+    setDefaultCollapsed(collapsed);
+    setSidebarCollapsedPreference(collapsed);
+    showSaved(
+      collapsed
+        ? lang === "gu"
+          ? "ડિફોલ્ટ સાઇડબાર સ્થિતિ: કોલેપ્સ્ડ (નાનું)"
+          : "Default sidebar state set to Collapsed."
+        : lang === "gu"
+          ? "ડિફોલ્ટ સાઇડબાર સ્થિતિ: ખુલ્લું (Expanded)"
+          : "Default sidebar state set to Expanded."
+    );
+  };
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-[#0F172A] tracking-tight flex items-center gap-2">
+            <PanelLeft className="w-5 h-5 text-[#1677E8]" />
+            <span>{lang === "gu" ? "સાઇડબાર સેટિંગ્સ" : "Sidebar Settings"}</span>
+          </h1>
+          <p className="text-xs text-[#64748B] mt-1">
+            {lang === "gu"
+              ? "પેજ લોડ થતા સમયે સાઇડબાર ખુલ્લું રાખવું કે કોલેપ્સ કરવું તે કસ્ટમાઇઝ કરો."
+              : "Customize how the navigation sidebar behaves on page load and navigation."}
+          </p>
+        </div>
+        {savedNotice && (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+            <Check className="w-3.5 h-3.5" />
+            <span>{savedNotice}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Auto-collapse toggle card */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs space-y-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[#0F172A]">
+                {lang === "gu"
+                  ? "પેજ લોડ પર સાઇડબાર ઓટો-કોલેપ્સ કરો"
+                  : "Auto-collapse Sidebar on Page Load"}
+              </h2>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                  autoCollapse
+                    ? "bg-blue-50 text-[#1677E8] border border-blue-200"
+                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                }`}
+              >
+                {autoCollapse ? (lang === "gu" ? "ચાલુ (ON)" : "ON") : lang === "gu" ? "બંધ (OFF)" : "OFF"}
+              </span>
+            </div>
+            <p className="text-xs text-[#64748B] leading-relaxed max-w-xl">
+              {lang === "gu"
+                ? "જો આ સેટિંગ ચાલુ (ON) હશે તો ડેશબોર્ડ સિવાયના બધા પેજ લોડ થતી વખતે સાઇડબાર આપમેળે કોલેપ્સ થઈ જશે. જો બંધ (OFF) હશે તો સાઇડબાર એમનેમ ખુલ્લું રહેશે."
+                : "When ON, the sidebar automatically collapses when loading or navigating to inner pages to maximize workspace width. When OFF, the sidebar stays open across pages."}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={autoCollapse}
+            onClick={handleToggleAutoCollapse}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#1677E8]/30 ${
+              autoCollapse ? "bg-[#1677E8]" : "bg-slate-200"
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                autoCollapse ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Default state when Auto-collapse is OFF */}
+        <div className="pt-4 border-t border-slate-100 space-y-3">
+          <div>
+            <h3 className="text-xs font-semibold text-[#0F172A]">
+              {lang === "gu"
+                ? "ડિફોલ્ટ સાઇડબાર સ્થિતિ (જ્યારે ઓટો-કોલેપ્સ બંધ હોય)"
+                : "Default Sidebar State (when Auto-collapse is OFF)"}
+            </h3>
+            <p className="text-[11px] text-[#64748B] mt-0.5">
+              {lang === "gu"
+                ? "સાઇડબાર ડિફોલ્ટ રીતે ખુલ્લું (Expanded) રાખવું કે નાનું (Collapsed) રાખવું તે પસંદ કરો."
+                : "Choose whether the sidebar should stay expanded or collapsed by default."}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              disabled={autoCollapse}
+              onClick={() => handleDefaultModeChange(false)}
+              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                !defaultCollapsed && !autoCollapse
+                  ? "border-[#1677E8] bg-[#EFF6FF]/60 ring-2 ring-[#1677E8]/15"
+                  : "border-slate-200 hover:border-slate-300 bg-white"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#0F172A]">
+                  {lang === "gu" ? "ખુલ્લું રાખો (Expanded)" : "Keep Expanded (Open)"}
+                </span>
+                {!defaultCollapsed && !autoCollapse && (
+                  <CheckCircle2 className="w-4 h-4 text-[#1677E8]" />
+                )}
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                {lang === "gu"
+                  ? "બધા મેનુ નામ સાથે પૂરું સાઇડબાર દેખાશે."
+                  : "Shows full sidebar with all menu labels visible."}
+              </p>
+            </button>
+
+            <button
+              type="button"
+              disabled={autoCollapse}
+              onClick={() => handleDefaultModeChange(true)}
+              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                defaultCollapsed && !autoCollapse
+                  ? "border-[#1677E8] bg-[#EFF6FF]/60 ring-2 ring-[#1677E8]/15"
+                  : "border-slate-200 hover:border-slate-300 bg-white"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#0F172A]">
+                  {lang === "gu" ? "કોલેપ્સ્ડ રાખો (Compact)" : "Keep Collapsed (Compact)"}
+                </span>
+                {defaultCollapsed && !autoCollapse && (
+                  <CheckCircle2 className="w-4 h-4 text-[#1677E8]" />
+                )}
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                {lang === "gu"
+                  ? "ફક્ત આઇકોન્સ દેખાશે, હોવર કરવાથી મેનુ ખુલશે."
+                  : "Shows compact icon-only sidebar across all pages."}
+              </p>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

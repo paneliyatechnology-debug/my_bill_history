@@ -5,7 +5,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
-import { resolveActiveNavigation } from "../../lib/sidebar-navigation";
+import {
+  resolveActiveNavigation,
+  getSidebarAutoCollapse,
+  SIDEBAR_COLLAPSED_KEY,
+  SIDEBAR_PREFERENCE_EVENT,
+} from "../../lib/sidebar-navigation";
 import { CompanySwitcher } from "../tenants/company-switcher";
 import { FinancialYearSwitcher } from "../tenants/financial-year-switcher";
 import { UserProfileDropdown } from "./user-profile-dropdown";
@@ -120,6 +125,7 @@ const navigationSections: NavSection[] = [
         action: "stock_transfer",
         planKey: "stockTransfers",
       },
+      /*
       {
         name: "Stock Journal",
         nameGujarati: "સ્ટોક જર્નલ",
@@ -127,6 +133,7 @@ const navigationSections: NavSection[] = [
         module: "items",
         action: "adjust_stock",
       },
+      */
       {
         name: "Categories",
         nameGujarati: "કેટેગરીઝ",
@@ -317,6 +324,7 @@ const navigationSections: NavSection[] = [
     planKey: "gstReports",
     icon: <BarChart3 className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
+  /*
   {
     id: "tally-insights",
     name: "P&L, TDS & Tally XML",
@@ -328,6 +336,7 @@ const navigationSections: NavSection[] = [
     planKey: "gstReports",
     icon: <BarChart3 className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
   },
+  */
 
   // --- ACCOUNTING ---
   {
@@ -472,6 +481,13 @@ const navigationSections: NavSection[] = [
         action: "view",
       },
       {
+        name: "Sidebar Settings",
+        nameGujarati: "સાઇડબાર સેટિંગ્સ",
+        href: "/settings/sidebar",
+        module: "settings",
+        action: "view",
+      },
+      {
         name: "Invoice Settings",
         nameGujarati: "ઇન્વોઇસ સેટિંગ્સ",
         href: "/settings/invoice",
@@ -612,7 +628,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       const isDashboard =
         window.location.pathname === "/" ||
         window.location.pathname === "/dashboard";
-      return !isDashboard;
+      if (getSidebarAutoCollapse() && !isDashboard) {
+        return true;
+      }
+      try {
+        const saved = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+        if (saved !== null) return saved === "true";
+      } catch { }
     }
     return false;
   });
@@ -750,29 +772,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Load persisted sidebar state from localStorage (only for dashboard; other pages auto-collapse)
+  // Load persisted sidebar state from localStorage and apply auto-collapse if enabled
   useEffect(() => {
-    try {
-      const isDashboard =
-        pathname === "/" || pathname === "/dashboard";
-      if (!isDashboard) {
-        setIsSidebarCollapsed(true);
-      } else {
-        const savedCollapsed = localStorage.getItem("sidebar_collapsed");
-        if (savedCollapsed !== null) {
+    const syncSidebarState = () => {
+      try {
+        const isDashboard =
+          pathname === "/" || pathname === "/dashboard";
+        if (getSidebarAutoCollapse() && !isDashboard) {
+          setIsSidebarCollapsed(true);
+        } else {
+          const savedCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
           setIsSidebarCollapsed(savedCollapsed === "true");
         }
+        const savedSections = localStorage.getItem("sidebar_expanded_sections");
+        if (savedSections) {
+          setExpandedSections((prev) => ({
+            ...prev,
+            ...JSON.parse(savedSections),
+          }));
+        }
+      } catch {
+        // ignore storage access error
       }
-      const savedSections = localStorage.getItem("sidebar_expanded_sections");
-      if (savedSections) {
-        setExpandedSections((prev) => ({
-          ...prev,
-          ...JSON.parse(savedSections),
-        }));
-      }
-    } catch {
-      // ignore storage access error
-    }
+    };
+
+    syncSidebarState();
+    window.addEventListener(SIDEBAR_PREFERENCE_EVENT, syncSidebarState);
+    return () => {
+      window.removeEventListener(SIDEBAR_PREFERENCE_EVENT, syncSidebarState);
+    };
   }, [pathname]);
 
   // Save expanded states
@@ -796,16 +824,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Close mobile drawer on route change, reset main scroll, and auto-collapse sidebar on non-dashboard pages
+  // Close mobile drawer on route change and reset main scroll
   useEffect(() => {
     setIsMobileMenuOpen(false);
     const mainEl = document.getElementById("main-content");
     if (mainEl) {
       mainEl.scrollTop = 0;
     }
-
-    const isDashboard = pathname === "/" || pathname === "/dashboard";
-    setIsSidebarCollapsed(!isDashboard);
   }, [pathname]);
 
   // Lock scrolling when mobile drawer is open and restore when closed

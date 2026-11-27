@@ -13,6 +13,48 @@ export interface NavMatchTarget {
   subItemHref?: string;
 }
 
+export const SIDEBAR_AUTO_COLLAPSE_KEY = "sidebar_auto_collapse";
+export const SIDEBAR_COLLAPSED_KEY = "sidebar_collapsed";
+export const SIDEBAR_PREFERENCE_EVENT = "sidebar-preference-changed";
+
+export function getSidebarAutoCollapse(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(SIDEBAR_AUTO_COLLAPSE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setSidebarAutoCollapse(enabled: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(SIDEBAR_AUTO_COLLAPSE_KEY, String(enabled));
+    window.dispatchEvent(new Event(SIDEBAR_PREFERENCE_EVENT));
+  } catch {
+    // ignore storage access error
+  }
+}
+
+export function getSidebarCollapsedPreference(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setSidebarCollapsedPreference(collapsed: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed));
+    window.dispatchEvent(new Event(SIDEBAR_PREFERENCE_EVENT));
+  } catch {
+    // ignore storage access error
+  }
+}
+
 /**
  * Normalizes a pathname:
  * - Removes query strings and hash anchors
@@ -150,18 +192,15 @@ export function resolveActiveNavigation(rawPath: string): {
   }
 
   // =========================================================================
-  // 4. PARTIES SUB-ITEMS
+  // 4. PARTIES
   // =========================================================================
   else if (
     path === "/app/home/shared-ledger" ||
     isPathPrefixMatch(path, "/masters/parties/shared-ledger") ||
-    isPathPrefixMatch(path, "/portal/shared-ledger")
+    isPathPrefixMatch(path, "/portal/shared-ledger") ||
+    isPathPrefixMatch(path, "/masters/parties")
   ) {
     activeSectionId = "parties";
-    activeSubItemHref = "/app/home/shared-ledger";
-  } else if (isPathPrefixMatch(path, "/masters/parties")) {
-    activeSectionId = "parties";
-    activeSubItemHref = "/masters/parties";
   }
 
   // =========================================================================
@@ -176,6 +215,9 @@ export function resolveActiveNavigation(rawPath: string): {
   } else if (isPathPrefixMatch(path, "/masters/units")) {
     activeSectionId = "items";
     activeSubItemHref = "/masters/units";
+  } else if (isPathPrefixMatch(path, "/inventory/stock-journal")) {
+    activeSectionId = "items";
+    activeSubItemHref = "/inventory/stock-journal";
   } else if (isPathPrefixMatch(path, "/masters/hsn")) {
     activeSectionId = "items";
     activeSubItemHref = "/masters/hsn";
@@ -203,6 +245,8 @@ export function resolveActiveNavigation(rawPath: string): {
     isPathPrefixMatch(path, "/vouchers/expense")
   ) {
     activeSectionId = "expenses";
+  } else if (isPathPrefixMatch(path, "/reports/tally-insights")) {
+    activeSectionId = "tally-insights";
   } else if (
     isPathPrefixMatch(path, "/reports") ||
     isPathPrefixMatch(path, "/finance/reports")
@@ -287,6 +331,13 @@ export function resolveActiveNavigation(rawPath: string): {
     activeSectionId = "settings";
     activeSubItemHref = "/settings/e-invoice";
   } else if (
+    path === "/settings/sidebar" ||
+    path === "/settings/sidebar-settings" ||
+    isPathPrefixMatch(path, "/settings/sidebar")
+  ) {
+    activeSectionId = "settings";
+    activeSubItemHref = "/settings/sidebar";
+  } else if (
     path === "/settings/account" ||
     isPathPrefixMatch(path, "/settings/account")
   ) {
@@ -322,6 +373,8 @@ export function resolveActiveNavigation(rawPath: string): {
   ) {
     activeSectionId = "vouchers";
     activeSubItemHref = "/accounting/chart-of-accounts";
+  } else if (isPathPrefixMatch(path, "/activity-logs")) {
+    activeSectionId = "activity_logs";
   } else if (
     isPathPrefixMatch(path, "/accounting") ||
     isPathPrefixMatch(path, "/vouchers") ||
@@ -339,7 +392,7 @@ export function resolveActiveNavigation(rawPath: string): {
     isSubItemActive: (subHref: string) => activeSubItemHref === subHref,
     isDirectLinkActive: (sectionId: string, href?: string) => {
       if (activeSectionId === sectionId && !activeSubItemHref) return true;
-      if (href && href !== "/" && isPathPrefixMatch(path, href)) return true;
+      if (!activeSectionId && href && href !== "/" && isPathPrefixMatch(path, href)) return true;
       return false;
     },
   };
