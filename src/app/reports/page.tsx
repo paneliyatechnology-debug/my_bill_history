@@ -3793,13 +3793,13 @@ export default function ReportsPage({
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Gross Profit</span>
                     <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
-                      ₹{Number(reportData.grossProfit ?? reportData.summary?.grossProfit ?? 0).toFixed(2)}
+                      ₹{Number(reportData.tradingAccount?.tradingGrossProfit ?? reportData.grossProfit ?? reportData.summary?.grossProfit ?? 0).toFixed(2)}
                     </p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Net Profit</span>
                     <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
-                      ₹{Number(reportData.netProfit ?? reportData.summary?.netProfit ?? 0).toFixed(2)}
+                      ₹{Number(reportData.tradingAccount?.tradingNetProfit ?? reportData.netProfit ?? reportData.summary?.netProfit ?? 0).toFixed(2)}
                     </p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">

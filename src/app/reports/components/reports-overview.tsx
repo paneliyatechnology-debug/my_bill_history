@@ -971,11 +971,25 @@ export function ReportsOverview({
       if (pnlRes.status === "fulfilled" && pnlRes.value) {
         const pv = pnlRes.value;
         pnlAvailable = true;
-        grossProfit = Number(pv.grossProfit ?? pv.summary?.grossProfit ?? pv.tradingAccount?.tradingGrossProfit ?? 0);
-        grossMarginRate = Number(pv.grossMarginPct ?? pv.summary?.grossMarginPct ?? pv.tradingAccount?.grossMarginPct ?? 0);
-        cogs = Number(pv.costOfGoodsSold ?? pv.tradingAccount?.costOfGoodsSold ?? 0);
-        closingStockValuation = Number(pv.closingStockValuation ?? pv.tradingAccount?.closingStockValuation ?? 0);
-        requiresReconciliation = Boolean(pv.requiresReconciliation ?? pv.tradingAccount?.requiresReconciliation ?? false);
+        const netSales = Number(pv.directIncome?.total ?? pv.summary?.directIncome ?? 0);
+        grossProfit = Number(
+          pv.tradingAccount?.tradingGrossProfit ?? pv.grossProfit ?? pv.summary?.grossProfit ?? 0,
+        );
+        const rawMargin =
+          pv.grossMarginPct ?? pv.summary?.grossMarginPct ?? pv.tradingAccount?.grossMarginPct;
+        grossMarginRate =
+          rawMargin !== undefined && rawMargin !== null
+            ? Number(rawMargin)
+            : netSales > 0
+              ? (grossProfit / netSales) * 100
+              : 0;
+        cogs = Number(pv.tradingAccount?.costOfGoodsSold ?? pv.costOfGoodsSold ?? 0);
+        closingStockValuation = Number(
+          pv.tradingAccount?.closingStockValuation ?? pv.closingStockValuation ?? 0,
+        );
+        requiresReconciliation = Boolean(
+          pv.requiresReconciliation ?? pv.tradingAccount?.requiresReconciliation ?? false,
+        );
       }
 
       // Real Sales Collection % strictly out of 100%
