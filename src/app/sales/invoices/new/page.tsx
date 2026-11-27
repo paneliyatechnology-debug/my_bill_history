@@ -380,11 +380,9 @@ export default function NewInvoicePage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [partiesRes, itemsRes, unitsRes, categoriesRes, warehousesRes, nextNumRes]: any = await Promise.all([
+      const [partiesRes, itemsRes, warehousesRes, nextNumRes]: any = await Promise.all([
         apiClient.get("/masters/parties", { type: "CUSTOMER", limit: 500 }),
         apiClient.get("/masters/items", { limit: 500 }),
-        apiClient.get("/masters/units").catch(() => []),
-        apiClient.get("/masters/categories").catch(() => []),
         apiClient.get("/masters/warehouses").catch(() => []),
         apiClient.get(`/invoices/next-number?category=${category}`).catch(() => null),
       ]);
@@ -392,11 +390,8 @@ export default function NewInvoicePage() {
         (p) => p.type === "CUSTOMER" || p.type === "BOTH" || (!p.type && (p as any).isCustomer),
       );
       const iList = extractList<ItemOption>(itemsRes);
-      const uList = extractList<any>(unitsRes);
       setParties(pList);
       setItems(iList);
-      setUnits(uList);
-      setCategories(extractList<any>(categoriesRes));
       const whList = extractList<any>(warehousesRes);
       setWarehouses(whList);
       const defWh = whList.find((w: any) => w.isDefault) || whList[0];
@@ -464,24 +459,10 @@ export default function NewInvoicePage() {
         }
       }
 
-      // Load AI scan count dynamically
-      try {
-        const scansRes: any = await apiClient.get("/purchases/scans", { limit: 100 }).catch(() => null);
-        const totalScans = scansRes?.total ?? scansRes?.data?.length;
-        if (typeof totalScans === "number") {
-          setScannedBillsCount(totalScans);
-          if (typeof window !== "undefined" && tenantContext.companyId) {
-            localStorage.setItem(`billing_ai_scans_count_${tenantContext.companyId}`, String(totalScans));
-          }
-        } else if (typeof window !== "undefined" && tenantContext.companyId) {
-          const saved = localStorage.getItem(`billing_ai_scans_count_${tenantContext.companyId}`);
-          if (saved) setScannedBillsCount(Number(saved) || 0);
-        }
-      } catch {
-        if (typeof window !== "undefined" && tenantContext.companyId) {
-          const saved = localStorage.getItem(`billing_ai_scans_count_${tenantContext.companyId}`);
-          if (saved) setScannedBillsCount(Number(saved) || 0);
-        }
+      // Read cached AI scan count without firing an eager network call on page load
+      if (typeof window !== "undefined" && tenantContext.companyId) {
+        const saved = localStorage.getItem(`billing_ai_scans_count_${tenantContext.companyId}`);
+        if (saved) setScannedBillsCount(Number(saved) || 0);
       }
     } catch (err: any) {
       setError(err.message || "Failed to load customers and catalog.");
@@ -489,6 +470,40 @@ export default function NewInvoicePage() {
       setIsLoading(false);
     }
   }, [tenantContext.companyId]);
+
+  // Lazy-load units and categories only when item modals are opened
+  useEffect(() => {
+    if (!isCreateItemModalOpen && !isAddItemsModalOpen) return;
+    if (units.length === 0) {
+      apiClient
+        .get("/masters/units")
+        .then((res) => setUnits(extractList<any>(res)))
+        .catch(() => {});
+    }
+    if (categories.length === 0) {
+      apiClient
+        .get("/masters/categories")
+        .then((res) => setCategories(extractList<any>(res)))
+        .catch(() => {});
+    }
+  }, [isCreateItemModalOpen, isAddItemsModalOpen, units.length, categories.length]);
+
+  // Lazy-load AI scan count only when AI scan panel is opened
+  useEffect(() => {
+    if (!showAiPanel) return;
+    apiClient
+      .get("/purchases/scans", { limit: 100 })
+      .then((scansRes: any) => {
+        const totalScans = scansRes?.total ?? scansRes?.data?.length;
+        if (typeof totalScans === "number") {
+          setScannedBillsCount(totalScans);
+          if (typeof window !== "undefined" && tenantContext.companyId) {
+            localStorage.setItem(`billing_ai_scans_count_${tenantContext.companyId}`, String(totalScans));
+          }
+        }
+      })
+      .catch(() => {});
+  }, [showAiPanel, tenantContext.companyId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
