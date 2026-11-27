@@ -108,7 +108,7 @@ export function CaSharingModal({
     }
     const cleanNumber = caWhatsapp.replace(/\D/g, "");
     const msg = encodeURIComponent(
-      `Hello ${caName || "Sir"}, here are the monthly GST and Financial Reports for ${companyName} generated via MyBillBook. All accounts and ledgers are reconciled.`
+      `Hello ${caName || "Sir"}, here are the monthly GST and Financial Reports for ${companyName} generated via MyOwnBillBook. All accounts and ledgers are reconciled.`
     );
     window.open(`https://wa.me/${cleanNumber ? (cleanNumber.length === 10 ? `91${cleanNumber}` : cleanNumber) : ""}?text=${msg}`, "_blank");
   };

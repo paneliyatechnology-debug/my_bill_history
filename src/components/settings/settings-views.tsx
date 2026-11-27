@@ -505,7 +505,7 @@ function FinancialYearSettingsView() {
                   const isCurrentContext = fy.id === currentFY?.id;
                   const isBusy = actionId === fy.id;
 
-                  return (
+  return (
                     <tr key={fy.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="py-3 px-4 text-slate-400 font-medium">{idx + 1}</td>
                       <td className="py-3 px-4">
@@ -890,7 +890,7 @@ function AccountSettingsView() {
   const [suggestionCategory, setSuggestionCategory] = useState("Feature Request");
   const [suggestionText, setSuggestionText] = useState("");
   const [suggestionSuccess, setSuggestionSuccess] = useState(false);
-  const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
+  const [downloadingReceiptId, setDownloadingReceiptId] = useState<string | null>(null);
 
   // Billing History dynamic states
   const [billingHistory, setBillingHistory] = useState<any[]>([]);
@@ -1086,277 +1086,458 @@ function AccountSettingsView() {
     }
   };
 
+  const handleDownloadReceiptPdf = async (item: any) => {
+    setDownloadingReceiptId(item.id);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const autoTableModule = await import("jspdf-autotable");
+      const autoTable = autoTableModule.default;
+
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      // Top accent bar
+      doc.setFillColor(22, 119, 232);
+      doc.rect(0, 0, pageWidth, 3, "F");
+
+      // Seller / Brand Header
+      const sellerName = item.billedBy?.tradeName || "myBillBook Technologies Pvt Ltd";
+      const sellerAddr = item.billedBy?.address || "Satellite, Ahmedabad, Gujarat - 380015";
+      const sellerGstin = item.billedBy?.gstin || "24AABCM9124P1ZX";
+      const sacCode = item.billedBy?.sacCode || "998314";
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(15, 23, 42);
+      doc.text(sellerName, 14, 18);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text(sellerAddr, 14, 24);
+      doc.text(`GSTIN: ${sellerGstin}  |  SAC: ${sacCode}`, 14, 29);
+
+      // Right Title Block
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(22, 119, 232);
+      doc.text("TAX INVOICE / RECEIPT", pageWidth - 14, 18, { align: "right" });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Ref #: ${item.referenceNo || "-"}`, pageWidth - 14, 24, { align: "right" });
+      doc.text(`Date: ${item.displayDate || formatReadableDate(item.date)}`, pageWidth - 14, 29, { align: "right" });
+
+      // Divider
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, 35, pageWidth - 14, 35);
+
+      // Billed To Box
+      const orgName =
+        item.companyName ||
+        item.organizationName ||
+        currentCompany?.tradeName ||
+        currentCompany?.legalName ||
+        "Organization";
+      const orgGstin = item.gstin || currentCompany?.gstin || "Unregistered";
+      const paymentMode = item.paymentMode || "Online";
+
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(14, 41, pageWidth - 28, 22, 2, 2, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text("BILLED TO (ORGANIZATION)", 18, 47);
+      doc.text("PAYMENT DETAILS", pageWidth - 18, 47, { align: "right" });
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(15, 23, 42);
+      doc.text(String(orgName), 18, 53);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`GSTIN: ${orgGstin}`, 18, 59);
+      doc.text(`Mode: ${paymentMode}`, pageWidth - 18, 53, { align: "right" });
+      doc.text(`Status: ${item.paymentStatus || "Success"}`, pageWidth - 18, 59, { align: "right" });
+
+      const taxableAmt = Number(item.taxableAmount || 0);
+      const cgstAmt = Number(item.cgst || 0);
+      const sgstAmt = Number(item.sgst || 0);
+      const totalAmt = Number(item.amount || 0);
+      const fmtRs = (n: number) => `Rs. ${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      // Line Items Table
+      autoTable(doc, {
+        startY: 70,
+        head: [["Description", "SAC", "Taxable", "Total"]],
+        body: [
+          [
+            `${item.planName || "Subscription Plan"}\nCloud Accounting, GST E-Invoicing & Multi-Branch`,
+            sacCode,
+            fmtRs(taxableAmt),
+            fmtRs(totalAmt),
+          ],
+        ],
+        theme: "grid",
+        headStyles: {
+          fillColor: [241, 245, 249],
+          textColor: [51, 65, 85],
+          fontStyle: "bold",
+          fontSize: 9,
+        },
+        styles: {
+          fontSize: 9,
+          textColor: [15, 23, 42],
+          cellPadding: 4,
+        },
+        columnStyles: {
+          0: { cellWidth: "auto" },
+          1: { halign: "center", cellWidth: 24 },
+          2: { halign: "right", cellWidth: 34 },
+          3: { halign: "right", cellWidth: 34, fontStyle: "bold" },
+        },
+      });
+
+      // Totals Summary
+      const finalY = ((doc as any).lastAutoTable?.finalY || 95) + 8;
+      const summaryX = pageWidth - 82;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Taxable Value:", summaryX, finalY);
+      doc.text(fmtRs(taxableAmt), pageWidth - 14, finalY, { align: "right" });
+
+      doc.text("CGST (9%):", summaryX, finalY + 6);
+      doc.text(fmtRs(cgstAmt), pageWidth - 14, finalY + 6, { align: "right" });
+
+      doc.text("SGST (9%):", summaryX, finalY + 12);
+      doc.text(fmtRs(sgstAmt), pageWidth - 14, finalY + 12, { align: "right" });
+
+      doc.setDrawColor(203, 213, 225);
+      doc.line(summaryX, finalY + 16, pageWidth - 14, finalY + 16);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(22, 119, 232);
+      doc.text("Total Paid:", summaryX, finalY + 23);
+      doc.text(fmtRs(totalAmt), pageWidth - 14, finalY + 23, { align: "right" });
+
+      // Footer
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        "This is a computer-generated tax invoice / payment receipt and does not require a physical signature.",
+        pageWidth / 2,
+        280,
+        { align: "center" },
+      );
+
+      const safeRef = String(item.referenceNo || item.id || "Receipt").replace(/[^a-zA-Z0-9_-]/g, "_");
+      doc.save(`Receipt_${safeRef}.pdf`);
+    } catch (err: any) {
+      setSaveBanner(err?.message || "Failed to generate receipt PDF.");
+    } finally {
+      setDownloadingReceiptId(null);
+    }
+  };
+
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="max-w-5xl mx-auto space-y-5 pb-8">
       {/* Save Banner Notification */}
       {saveBanner && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between shadow-2xs animate-in fade-in duration-150">
-          <span>{saveBanner}</span>
-          <button type="button" onClick={() => setSaveBanner(null)} className="text-emerald-700 hover:text-emerald-900 p-0.5 ml-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{saveBanner}</span>
+          </div>
+          <button type="button" onClick={() => setSaveBanner(null)} className="text-emerald-700 hover:text-emerald-900 p-0.5 ml-2 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* 1. Header Feedback Banner */}
-      <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#1677E8] text-white flex items-center justify-center shrink-0 shadow-xs">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-[15px] font-semibold text-slate-900">
-              {lang === "gu" ? "myBillBook ને વધુ સારું બનાવવામાં સહાય કરો" : "Help us make myBillBook better"}
-            </h3>
-            <p className="text-xs text-slate-600 mt-0.5">
-              {lang === "gu"
-                ? "તમારો મૂલ્યવાન પ્રતિસાદ અને નવા ફિચર વિનંતીઓ અમારી ટીમ સાથે શેર કરો"
-                : "Share your product feedback, requested features, or workflow suggestions with our team"}
-            </p>
-          </div>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-[#0F172A] tracking-tight">
+            {lang === "gu" ? "ખાતું અને સબ્સ્ક્રિપ્શન" : "Account & Subscription"}
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {lang === "gu"
+              ? "તમારી પ્રોફાઇલ, સુરક્ષા અને સબ્સ્ક્રિપ્શન બિલિંગ મેનેજ કરો"
+              : "Manage your personal profile, security credentials, and subscription billing"}
+          </p>
         </div>
-
         <button
           type="button"
           onClick={() => setShowShareSuggestion(true)}
-          className="h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs flex items-center justify-center gap-1.5 self-start sm:self-center shrink-0 cursor-pointer"
+          className="h-9 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold transition-all shadow-2xs inline-flex items-center gap-1.5 self-start sm:self-auto shrink-0 cursor-pointer"
         >
-          <span className="text-sm leading-none">+</span>
-          <span>{lang === "gu" ? "સૂચન શેર કરો" : "Share Suggestion"}</span>
+          <MessageSquare className="w-3.5 h-3.5 text-[#1677E8]" />
+          <span>{lang === "gu" ? "સૂચન શેર કરો" : "Share Feedback"}</span>
         </button>
       </div>
 
-      {/* 2. General Information Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          {lang === "gu" ? "સામાન્ય માહિતી" : "GENERAL INFORMATION"}
-        </h2>
-
-        <form onSubmit={handleSaveProfile} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Top Grid: Profile (Left) + Security & Referral (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Profile Information Card */}
+        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
-              <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
-                {lang === "gu" ? "નામ *" : "NAME *"}
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter full name"
-                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-normal text-slate-800 transition-all h-10"
-                required
-              />
+              <h2 className="text-sm font-semibold text-[#0F172A]">
+                {lang === "gu" ? "સામાન્ય માહિતી" : "Profile Information"}
+              </h2>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {lang === "gu" ? "તમારા ખાતાની ઓળખ અને સંપર્ક વિગતો" : "Update your name and verified email address"}
+              </p>
             </div>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
+              <Lock className="w-3 h-3 text-slate-400" />
+              {lang === "gu" ? "સુરક્ષિત ખાતું" : "Verified Account"}
+            </span>
+          </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[12px] font-medium text-slate-700">
-                  {lang === "gu" ? "મોબાઇલ નંબર" : "MOBILE NUMBER"}
+          <form onSubmit={handleSaveProfile} className="p-5 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  {lang === "gu" ? "નામ *" : "Full Name *"}
                 </label>
-                <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                  <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Locked identity
-                </span>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter full name"
+                  className="w-full px-3.5 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 transition-all h-10"
+                  required
+                />
               </div>
-              <input
-                type="text"
-                value={mobile}
-                disabled
-                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-100 border border-slate-200 rounded-xl tabular-nums font-normal text-slate-600 cursor-not-allowed select-none h-10"
-              />
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-700">
+                    {lang === "gu" ? "મોબાઇલ નંબર" : "Mobile Number"}
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {lang === "gu" ? "લોક્ડ" : "Locked"}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={mobile}
+                  disabled
+                  className="w-full px-3.5 py-2 text-[13px] bg-slate-100 border border-slate-200 rounded-xl tabular-nums text-slate-500 cursor-not-allowed select-none h-10"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
-                {lang === "gu" ? "ઇમેઇલ સરનામું" : "EMAIL"}
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                {lang === "gu" ? "ઇમેઇલ સરનામું" : "Email Address"}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@business.com"
-                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-medium text-slate-800 transition-all h-10"
+                className="w-full px-3.5 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-medium text-slate-800 transition-all h-10"
               />
             </div>
-          </div>
 
-          {emailChanged && (
-            <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/70 space-y-2">
-              <p className="text-xs text-blue-900 font-medium">
-                {lang === "gu"
-                  ? "ઈમેલ બદલવા માટે ચકાસણી કોડ જરૂરી છે. પહેલા કોડ મેળવો, પછી દાખલ કરી સાચવો."
-                  : "Changing your email requires a verification code. Request the code first, enter it, then save."}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={profileOtp}
-                  onChange={(e) => setProfileOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="6-digit code"
-                  className="w-36 px-3 py-1.5 text-xs bg-white border border-blue-300 rounded-lg tabular-nums tracking-widest text-center"
-                />
-                <button
-                  type="button"
-                  disabled={isSaving}
-                  onClick={handleSendProfileOtp}
-                  className="h-9 px-3 rounded-lg bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium disabled:opacity-50"
-                >
-                  {lang === "gu" ? "કોડ મોકલો" : "Send code"}
-                </button>
-                {devOtp && (
-                  <span className="text-xs tabular-nums text-blue-950 font-bold bg-blue-100 px-2 py-1 rounded">
-                    Dev Code: {devOtp}
-                  </span>
-                )}
+            {emailChanged && (
+              <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/70 space-y-2.5">
+                <p className="text-xs text-blue-900 font-medium">
+                  {lang === "gu"
+                    ? "ઈમેલ બદલવા માટે ચકાસણી કોડ જરૂરી છે. પહેલા કોડ મેળવો, પછી દાખલ કરી સાચવો."
+                    : "Changing your email requires a 6-digit verification code."}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={profileOtp}
+                    onChange={(e) => setProfileOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="6-digit code"
+                    className="w-36 px-3 py-1.5 text-xs bg-white border border-blue-300 rounded-lg tabular-nums tracking-widest text-center h-9"
+                  />
+                  <button
+                    type="button"
+                    disabled={isSaving}
+                    onClick={handleSendProfileOtp}
+                    className="h-9 px-3.5 rounded-lg bg-[#1677E8] hover:bg-[#1268D3] text-white text-xs font-semibold disabled:opacity-50 cursor-pointer"
+                  >
+                    {lang === "gu" ? "કોડ મોકલો" : "Send Code"}
+                  </button>
+                  {devOtp && (
+                    <span className="text-xs tabular-nums text-blue-950 font-bold bg-blue-100 px-2 py-1 rounded">
+                      Dev Code: {devOtp}
+                    </span>
+                  )}
+                </div>
               </div>
+            )}
+
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <button
+                type="submit"
+                disabled={isSaving || (emailChanged && profileOtp.length !== 6)}
+                className="h-9 px-4 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {isSaving
+                  ? lang === "gu" ? "સાચવી રહ્યું છે..." : "Saving..."
+                  : lang === "gu" ? "પ્રોફાઇલ સાચવો" : "Save Profile"}
+              </button>
             </div>
+          </form>
+        </div>
+
+        {/* Right Column: Security & Referral */}
+        <div className="lg:col-span-5 space-y-5">
+          {/* Change Password Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100">
+              <h2 className="text-sm font-semibold text-[#0F172A]">
+                {lang === "gu" ? "પાસવર્ડ બદલો" : "Security & Password"}
+              </h2>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {lang === "gu" ? "તમારા ખાતાનો પાસવર્ડ અપડેટ કરો" : "Update your login password"}
+              </p>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="p-5 space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  {lang === "gu" ? "હાલનો પાસવર્ડ" : "Current Password"}
+                </label>
+                <input
+                  type="password"
+                  placeholder={lang === "gu" ? "હાલનો પાસવર્ડ દાખલ કરો" : "Enter current password"}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3.5 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 h-10"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  {lang === "gu" ? "નવો પાસવર્ડ" : "New Password"}
+                </label>
+                <input
+                  type="password"
+                  placeholder={lang === "gu" ? "ઓછામાં ઓછા 6 અક્ષર" : "Min 6 characters"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3.5 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 h-10"
+                  minLength={6}
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  type="submit"
+                  disabled={isSaving || !currentPassword || newPassword.length < 6}
+                  className="h-9 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {isSaving
+                    ? lang === "gu" ? "બદલી રહ્યું છે..." : "Updating..."
+                    : lang === "gu" ? "પાસવર્ડ અપડેટ કરો" : "Update Password"}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Referral Code Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3">
+            <div>
+              <h2 className="text-sm font-semibold text-[#0F172A]">
+                {lang === "gu" ? "રેફરલ કોડ" : "Referral Discount"}
+              </h2>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {lang === "gu" ? "સબ્સ્ક્રિપ્શન ડિસ્કાઉન્ટ માટે રેફરલ કોડ લાગુ કરો" : "Apply a referral code for subscription savings"}
+              </p>
+            </div>
+
+            <form onSubmit={handleApplyReferral} className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder={lang === "gu" ? "રેફરલ કોડ" : "Enter referral code"}
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                className="flex-1 px-3.5 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 tracking-wider h-9 placeholder:normal-case placeholder:tracking-normal"
+              />
+              <button
+                type="submit"
+                disabled={!referralCode.trim()}
+                className="h-9 px-4 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                {lang === "gu" ? "લાગુ કરો" : "Apply"}
+              </button>
+            </form>
+
+            {referralMessage?.type === "success" && (
+              <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>{referralMessage.text}</span>
+              </p>
+            )}
+            {referralMessage?.type === "error" && (
+              <p className="text-xs text-rose-600 font-semibold">
+                {referralMessage.text}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Subscription Plan Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[#0F172A]">
+            {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન" : "Subscription Plan"}
+          </h2>
+          {isExpired ? (
+            <span className="text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+              {lang === "gu" ? "સમાપ્ત થયેલ" : "Expired"}
+            </span>
+          ) : (
+            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              {lang === "gu" ? "સક્રિય" : "Active"}
+            </span>
           )}
-
-          <div className="flex justify-end pt-1">
-            <button
-              type="submit"
-              disabled={isSaving || (emailChanged && profileOtp.length !== 6)}
-              className="h-9 px-3.5 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50"
-            >
-              {isSaving
-                ? lang === "gu" ? "સાચવી રહ્યું છે..." : "Saving..."
-                : lang === "gu" ? "પ્રોફાઇલ સાચવો" : "Save Profile"}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* 3. Change Password Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          {lang === "gu" ? "પાસવર્ડ બદલો" : "CHANGE PASSWORD"}
-        </h2>
-
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <input
-                type="password"
-                placeholder={lang === "gu" ? "હાલનો પાસવર્ડ" : "Current password"}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 h-10"
-                required
-              />
-            </div>
-
-            <div>
-              <input
-                type="password"
-                placeholder={lang === "gu" ? "નવો પાસવર્ડ (ઓછામાં ઓછા 6 અક્ષર)" : "New password (min 6 characters)"}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 h-10"
-                minLength={6}
-                required
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSaving || !currentPassword || newPassword.length < 6}
-            className="h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50"
-          >
-            {isSaving
-              ? lang === "gu" ? "બદલી રહ્યું છે..." : "Updating..."
-              : lang === "gu" ? "પાસવર્ડ અપડેટ કરો" : "Update password"}
-          </button>
-        </form>
-      </div>
-
-      {/* 4. Referral Code for Discount */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          {lang === "gu" ? "સબ્સ્ક્રિપ્શન ડિસ્કાઉન્ટ માટે રેફરલ કોડ" : "REFERRAL CODE FOR SUBSCRIPTION DISCOUNT"}
-        </h2>
-
-        <form onSubmit={handleApplyReferral} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <input
-            type="text"
-            placeholder="REFERRAL CODE"
-            value={referralCode}
-            onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-            className="flex-1 max-w-md px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 tracking-wider h-10"
-          />
-
-          <button
-            type="submit"
-            disabled={!referralCode.trim()}
-            className="px-6 py-2.5 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
-          >
-            {lang === "gu" ? "લાગુ કરો" : "Apply"}
-          </button>
-        </form>
-
-        {referralMessage?.type === "success" && (
-          <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            <span>{referralMessage.text}</span>
-          </p>
-        )}
-        {referralMessage?.type === "error" && (
-          <p className="text-xs text-rose-600 font-semibold">
-            {referralMessage.text}
-          </p>
-        )}
-      </div>
-
-      {/* 5. Subscription Plan Card (Accurate Live Expiry Check) */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન" : "SUBSCRIPTION PLAN"}
-        </h2>
+        </div>
 
         <div className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${
           isExpired
-            ? "border-rose-200 bg-gradient-to-r from-rose-50/80 via-white to-rose-50/60"
-            : "border-slate-200 bg-gradient-to-r from-slate-50/70 via-white to-slate-50/70"
+            ? "border-rose-200 bg-gradient-to-r from-rose-50/70 via-white to-rose-50/50"
+            : "border-slate-200 bg-gradient-to-r from-slate-50/80 via-white to-blue-50/30"
         }`}>
           <div className="flex items-center gap-3.5">
-            <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs ${
+            <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs ${
               isExpired
                 ? "bg-rose-50 border-rose-100 text-rose-600"
                 : "bg-[#EFF6FF] border-[#BFDBFE] text-[#1677E8]"
             }`}>
-              <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
               </svg>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-semibold text-slate-900 tracking-tight">
-                  {planName}
-                </span>
-
-                {/* Clean Plan Status Badge */}
-                {isExpired ? (
-                  <span className="text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                    {lang === "gu" ? "સમાપ્ત થયેલ" : "Expired"}
-                  </span>
-                ) : (
-                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    {lang === "gu" ? "સક્રિય" : "Active"}
-                  </span>
-                )}
-              </div>
+              <span className="text-base font-bold text-slate-900 tracking-tight block">
+                {planName}
+              </span>
               <p className="text-xs text-slate-500 mt-0.5">
-                GST Invoicing, E-Way Bill, Multi-Business, POS Counter & Audit Export
+                GST Invoicing, E-Way Bill, Multi-Business, POS Counter &amp; Audit Export
               </p>
             </div>
           </div>
@@ -1376,12 +1557,12 @@ function AccountSettingsView() {
                 </>
               ) : (
                 <>
-                  <span className={`text-xs block ${isExpired ? "text-rose-600 font-semibold" : "text-slate-500"}`}>
+                  <span className={`text-[11px] block ${isExpired ? "text-rose-600 font-semibold" : "text-slate-500"}`}>
                     {isExpired
-                      ? lang === "gu" ? "તમારો પ્લાન આ તારીખે સમાપ્ત થયો:" : "Your Plan expired on:"
-                      : lang === "gu" ? "તમારો પ્લાન આ તારીખે સમાપ્ત થશે:" : "Your Plan ends on:"}
+                      ? lang === "gu" ? "સમાપ્ત તારીખ" : "Expired on"
+                      : lang === "gu" ? "માન્યતા તારીખ" : "Valid until"}
                   </span>
-                  <span className={`text-sm font-semibold tabular-nums ${isExpired ? "text-rose-700" : "text-slate-900"}`}>
+                  <span className={`text-sm font-bold tabular-nums ${isExpired ? "text-rose-700" : "text-slate-900"}`}>
                     {planEndsOn}
                   </span>
                 </>
@@ -1390,35 +1571,32 @@ function AccountSettingsView() {
 
             <Link
               href="/settings/pricing"
-              className={`px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`h-9 px-4 rounded-xl text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer ${
                 isExpired
                   ? "bg-rose-600 hover:bg-rose-700 ring-2 ring-rose-300"
                   : "bg-[#1677E8] hover:bg-[#1268D3]"
               }`}
             >
-              <span>{isExpired ? (lang === "gu" ? "હમણાં રિન્યૂ કરો" : "Renew Plan Now") : (lang === "gu" ? "પ્લાન અપગ્રેડ કરો" : "Upgrade Plan")}</span>
+              <span>{isExpired ? (lang === "gu" ? "હમણાં રિન્યૂ કરો" : "Renew Plan") : (lang === "gu" ? "પ્લાન અપગ્રેડ કરો" : "Upgrade Plan")}</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
         {/* Expired Plan Alert Notice */}
         {isExpired && (
-          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-900 shadow-2xs">
+          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-900">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <span className="font-semibold">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span className="font-medium">
                 {lang === "gu"
-                  ? "ધ્યાન આપો: તમારો સબ્સ્ક્રિપ્શન પ્લાન સમાપ્ત થઈ ગયો છે. અનિર્બંધ જીએસટી બિલિંગ, ઇ-વે બિલ અને સિંક માટે પ્લાન રિન્યૂ કરો."
-                  : "Attention: Your subscription plan has expired. Please renew or upgrade your plan to maintain uninterrupted access to GST invoicing and features."}
+                  ? "તમારો સબ્સ્ક્રિપ્શન પ્લાન સમાપ્ત થઈ ગયો છે. અનિર્બંધ જીએસટી બિલિંગ માટે પ્લાન રિન્યૂ કરો."
+                  : "Your subscription plan has expired. Renew or upgrade to maintain uninterrupted GST invoicing."}
               </span>
             </div>
             <Link
               href="/settings/pricing"
-              className="h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium text-[13px] shrink-0 cursor-pointer shadow-xs inline-flex items-center justify-center"
+              className="h-8 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-semibold text-xs shrink-0 cursor-pointer inline-flex items-center justify-center"
             >
               {lang === "gu" ? "હમણાં રિન્યૂ કરો" : "Renew Now"}
             </Link>
@@ -1426,63 +1604,61 @@ function AccountSettingsView() {
         )}
       </div>
 
-      {/* 6. Billing History Table (Organization-wise Dynamic) */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <div className="flex items-center justify-between">
+      {/* Billing History Table */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              {lang === "gu" ? "સંસ્થા મુજબ બિલિંગ ઇતિહાસ" : "BILLING HISTORY"}
+            <h2 className="text-sm font-semibold text-[#0F172A]">
+              {lang === "gu" ? "બિલિંગ ઇતિહાસ" : "Billing History"}
             </h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              {currentCompany?.tradeName || currentCompany?.legalName || "Active Organization"} • {lang === "gu" ? "ટેક્સ ઇન્વોઇસ અને પેમેન્ટ રસીદો" : "Dynamic Organization Tax Invoices & Receipts"}
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {currentCompany?.tradeName || currentCompany?.legalName || "Active Organization"} &bull; {lang === "gu" ? "ટેક્સ ઇન્વોઇસ અને પેમેન્ટ રસીદો" : "Tax invoices & payment receipts"}
             </p>
           </div>
           <button
             type="button"
             onClick={loadBillingHistory}
-            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
             title="Refresh History"
           >
-            <svg className={`w-4 h-4 ${billingLoading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            <RefreshCw className={`w-4 h-4 ${billingLoading ? "animate-spin" : ""}`} />
           </button>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[11px] uppercase">
-                <th className="py-3 px-4">DATE</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold text-[11px] uppercase">
+                <th className="py-3 px-5">DATE</th>
                 <th className="py-3 px-4">PLAN</th>
                 <th className="py-3 px-4">REFERENCE #</th>
-                <th className="py-3 px-4">PAYMENT STATUS</th>
+                <th className="py-3 px-4">STATUS</th>
                 <th className="py-3 px-4">AMOUNT</th>
-                <th className="py-3 px-4 text-right">ACTION</th>
+                <th className="py-3 px-5 text-right">RECEIPT</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {billingLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 text-[13px]">
+                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
                     <div className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></span>
-                      <span>Loading billing history for {currentCompany?.tradeName || "organization"}...</span>
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                      <span>Loading billing history...</span>
                     </div>
                   </td>
                 </tr>
               ) : billingHistory.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 text-[13px]">
-                    No billing history records found for this organization.
+                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                    No billing history records found.
                   </td>
                 </tr>
               ) : (
                 billingHistory.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 text-slate-700 font-medium">{item.displayDate || formatReadableDate(item.date)}</td>
-                    <td className="py-3 px-4 font-medium text-slate-900">{item.planName}</td>
-                    <td className="py-3 px-4 tabular-nums text-slate-600">{item.referenceNo}</td>
+                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3 px-5 text-slate-700 font-medium tabular-nums">{item.displayDate || formatReadableDate(item.date)}</td>
+                    <td className="py-3 px-4 font-semibold text-slate-900">{item.planName}</td>
+                    <td className="py-3 px-4 tabular-nums text-slate-500 font-mono text-[11px]">{item.referenceNo}</td>
                     <td className="py-3 px-4">
                       {item.paymentStatus === "Success" ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
@@ -1501,17 +1677,22 @@ function AccountSettingsView() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-900">{item.formattedAmount || `₹ ${item.amount}`}</td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3 px-4 font-semibold text-slate-900 tabular-nums">{item.formattedAmount || `₹ ${item.amount}`}</td>
+                    <td className="py-3 px-5 text-right">
                       <button
                         type="button"
-                        onClick={() => setSelectedReceipt(item)}
-                        className="inline-flex items-center gap-1 text-[#1677E8] hover:text-[#1268D3] font-medium text-[13px] transition-colors cursor-pointer"
+                        disabled={downloadingReceiptId === item.id}
+                        onClick={() => handleDownloadReceiptPdf(item)}
+                        className="inline-flex items-center gap-1.5 text-[#1677E8] hover:text-[#1268D3] font-semibold text-xs transition-colors cursor-pointer disabled:opacity-50"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        <span>Download Receipt</span>
+                        {downloadingReceiptId === item.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                        )}
+                        <span>{downloadingReceiptId === item.id ? "Downloading..." : "Download"}</span>
                       </button>
                     </td>
                   </tr>
@@ -1521,141 +1702,6 @@ function AccountSettingsView() {
           </table>
         </div>
       </div>
-
-      {/* Dynamic Tax Invoice / Receipt Modal */}
-      {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
-                  <Check className="w-4 h-4 text-emerald-700" />
-                </span>
-                <div>
-                  <h3 className="text-[15px] font-semibold text-slate-900">Tax Invoice / Receipt</h3>
-                  <p className="text-[11px] text-slate-500 tabular-nums">{selectedReceipt.referenceNo}</p>
-                </div>
-              </div>
-              <button onClick={() => setSelectedReceipt(null)} className="text-slate-400 hover:text-slate-700 p-1">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Printable Area */}
-            <div id="subscription-receipt-print" className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3 text-xs">
-              <div className="border-b border-slate-200 pb-2">
-                <p className="font-bold text-slate-900 text-xs">{selectedReceipt.billedBy?.tradeName || "myBillBook Technologies Pvt Ltd"}</p>
-                <p className="text-[11px] text-slate-500">{selectedReceipt.billedBy?.address || "Satellite, Ahmedabad, Gujarat - 380015"}</p>
-                <div className="flex gap-4 text-[10px] text-slate-600 mt-1 tabular-nums">
-                  <span>GSTIN: <b>{selectedReceipt.billedBy?.gstin || "24AABCM9124P1ZX"}</b></span>
-                  <span>SAC: <b>{selectedReceipt.billedBy?.sacCode || "998314"}</b></span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 border-b border-slate-200 pb-2">
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">BILLED TO (ORGANIZATION)</span>
-                  <p className="font-bold text-slate-900">{selectedReceipt.companyName || selectedReceipt.organizationName}</p>
-                  <p className="text-[11px] text-slate-600 tabular-nums">GSTIN: {selectedReceipt.gstin || "Unregistered"}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">INVOICE DATE</span>
-                  <p className="font-bold text-slate-900">{selectedReceipt.displayDate || formatReadableDate(selectedReceipt.date)}</p>
-                  <p className="text-[10px] text-slate-500">Mode: {selectedReceipt.paymentMode || "Online"}</p>
-                </div>
-              </div>
-
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase">
-                    <th className="py-1">Description</th>
-                    <th className="py-1 text-center">SAC</th>
-                    <th className="py-1 text-right">Taxable</th>
-                    <th className="py-1 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr>
-                    <td className="py-2">
-                      <p className="font-bold text-slate-900">{selectedReceipt.planName}</p>
-                      <p className="text-[10px] text-slate-500">Cloud Accounting, GST E-Invoicing & Multi-Branch</p>
-                    </td>
-                    <td className="py-2 text-center tabular-nums text-[11px] text-slate-600">998314</td>
-                    <td className="py-2 text-right tabular-nums">₹ {(selectedReceipt.taxableAmount || 0).toLocaleString("en-IN")}</td>
-                    <td className="py-2 text-right tabular-nums font-medium text-slate-900">{selectedReceipt.formattedAmount || `₹ ${selectedReceipt.amount}`}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <div className="border-t border-slate-200 pt-2 space-y-1 text-[11px]">
-                <div className="flex justify-between text-slate-600">
-                  <span>Taxable Value:</span>
-                  <span className="tabular-nums">₹ {(selectedReceipt.taxableAmount || 0).toLocaleString("en-IN")}</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>CGST (9%):</span>
-                  <span className="tabular-nums">₹ {(selectedReceipt.cgst || 0).toLocaleString("en-IN")}</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>SGST (9%):</span>
-                  <span className="tabular-nums">₹ {(selectedReceipt.sgst || 0).toLocaleString("en-IN")}</span>
-                </div>
-                <div className="flex justify-between text-xs font-semibold text-slate-900 pt-1 border-t border-slate-200">
-                  <span>Total Amount Paid:</span>
-                  <span className="text-[#1677E8] tabular-nums text-sm font-bold">{selectedReceipt.formattedAmount || `₹ ${selectedReceipt.amount}`}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button onClick={() => setSelectedReceipt(null)} className="h-9 px-3 text-[13px] text-slate-600 hover:bg-slate-100 rounded-xl">Close</button>
-              <button
-                type="button"
-                onClick={() => {
-                  const printContent = document.getElementById("subscription-receipt-print");
-                  if (!printContent) return;
-                  const printWin = window.open("", "_blank", "width=700,height=800");
-                  if (!printWin) return;
-                  printWin.document.write(`
-                    <html>
-                      <head>
-                        <title>Receipt_${selectedReceipt.referenceNo.replace(/\//g, "_")}</title>
-                        <style>
-                          body { font-family: system-ui, -apple-system, sans-serif; padding: 24px; color: #0f172a; }
-                          table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-                          th, td { padding: 8px; text-align: left; }
-                          th { background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 11px; }
-                          td { border-bottom: 1px solid #f1f5f9; font-size: 12px; }
-                          .text-right { text-align: right; }
-                          .text-center { text-align: center; }
-                          .bold { font-weight: bold; }
-                          .header { border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
-                        </style>
-                      </head>
-                      <body>
-                        <div class="header">
-                          <h2 style="margin: 0; font-size: 18px;">${selectedReceipt.billedBy?.tradeName || "myBillBook Technologies Private Limited"}</h2>
-                          <p style="margin: 4px 0; font-size: 11px; color: #475569;">${selectedReceipt.billedBy?.address || "Ahmedabad, Gujarat"}</p>
-                          <p style="margin: 2px 0; font-size: 11px; font-family: monospace;">GSTIN: ${selectedReceipt.billedBy?.gstin || "24AABCM9124P1ZX"} | SAC: 998314</p>
-                        </div>
-                        ${printContent.innerHTML}
-                        <script>window.onload = function() { window.print(); };</script>
-                      </body>
-                    </html>
-                  `);
-                  printWin.document.close();
-                }}
-                className="px-4 py-2 text-xs font-bold text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                <span>Print / Save PDF</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Share Suggestion Modal */}
       {showShareSuggestion && (
@@ -1884,7 +1930,7 @@ function ManageBusinessSettingsView() {
       loadImagePreview("logo");
       loadImagePreview("signature");
     })();
-    return () => {
+  return () => {
       isMounted = false;
     };
   }, [currentCompany?.id]);
@@ -1912,7 +1958,7 @@ function ManageBusinessSettingsView() {
         if (!cancelled) setPinStatus(lang === "gu" ? "પિનકોડ મળ્યો નહીં" : "Pincode not found");
       }
     }, 350);
-    return () => {
+  return () => {
       cancelled = true;
       clearTimeout(t);
     };
@@ -2622,7 +2668,7 @@ function PrintSettingsView() {
       if (active) setUpiQrPreview(dataUrl);
     });
 
-    return () => {
+  return () => {
       active = false;
     };
   }, [currentCompany?.id, displayName, displayUpi]);
@@ -4696,7 +4742,7 @@ function PricingSettingsView() {
         if (isMounted) setIsLoadingPlans(false);
       });
 
-    return () => {
+  return () => {
       isMounted = false;
     };
   }, []);
@@ -5029,7 +5075,7 @@ function PricingSettingsView() {
           const displayMonthly = billingCycle === "yearly" ? p.yearlyPrice : p.monthlyPrice;
           const displayAnnual = p.annualTotal;
 
-          return (
+  return (
             <motion.div
               key={p.tier}
               whileHover={!isDowngrade ? { y: -3 } : undefined}

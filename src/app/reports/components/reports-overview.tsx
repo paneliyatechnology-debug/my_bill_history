@@ -805,7 +805,11 @@ export function ReportsOverview({
     settlementRate: 0, // strictly 0% to 100%
 
     grossProfit: 0,
-    grossMarginRate: 0, // profit margin strictly out of 100%
+    grossMarginRate: 0,
+    cogs: 0,
+    closingStockValuation: 0,
+    requiresReconciliation: false,
+    pnlAvailable: true,
 
     receivables: 0,
     receivablesShare: 0, // % of total sales
@@ -865,12 +869,13 @@ export function ReportsOverview({
     const params = { startDate, endDate, fromDate: startDate, toDate: endDate };
 
     try {
-      const [salesRes, purchaseRes, outstandingRes, financeRes]: any =
+      const [salesRes, purchaseRes, outstandingRes, financeRes, pnlRes]: any =
         await Promise.allSettled([
           apiClient.get("/reports/sales-register", params),
           apiClient.get("/reports/purchase-register", params),
           apiClient.get("/reports/outstanding-balances", { asOfDate: endDate }),
           apiClient.get("/reports/financial-summary", { asOfDate: endDate }),
+          apiClient.get("/reports/profit-and-loss", params),
         ]);
 
       // 1. Genuine Sales Metrics
@@ -955,10 +960,23 @@ export function ReportsOverview({
         payTotal = Number(outstandingRes.value.summary?.totalPayables || outstandingRes.value.summary?.totalPayable || 0);
       }
 
-      // Genuine Gross Trading Margin: Sales - Purchases
-      const grossProfit = sTotal - pTotal;
-      // Real Profit Margin % strictly out of 100%
-      const grossMarginRate = sTotal > 0 ? ((grossProfit / sTotal) * 100) : 0;
+      // 4. Centralized Accounting Gross Profit, COGS & Margin from Profit & Loss (Single Source of Truth)
+      let grossProfit = 0;
+      let grossMarginRate = 0;
+      let cogs = 0;
+      let closingStockValuation = 0;
+      let requiresReconciliation = false;
+      let pnlAvailable = false;
+
+      if (pnlRes.status === "fulfilled" && pnlRes.value) {
+        const pv = pnlRes.value;
+        pnlAvailable = true;
+        grossProfit = Number(pv.grossProfit ?? pv.summary?.grossProfit ?? pv.tradingAccount?.tradingGrossProfit ?? 0);
+        grossMarginRate = Number(pv.grossMarginPct ?? pv.summary?.grossMarginPct ?? pv.tradingAccount?.grossMarginPct ?? 0);
+        cogs = Number(pv.costOfGoodsSold ?? pv.tradingAccount?.costOfGoodsSold ?? 0);
+        closingStockValuation = Number(pv.closingStockValuation ?? pv.tradingAccount?.closingStockValuation ?? 0);
+        requiresReconciliation = Boolean(pv.requiresReconciliation ?? pv.tradingAccount?.requiresReconciliation ?? false);
+      }
 
       // Real Sales Collection % strictly out of 100%
       const collectionRate = sTotal > 0 ? Math.min(100, Math.max(0, (sPaid / sTotal) * 100)) : 0;
@@ -991,6 +1009,10 @@ export function ReportsOverview({
 
         grossProfit,
         grossMarginRate,
+        cogs,
+        closingStockValuation,
+        requiresReconciliation,
+        pnlAvailable,
 
         receivables: recTotal,
         receivablesShare,
@@ -1328,40 +1350,57 @@ export function ReportsOverview({
             <div className="mt-2">
               {isLoadingMetrics ? (
                 <div className="h-7 w-32 bg-slate-100 animate-pulse rounded-lg" />
+              ) : !metrics.pnlAvailable ? (
+                <p className="text-sm font-semibold text-amber-700">
+                  Inventory valuation unavailable
+                </p>
               ) : (
-                <p className="text-xl font-extrabold tracking-tight text-slate-900">
+                <p className={`text-xl font-extrabold tracking-tight ${metrics.grossProfit < 0 ? "text-rose-600" : "text-slate-900"}`}>
                   {formatInr(metrics.grossProfit)}
                 </p>
               )}
             </div>
 
-            {/* Profit Margin: Guaranteed out of 100% */}
+            {/* Gross Margin % */}
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs font-medium text-slate-600 mb-1">
                 <span className="text-slate-500">Gross Margin</span>
-                <span className="font-bold text-slate-800">
-                  {metrics.grossMarginRate.toFixed(1)}%
+                <span className={`font-bold ${metrics.grossMarginRate < 0 ? "text-rose-600" : "text-slate-800"}`}>
+                  {metrics.pnlAvailable ? `${metrics.grossMarginRate.toFixed(1)}%` : "—"}
                 </span>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full transition-all duration-500 bg-slate-700"
+                  className={`h-full rounded-full transition-all duration-500 ${metrics.grossMarginRate < 0 ? "bg-rose-500" : "bg-slate-700"}`}
                   style={{
-                    width: `${Math.min(100, Math.max(0, Math.abs(metrics.grossMarginRate)))}%`,
+                    width: `${metrics.pnlAvailable ? Math.min(100, Math.max(0, Math.abs(metrics.grossMarginRate))) : 0}%`,
                   }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Trading Surplus</span>
+          <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 gap-2">
+            {metrics.requiresReconciliation ? (
+              <button
+                type="button"
+                onClick={() => onSelectReport("stock-summary")}
+                className="text-amber-700 hover:text-amber-800 font-semibold truncate cursor-pointer"
+                title="Negative or provisional stock detected — review Stock Summary"
+              >
+                Requires stock reconciliation
+              </button>
+            ) : (
+              <span className="truncate">
+                COGS: <span className="font-medium text-slate-700">{metrics.pnlAvailable ? formatInr(metrics.cogs) : "—"}</span>
+              </span>
+            )}
             <button
               type="button"
               onClick={() => onSelectReport("profit-loss")}
-              className="text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+              className="text-blue-600 hover:text-blue-700 font-semibold cursor-pointer shrink-0"
             >
-              View P&L →
+              View P&amp;L →
             </button>
           </div>
         </div>
