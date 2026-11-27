@@ -223,6 +223,7 @@ export default function NewInvoicePage() {
   });
 
   const [placeOfSupply, setPlaceOfSupply] = useState("");
+  const [warehouseId, setWarehouseId] = useState("");
   const [isTaxInclusive, setIsTaxInclusive] = useState(false);
 
   // Bottom Add-ons
@@ -396,7 +397,12 @@ export default function NewInvoicePage() {
       setItems(iList);
       setUnits(uList);
       setCategories(extractList<any>(categoriesRes));
-      setWarehouses(extractList<any>(warehousesRes));
+      const whList = extractList<any>(warehousesRes);
+      setWarehouses(whList);
+      const defWh = whList.find((w: any) => w.isDefault) || whList[0];
+      if (defWh?.id) {
+        setWarehouseId((prev) => prev || defWh.id);
+      }
       if (nextNumRes?.nextNumber) {
         setInvoiceNumber(nextNumRes.nextNumber);
       }
@@ -1371,6 +1377,7 @@ export default function NewInvoicePage() {
         dueDate: formatIsoDate(dueDate),
         paymentMode: resolvedPaymentMode,
         placeOfSupply: placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState) || "24",
+        warehouseId: warehouseId || undefined,
         notes: notes.trim() || undefined,
         termsAndConditions: termsAndConditions.trim() || undefined,
         additionalCharges: totalAdditionalCharges > 0 ? [{ name: "Freight", amount: totalAdditionalCharges, taxRate: freightTaxRate }] : [],
@@ -2046,6 +2053,21 @@ export default function NewInvoicePage() {
                     value: code,
                   })),
                 },
+                ...(warehouses.length > 0
+                  ? [
+                      {
+                        id: "warehouseId",
+                        label: "Dispatch Warehouse",
+                        type: "select" as const,
+                        value: warehouseId,
+                        onChange: setWarehouseId,
+                        options: warehouses.map((w: any) => ({
+                          label: w.isDefault ? `${w.name} (Default)` : w.name,
+                          value: w.id,
+                        })),
+                      },
+                    ]
+                  : []),
               ]}
             />
 

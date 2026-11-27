@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
@@ -17,6 +18,7 @@ interface Warehouse {
 }
 
 export default function WarehousesPage() {
+  const router = useRouter();
   const { lang, tenantContext, branches } = useAuth();
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,6 +122,10 @@ export default function WarehousesPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleOpenWarehouseDetail = (w: Warehouse) => {
+    router.push(`/masters/warehouses/${w.id}`);
   };
 
   const handleDeleteWarehouse = async () => {
@@ -228,6 +234,13 @@ export default function WarehousesPage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
+                  onClick={() => handleOpenWarehouseDetail(w)}
+                  className="px-2.5 py-1 text-[13px] font-medium text-[#1677E8] bg-[#EFF6FF] hover:bg-[#1677E8] hover:text-white border border-blue-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
+                  title="View Item Stock & Past Movements"
+                >
+                  <span>{lang === "gu" ? "સ્ટોક અને હિસ્ટ્રી" : "Stock & History"}</span>
+                </button>
+                <button
                   onClick={() => handleOpenEditModal(w)}
                   className="px-2.5 py-1 text-[13px] font-medium text-[#0F172A] bg-[#EFF6FF] hover:bg-[#0F172A] hover:text-white border border-[#0F172A]/30 rounded transition-colors inline-flex items-center gap-1"
                   title="Edit Warehouse"
@@ -267,11 +280,11 @@ export default function WarehousesPage() {
         }
         exportFilename="warehouses_master"
         themeColor="saffron"
-        onRowClick={(w) => handleOpenEditModal(w)}
+        onRowClick={(w) => handleOpenWarehouseDetail(w)}
         mobileCardRender={(w) => (
           <div
             key={w.id}
-            onClick={() => handleOpenEditModal(w)}
+            onClick={() => handleOpenWarehouseDetail(w)}
             className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg"
           >
             <div className="flex items-center justify-between">
