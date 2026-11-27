@@ -419,10 +419,14 @@ export default function CreatePurchaseOrderPage() {
       totalDiscount += discAmt;
     });
 
-    const addChargesSum = additionalCharges.reduce((acc, c) => acc + (Number(c.amount) || 0), 0) + (Number(freightAmount) || 0);
+    const freightVal = Number(freightAmount) || 0;
+    const maxItemTaxRate = items.reduce((max, r) => Math.max(max, Number(r.taxRate) || 0), 0);
+    const freightTax = freightVal > 0 && maxItemTaxRate > 0 ? (freightVal * maxItemTaxRate) / 100 : 0;
+    totalTax += freightTax;
+    const addChargesSum = additionalCharges.reduce((acc, c) => acc + (Number(c.amount) || 0), 0) + freightVal;
     const extraDiscount = Number(overallDiscount) || 0;
 
-    let preRoundTotal = rawTotal + addChargesSum - extraDiscount;
+    let preRoundTotal = rawTotal + addChargesSum + freightTax - extraDiscount;
     if (preRoundTotal < 0) preRoundTotal = 0;
 
     let roundOffDelta = 0;
@@ -883,10 +887,22 @@ export default function CreatePurchaseOrderPage() {
                     title="Order Summary"
                     subtotal={calculations.totalTaxable}
                     discount={calculations.totalDiscount > 0 ? calculations.totalDiscount : undefined}
+                    preTaxRows={
+                      Number(freightAmount) > 0
+                        ? [
+                            { label: "Freight", value: Number(freightAmount) },
+                            {
+                              label: "Taxable Amount",
+                              value: calculations.totalTaxable + Number(freightAmount),
+                              className: "font-semibold pt-1 border-t border-slate-100",
+                            },
+                          ]
+                        : []
+                    }
                     cgst={calculations.cgst > 0 ? calculations.cgst : undefined}
                     sgst={calculations.sgst > 0 ? calculations.sgst : undefined}
                     igst={calculations.igst > 0 ? calculations.igst : undefined}
-                    customRows={Number(freightAmount) > 0 ? [{ label: "Freight", value: Number(freightAmount) }] : []}
+                    customRows={[]}
                     roundOff={calculations.roundOffDelta !== 0 ? calculations.roundOffDelta : undefined}
                     grandTotal={calculations.finalGrandTotal}
                   />

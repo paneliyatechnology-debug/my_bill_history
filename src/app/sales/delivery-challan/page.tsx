@@ -505,12 +505,13 @@ export default function DeliveryChallanListingPage() {
               value: key,
               label,
             }))}
-            className="w-48"
+            fullWidth={false}
+            className="w-full sm:w-44 shrink-0"
           />
         </div>
 
         {/* Status segment pills switcher */}
-        <div className="flex items-center gap-1 bg-[#F6F7F1] p-1 rounded-xl border border-[#E2E8E5] self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-[#F6F7F1] p-1 rounded-xl border border-[#E2E8E5] self-start lg:self-auto shrink-0">
           {(
             [
               { key: "ALL", label: "All" },

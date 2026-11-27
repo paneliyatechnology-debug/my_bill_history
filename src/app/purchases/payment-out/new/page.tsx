@@ -498,12 +498,46 @@ function CreatePaymentOutForm() {
     });
   };
 
+  const handlePaymentOutDiscountChange = (newVal: string) => {
+    setPaymentOutDiscount(newVal);
+    const totalDisc = parseFloat(newVal) || 0;
+
+    setBills((prev) => {
+      if (prev.length === 0) return prev;
+      const hasSelected = prev.some((b) => b.isSelected);
+      let remaining = totalDisc;
+      const updated = prev.map((b) => {
+        if (hasSelected && !b.isSelected) {
+          return { ...b, discount: "" };
+        }
+        if (remaining <= 0) {
+          return { ...b, discount: "" };
+        }
+        const currentSettle = parseFloat(b.settle) || 0;
+        const maxDisc = b.balanceAmount;
+        const allocDisc = Math.min(remaining, maxDisc);
+        remaining -= allocDisc;
+        const maxSettle = Math.max(0, b.balanceAmount - allocDisc);
+        const adjustedSettle = currentSettle > maxSettle ? maxSettle : currentSettle;
+        return {
+          ...b,
+          discount: allocDisc > 0 ? allocDisc.toFixed(2) : "",
+          settle: adjustedSettle > 0 ? adjustedSettle.toFixed(2) : "",
+          isSelected: adjustedSettle > 0 || allocDisc > 0,
+        };
+      });
+      const newTotalPaid = updated.reduce((sum, b) => sum + (parseFloat(b.settle) || 0), 0);
+      setAmountPaid(newTotalPaid > 0 ? newTotalPaid.toFixed(2) : "");
+      return updated;
+    });
+  };
+
   const handleBillSettleChange = (index: number, val: string) => {
     setBills((prev) => {
       const updated = [...prev];
       const target = { ...updated[index] };
       target.settle = val;
-      target.isSelected = (parseFloat(val) || 0) > 0;
+      target.isSelected = (parseFloat(val) || 0) > 0 || (parseFloat(target.discount) || 0) > 0;
       updated[index] = target;
 
       const newTotal = updated.reduce((sum, b) => sum + (parseFloat(b.settle) || 0), 0);
@@ -800,7 +834,7 @@ function CreatePaymentOutForm() {
                     type="number"
                     step="any"
                     value={paymentOutDiscount === "0" ? "" : paymentOutDiscount}
-                    onChange={(e) => setPaymentOutDiscount(e.target.value)}
+                    onChange={(e) => handlePaymentOutDiscountChange(e.target.value)}
                     placeholder="0.00"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />

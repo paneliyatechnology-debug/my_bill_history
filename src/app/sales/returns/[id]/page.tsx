@@ -345,7 +345,7 @@ export default function SalesReturnViewPage() {
           </span>
           <h2 className="text-[15px] font-semibold text-[#182230]">Sales Return Not Found</h2>
           <p className="text-xs font-semibold text-[#0F172A] mt-0.5">
-            વેચાણ પરત મળેલ નથી
+            Sales Return not found
           </p>
           <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
             {error || "The requested sales return does not exist or has been deleted."}
@@ -355,7 +355,7 @@ export default function SalesReturnViewPage() {
               href="/sales/returns"
               className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#0F172A] h-9 px-3.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition-colors"
             >
-              <span>Back to Sales Returns (વેચાણ પરત યાદી)</span>
+              <span>Back to Sales Returns</span>
             </Link>
             <div className="grid grid-cols-2 gap-2 mt-1">
               <Link
@@ -434,8 +434,10 @@ export default function SalesReturnViewPage() {
     },
     items: (data.items || []).map((it, idx) => {
       const qty = Number(it.quantity || 1);
-      const unitPrice = Number(it.unitPrice || 0);
-      const taxable = Number(it.taxableAmount || qty * unitPrice);
+      const rawUnitPrice = Number(it.unitPrice ?? (it as any).rate ?? 0);
+      const taxable = Number(it.taxableAmount || qty * rawUnitPrice);
+      const unitPrice =
+        rawUnitPrice > 0 ? rawUnitPrice : qty > 0 && taxable > 0 ? taxable / qty : 0;
       const taxRate = Number(it.taxRate || 0);
       const taxAmt = Number(
         (it.cgstAmount !== undefined || it.sgstAmount !== undefined)

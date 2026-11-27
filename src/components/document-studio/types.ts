@@ -60,6 +60,14 @@ export interface DocumentItemsCardProps {
   children: React.ReactNode; // Table or custom items editor
 }
 
+export interface AttachedDocumentFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  file?: File;
+}
+
 export interface DocumentNotesAndTermsProps {
   activeTab: "notes" | "terms";
   onTabChange: (tab: "notes" | "terms") => void;
@@ -69,6 +77,8 @@ export interface DocumentNotesAndTermsProps {
   onTermsChange: (val: string) => void;
   onAttachFiles?: (files: FileList | null) => void;
   attachedFilesCount?: number;
+  attachedFiles?: AttachedDocumentFile[];
+  onRemoveAttachedFile?: (id: string) => void;
 }
 
 export interface AdditionalInfoFields {
@@ -82,6 +92,10 @@ export interface AdditionalInfoFields {
   onDispatchDateChange?: (val: string) => void;
   freightAmount?: number | "";
   onFreightAmountChange?: (val: number | "") => void;
+  salespersonName?: string;
+  onSalespersonNameChange?: (val: string) => void;
+  mrnNumber?: string;
+  onMrnNumberChange?: (val: string) => void;
   customFields?: React.ReactNode;
 }
 
@@ -103,6 +117,7 @@ export interface DocumentSummaryCardProps {
   roundOff?: number | string;
   grandTotal: number | string;
   amountInWords?: string;
+  preTaxRows?: SummaryRow[];
   customRows?: SummaryRow[];
 }
 

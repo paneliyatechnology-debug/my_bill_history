@@ -273,8 +273,10 @@ export function DynamicThemedInvoice({
                     ? "QUOTATION"
                     : docCategory === "PROFORMA_INVOICE" || docCategory === "PROFORMA"
                       ? "PROFORMA INVOICE"
-                      : docCategory === "DELIVERY_CHALLAN"
-                        ? "DELIVERY CHALLAN"
+                      : docCategory === "SALES_ORDER"
+                        ? "SALES ORDER"
+                        : docCategory === "DELIVERY_CHALLAN"
+                          ? "DELIVERY CHALLAN"
                         : docCategory === "BILL_OF_SUPPLY"
                           ? "BILL OF SUPPLY"
                           : "TAX INVOICE";
@@ -298,8 +300,10 @@ export function DynamicThemedInvoice({
                     ? "(ESTIMATE / QUOTATION)"
                     : docCategory === "PROFORMA_INVOICE" || docCategory === "PROFORMA"
                       ? "(PROFORMA INVOICE)"
-                      : docCategory === "DELIVERY_CHALLAN"
-                        ? "(DELIVERY CHALLAN - TRANSPORT COPY)"
+                      : docCategory === "SALES_ORDER"
+                        ? "(SALES ORDER VOUCHER)"
+                        : docCategory === "DELIVERY_CHALLAN"
+                          ? "(DELIVERY CHALLAN - TRANSPORT COPY)"
                         : "ORIGINAL FOR RECIPIENT";
 
   const docNumberLabel =
@@ -323,7 +327,9 @@ export function DynamicThemedInvoice({
                       ? "Quotation No"
                       : docCategory === "PROFORMA_INVOICE" || docCategory === "PROFORMA"
                         ? "Proforma No"
-                        : "Invoice No";
+                        : docCategory === "SALES_ORDER"
+                          ? "Order No"
+                          : "Invoice No";
 
   const resolvedDef = resolveThemeDefinition(
     settings.uniqueThemeKey || settings.festiveTheme || settings.themeId,

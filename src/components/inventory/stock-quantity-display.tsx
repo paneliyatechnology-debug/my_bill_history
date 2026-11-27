@@ -100,10 +100,10 @@ export function StockQuantityDisplay({
       {/* Low Stock Warning Indicator */}
       {isLowStock && (
         <span
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200/80"
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-300/80 animate-pulse"
           title={tooltipText}
         >
-          <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" strokeWidth={2} />
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
           <span>{lang === "gu" ? "ઓછો સ્ટોક" : "Low Stock"}</span>
         </span>
       )}

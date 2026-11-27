@@ -79,6 +79,9 @@ interface ReturnLineItem {
   description: string;
   hsn: string;
   quantity: number;
+  maxQuantity?: number;
+  invoicedQty?: number;
+  returnedQty?: number;
   unit: string;
   unitPrice: number;
   discountValue: number;
@@ -88,6 +91,8 @@ interface ReturnLineItem {
 
 const GST_RATES = [
   { label: "0%", value: 0 },
+  { label: "2.5%", value: 2.5 },
+  { label: "3%", value: 3 },
   { label: "5%", value: 5 },
   { label: "12%", value: 12 },
   { label: "18%", value: 18 },
@@ -406,30 +411,80 @@ export default function CreateCreditNotePage() {
     };
   }, [selectedParty]);
 
-  // Handle invoice linking: automatically populate returnable items
-  function handleSelectInvoice(inv: SalesInvoiceOption) {
+  // Handle invoice linking: fetch full invoice detail and populate returnable items
+  async function handleSelectInvoice(inv: SalesInvoiceOption) {
     setSelectedInvoice(inv);
     setIsInvoiceDropdownOpen(false);
 
-    // Populate lines from invoice with remaining returnable quantity only
-    if (inv.items && inv.items.length > 0) {
-      const returnLines: ReturnLineItem[] = inv.items
-        .filter((i) => i.quantity > 0.0001)
-        .map((i) => ({
-          id: crypto.randomUUID(),
-          salesItemId: i.id,
-          itemId: i.itemId,
-          name: i.item?.name || "Item",
-          description: "",
-          hsn: i.item?.hsnCode || "",
-          quantity: i.quantity,
-          unit: "PCS",
-          unitPrice: i.unitPrice,
-          discountValue: 0,
-          discountType: "PERCENT",
-          taxRate: i.taxRate,
-        }));
+    let fullInv: any = inv;
+    const needsDetail =
+      !inv.items ||
+      inv.items.length === 0 ||
+      inv.items.some((i: any) => i.unitPrice === undefined || !i.item?.name);
+    if (needsDetail && inv.id) {
+      try {
+        const detailRes: any = await apiClient
+          .get<any>(`/sales/invoices/${inv.id}`)
+          .catch(() => apiClient.get<any>(`/invoices/${inv.id}`));
+        const resolved = detailRes?.data || detailRes;
+        if (resolved?.id) {
+          fullInv = resolved;
+          setSelectedInvoice(resolved);
+        }
+      } catch {
+        // Fallback to list object
+      }
+    }
+
+    // Compute previously returned quantities from existing returns on this invoice
+    const returnedMap = new Map<string, number>();
+    (fullInv.returns || []).forEach((ret: any) => {
+      (ret.items || []).forEach((ri: any) => {
+        if (ri.salesItemId) {
+          returnedMap.set(
+            ri.salesItemId,
+            (returnedMap.get(ri.salesItemId) || 0) + Number(ri.quantity || 0)
+          );
+        }
+      });
+    });
+
+    // Populate lines with remaining returnable quantity only
+    if (fullInv.items && fullInv.items.length > 0) {
+      const returnLines: ReturnLineItem[] = fullInv.items
+        .map((i: any) => {
+          const origQty = Number(i.quantity || 0);
+          const prevReturned = returnedMap.get(i.id) || 0;
+          const remainingQty = Math.max(0, origQty - prevReturned);
+          const taxableAmt = Number(i.taxableAmount || 0);
+          const resolvedRate =
+            Number(i.unitPrice ?? i.rate ?? 0) ||
+            (origQty > 0 && taxableAmt > 0 ? taxableAmt / origQty : 0);
+          return {
+            id: crypto.randomUUID(),
+            salesItemId: i.id,
+            itemId: i.itemId || i.item?.id,
+            name: i.item?.name || i.itemName || i.description || "Item",
+            description: "",
+            hsn: i.item?.hsnCode || i.hsnCode || "",
+            quantity: remainingQty,
+            maxQuantity: remainingQty,
+            invoicedQty: origQty,
+            returnedQty: prevReturned,
+            unit: i.item?.primaryUom?.symbol || i.item?.primaryUom?.code || "PCS",
+            unitPrice: resolvedRate,
+            discountValue: Number(i.discountRate ?? i.discountPercent ?? 0),
+            discountType: "PERCENT" as const,
+            taxRate: Number(i.taxRate || 0),
+          };
+        })
+        .filter((line: ReturnLineItem) => line.quantity > 0.0001);
       setLineItems(returnLines);
+      if (returnLines.length === 0) {
+        setError("All items on this invoice have already been returned.");
+      } else {
+        setError(null);
+      }
     }
   }
 
@@ -671,7 +726,7 @@ export default function CreateCreditNotePage() {
         docType: "CREDIT_NOTE",
         creditNoteType,
         gstCategory,
-        restoreStock: false,
+        restoreStock: !isAmount,
         settlementMode,
         reason: notes || (isAmount ? amountBasedReason : "Sales Return / Credit Note"),
       };
@@ -874,7 +929,7 @@ export default function CreateCreditNotePage() {
             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                  Credit Note Type (ક્રેડિટ નોટ પ્રકાર)
+                  Credit Note Type
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -904,7 +959,7 @@ export default function CreateCreditNotePage() {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                  GST Classification (જીએસટી વર્ગીકરણ)
+                  GST Classification
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -1026,7 +1081,7 @@ export default function CreateCreditNotePage() {
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    Amount-Based Credit Adjustment (રકમ આધારિત ક્રેડિટ)
+                    Amount-Based Credit Adjustment
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Flat monetary credit without item-level inventory returns (e.g. Rate difference, Annual turnover rebate, Commercial discount)
@@ -1177,6 +1232,17 @@ export default function CreateCreditNotePage() {
                             placeholder="Item name / description"
                             className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
                           />
+                          {item.maxQuantity !== undefined && (
+                            <p className="text-[11px] text-slate-500 mt-1 px-0.5">
+                              Invoiced: <span className="font-semibold text-slate-700">{item.invoicedQty}</span>
+                              {Boolean(item.returnedQty) && (
+                                <>
+                                  {" • "}Returned: <span className="font-semibold text-amber-600">{item.returnedQty}</span>
+                                </>
+                              )}
+                              {" • "}Returnable: <span className="font-semibold text-emerald-700">{item.maxQuantity}</span>
+                            </p>
+                          )}
                         </td>
 
                         <td className="py-3 px-3">
@@ -1192,7 +1258,13 @@ export default function CreateCreditNotePage() {
                         <td className="py-3 px-3">
                           <CleanNumberInput
                             value={item.quantity}
-                            onChange={(val) => updateLineItem(item.id, { quantity: val })}
+                            onChange={(val) => {
+                              const clamped =
+                                item.maxQuantity !== undefined
+                                  ? Math.min(Math.max(0, val), item.maxQuantity)
+                                  : Math.max(0, val);
+                              updateLineItem(item.id, { quantity: clamped });
+                            }}
                             placeholder="1"
                             className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10 focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10"
                           />
@@ -1288,7 +1360,19 @@ export default function CreateCreditNotePage() {
                 title={`${docLabel} Valuation`}
                 subtotal={subtotalTaxable}
                 discount={Number(discountAmount) > 0 ? Number(discountAmount) : undefined}
-                customRows={Number(additionalCharges) > 0 ? [{ label: "Freight", value: Number(additionalCharges) }] : []}
+                preTaxRows={
+                  Number(additionalCharges) > 0
+                    ? [
+                        { label: "Freight", value: Number(additionalCharges) },
+                        {
+                          label: "Taxable Amount",
+                          value: subtotalTaxable + Number(additionalCharges),
+                          className: "font-semibold pt-1 border-t border-slate-100",
+                        },
+                      ]
+                    : []
+                }
+                customRows={[]}
                 roundOff={autoRoundOff ? roundOffAmount : undefined}
                 grandTotal={calculatedGrandTotal}
               />
@@ -1328,6 +1412,7 @@ export default function CreateCreditNotePage() {
       {/* Add Items Modal */}
       <AddItemsModal
         isOpen={isAddItemsModalOpen}
+        enforceStockLimit={false}
         onClose={() => setIsAddItemsModalOpen(false)}
         items={catalogItems}
         onAddSelectedItems={handleAddSelectedCatalogItems}

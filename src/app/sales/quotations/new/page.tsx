@@ -222,6 +222,49 @@ export default function NewQuotationPage() {
       setParties(pList);
       setItems(iList);
       setUnits(uList);
+
+      if (typeof window !== "undefined") {
+        const cloneRaw = localStorage.getItem("billing_clone_invoice");
+        if (cloneRaw) {
+          try {
+            const cloneData = JSON.parse(cloneRaw);
+            localStorage.removeItem("billing_clone_invoice");
+            if (cloneData.partyId || cloneData.party?.id) setPartyId(cloneData.partyId || cloneData.party.id);
+            if (cloneData.placeOfSupply || cloneData.party) {
+              setPlaceOfSupply(cloneData.placeOfSupply || resolvePartyStateCode(cloneData.party));
+            }
+            if (Array.isArray(cloneData.items) && cloneData.items.length > 0) {
+              setRows(
+                cloneData.items.map((it: any) => {
+                  const qty = Number(it.quantity) || 1;
+                  const rate = Number(it.unitPrice ?? it.rate ?? 0);
+                  const discPct = Number(it.discountPercent) || 0;
+                  const gross = qty * rate;
+                  const discAmt = discPct > 0 ? Number(((gross * discPct) / 100).toFixed(2)) : Number(it.discountAmount) || 0;
+                  return {
+                    itemId: it.itemId || it.item?.id || "",
+                    hsnCode: it.hsnCode || it.item?.hsnCode || "1001",
+                    quantity: qty,
+                    unit: it.unit || it.item?.primaryUom?.symbol || "PCS",
+                    unitPrice: rate,
+                    discountPercent: discPct,
+                    discountAmount: discAmt,
+                    taxRate: Number(it.taxRate ?? it.gstRate ?? 0),
+                  };
+                }),
+              );
+            }
+            if (cloneData.notes) {
+              setNotes(cloneData.notes);
+              setShowNotes(true);
+            }
+            if (cloneData.termsAndConditions) setTermsAndConditions(cloneData.termsAndConditions);
+            const fAmt = Number(cloneData.freightAmount ?? cloneData.shippingAddress?.freightAmount ?? cloneData.shippingAddress?.freight ?? 0);
+            if (fAmt > 0) setFreightAmount(fAmt);
+            setToastMessage("Quotation copied. Review and save.");
+          } catch {}
+        }
+      }
     } catch (err: any) {
       setError(err.message || "Failed to load quotation master data.");
     } finally {
@@ -475,8 +518,17 @@ export default function NewQuotationPage() {
       }
     });
 
-    // Additional charges
+    // Additional charges (Freight uses highest item GST rate, Tally style)
     let chargesTotal = Number(freightAmount) || 0;
+    const maxItemTaxRate = rows.reduce((max, r) => Math.max(max, Number(r.taxRate) || 0), 0);
+    if (chargesTotal > 0 && maxItemTaxRate > 0) {
+      if (isInterState) {
+        igst += (chargesTotal * maxItemTaxRate) / 100;
+      } else {
+        cgst += (chargesTotal * maxItemTaxRate) / 200;
+        sgst += (chargesTotal * maxItemTaxRate) / 200;
+      }
+    }
     additionalCharges.forEach((chg) => {
       const amt = Number(chg.amount) || 0;
       chargesTotal += amt;
@@ -1018,7 +1070,7 @@ export default function NewQuotationPage() {
                                   options={items.map((it) => ({
                                     value: it.id,
                                     label: it.name,
-                                    sublabel: `Stock: ${it.stockQuantity ?? 0}`,
+                                    sublabel: `Stock: ${Number((it as any).currentStock ?? it.stockQuantity ?? 0)}`,
                                   }))}
                                   placeholder="Select Item..."
                                   triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
@@ -1136,10 +1188,22 @@ export default function NewQuotationPage() {
                   title="Quotation Summary"
                   subtotal={itemsSubtotal}
                   discount={Number(overallDiscountAmount) > 0 ? Number(overallDiscountAmount) : undefined}
+                  preTaxRows={
+                    Number(freightAmount) > 0
+                      ? [
+                          { label: "Freight", value: Number(freightAmount) },
+                          {
+                            label: "Taxable Amount",
+                            value: totalTaxable,
+                            className: "font-semibold pt-1 border-t border-slate-100",
+                          },
+                        ]
+                      : []
+                  }
                   cgst={!isInterState ? totalCgst : undefined}
                   sgst={!isInterState ? totalSgst : undefined}
                   igst={isInterState ? totalIgst : undefined}
-                  customRows={Number(freightAmount) > 0 ? [{ label: "Freight (", value: Number(freightAmount) }] : []}
+                  customRows={[]}
                   roundOff={roundOff}
                   grandTotal={grandTotal}
                 />
@@ -1179,12 +1243,15 @@ export default function NewQuotationPage() {
             id: it.id,
             name: it.name,
             hsnCode: it.hsnCode,
+            category: (it as any).category?.name || (typeof (it as any).category === "string" ? (it as any).category : undefined),
+            categoryId: (it as any).categoryId,
             taxRate: it.taxRate,
             retailPrice: partyPrice !== null ? partyPrice : it.retailPrice,
             baseRetailPrice: it.retailPrice,
             isPartyRate: partyPrice !== null,
-            stockQuantity: it.stockQuantity ?? 50,
-            unit: it.unit || "PCS",
+            purchasePrice: Number((it as any).purchaseRate ?? (it as any).purchasePrice ?? 0) || undefined,
+            stockQuantity: Number((it as any).currentStock ?? (it as any).stockQuantity ?? 0),
+            unit: (it as any).primaryUom?.symbol || (it as any).primaryUom?.uqcCode || it.unit || "PCS",
           };
         })}
         onAddSelectedItems={(selected) => {
@@ -1216,10 +1283,6 @@ export default function NewQuotationPage() {
           } else {
             setRows((prev) => [...prev, ...newRows]);
           }
-        }}
-        onCreateNewItem={() => {
-          setIsAddItemsModalOpen(false);
-          handleAddRow();
         }}
       />
 

@@ -23,6 +23,7 @@ import { DashboardScannerCard } from "@/components/dashboard/dashboard-scanner-c
 import { type DailySalesPoint } from "@/components/dashboard/dashboard-sales-chart";
 import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
 import { UpcomingDuesAlertCard } from "@/components/dashboard/upcoming-dues-alert-card";
+import { AuditAlertsCard } from "@/components/dashboard/audit-alerts-card";
 import { aggregateItemSalesByCategory, periodToRange } from "@/lib/sales-by-category";
 import { Calendar, RotateCcw, X, Gift } from "lucide-react";
 
@@ -496,8 +497,9 @@ function DashboardContent() {
         )}
       </div>
 
-      {/* 3. UPCOMING DUES - IMPORTANT SECTION */}
+      {/* 3. UPCOMING DUES & AUDIT ALERTS */}
       <UpcomingDuesAlertCard />
+      <AuditAlertsCard />
 
       {/* 4. MAIN CONTENT ROW: RECENT TRANSACTIONS (8-col) | QUICK ACTIONS (4-col) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">

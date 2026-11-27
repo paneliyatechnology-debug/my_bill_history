@@ -72,6 +72,8 @@ export interface ItemFormData {
   model?: string;
   sizeColor?: string;
   description?: string;
+  imageUrl?: string;
+  tags?: string;
   isActive: boolean;
   partyWisePrices?: PartyWisePriceRule[];
 }
@@ -325,13 +327,14 @@ export function ItemStepModal({
           setShowWholesaleRate(true);
         }
       } else {
-        // Reset to empty clean state
+        // Reset to empty clean state with auto-generated Item Code / Barcode
+        const autoItemCode = `63${Math.floor(100000000 + Math.random() * 900000000)}`;
         setForm({
           type: "PRODUCT",
           name: "",
           nameGujarati: "",
-          sku: "",
-          barcode: "",
+          sku: autoItemCode,
+          barcode: autoItemCode,
           hsnCode: "1006",
           primaryUomId: defaultUom,
           secondaryUomId: "",
@@ -1790,6 +1793,28 @@ export function ItemStepModal({
                         placeholder="e.g. Size: 32 / Color: Navy Blue"
                         className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800 h-10"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
+                        Item Image URL &amp; Tags
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input
+                          type="url"
+                          value={form.imageUrl || ""}
+                          onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                          placeholder="https://example.com/item-image.jpg"
+                          className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800 h-10"
+                        />
+                        <input
+                          type="text"
+                          value={form.tags || ""}
+                          onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                          placeholder="Tags (comma-separated, e.g. Fast-Moving, Festive)"
+                          className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800 h-10"
+                        />
+                      </div>
                     </div>
 
                     <div>

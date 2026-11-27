@@ -621,18 +621,24 @@ export default function InvoiceDetailPage() {
   const primaryColor = customization.customPrimaryColor || activePreset.primaryColor;
   const activeComp = companyDetails || currentCompany;
 
-  const getDocTitle = () => {
-    switch (invoice?.category) {
+  const getCategoryMeta = (cat?: string) => {
+    switch (cat) {
+      case "SALES_ORDER":
+        return { listHref: "/sales/orders", listLabel: "Sales Orders", docTitle: "SALES ORDER", headingPrefix: "Sales Order" };
+      case "QUOTATION":
+        return { listHref: "/sales/quotations", listLabel: "Quotations", docTitle: "QUOTATION / ESTIMATE", headingPrefix: "Quotation" };
       case "PROFORMA_INVOICE":
-        return lang === "gu" ? "કાચું બિલ (QUOTATION)" : "QUOTATION / ESTIMATE";
+        return { listHref: "/sales/proforma", listLabel: "Proforma", docTitle: "PROFORMA INVOICE", headingPrefix: "Proforma Invoice" };
       case "DELIVERY_CHALLAN":
-        return lang === "gu" ? "ડિલિવરી ચલણ" : "DELIVERY CHALLAN";
+        return { listHref: "/sales/delivery-challan", listLabel: "Delivery Challans", docTitle: "DELIVERY CHALLAN", headingPrefix: "Delivery Challan" };
       case "BILL_OF_SUPPLY":
-        return lang === "gu" ? "મુક્તિ બિલ" : "BILL OF SUPPLY";
+        return { listHref: "/sales/invoices", listLabel: "Invoices", docTitle: "BILL OF SUPPLY", headingPrefix: "Bill of Supply" };
       default:
-        return lang === "gu" ? "ટેક્સ ઇનવોઇસ" : "TAX INVOICE";
+        return { listHref: "/sales/invoices", listLabel: "Invoices", docTitle: "TAX INVOICE", headingPrefix: "Invoice" };
     }
   };
+  const categoryMeta = getCategoryMeta(invoice?.category);
+  const getDocTitle = () => categoryMeta.docTitle;
 
   const bal = invoice.balanceAmount !== undefined ? Number(invoice.balanceAmount) : Number(invoice.outstandingBalance || 0);
   const totalAllocations = (allocations || []).reduce((sum, a) => sum + Number(a.allocatedAmount || 0), 0);
@@ -646,25 +652,21 @@ export default function InvoiceDetailPage() {
           {/* Left: Back Link, Document Title, Status Pill, Financial Summary */}
           <div className="flex items-center gap-3 flex-wrap min-w-0">
             <Link
-              href="/sales/invoices"
+              href={categoryMeta.listHref}
               className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl border border-slate-200 transition-colors shadow-2xs"
-              title="Back to Sales Invoices"
+              title={`Back to ${categoryMeta.listLabel}`}
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span>{lang === "gu" ? "પાછા જાઓ" : "Invoices"}</span>
+              <span>{categoryMeta.listLabel}</span>
             </Link>
 
             <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
             <div className="min-w-0">
               <h1 className="font-semibold text-slate-900 text-base sm:text-lg tracking-tight truncate">
-                {invoice.category === "PROFORMA_INVOICE"
-                  ? `Quotation #${invoice.invoiceNumber}`
-                  : invoice.category === "DELIVERY_CHALLAN"
-                    ? `Delivery Challan #${invoice.invoiceNumber}`
-                    : `Invoice #${invoice.invoiceNumber}`}
+                {`${categoryMeta.headingPrefix} #${invoice.invoiceNumber}`}
               </h1>
             </div>
 
@@ -936,9 +938,9 @@ export default function InvoiceDetailPage() {
                 <span>
                   {isIssuing
                     ? "Processing..."
-                    : invoice.category === "PROFORMA_INVOICE"
-                      ? (lang === "gu" ? "પાકું બિલ બનાવો" : "Convert to Tax Invoice")
-                      : (lang === "gu" ? "ટેક્સ બિલ બનાવો" : "Finalize & Issue Invoice")}
+                    : invoice.category === "PROFORMA_INVOICE" || invoice.category === "SALES_ORDER" || invoice.category === "QUOTATION"
+                      ? "Convert to Tax Invoice"
+                      : "Finalize & Issue Invoice"}
                 </span>
               </button>
             ) : ["ISSUED", "PARTIALLY_PAID"].includes(invoice.status) && bal > 0 ? (

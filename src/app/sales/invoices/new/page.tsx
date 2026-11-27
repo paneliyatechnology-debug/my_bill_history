@@ -10,6 +10,7 @@ import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoic
 import { InvoiceLivePreviewModal } from "@/components/invoice/invoice-live-preview-modal";
 import { ConfettiCanvas } from "@/components/invoice/confetti-canvas";
 import { AddItemsModal, CatalogItem } from "@/components/invoice/add-items-modal";
+import { ItemStepModal, ItemFormData } from "@/app/masters/items/components/item-step-modal";
 import {
   QuickSettingsModal,
   DEFAULT_QUICK_SETTINGS,
@@ -32,6 +33,7 @@ import {
   DocumentItemsCard,
   DocumentNotesAndTermsCard,
   DocumentAdditionalInfoCard,
+  validateAdditionalInfo,
   DocumentSummaryCard,
   DocumentPaymentCard,
   DocumentBottomBar,
@@ -165,10 +167,13 @@ export default function NewInvoicePage() {
   const [scanSuccessBanner, setScanSuccessBanner] = useState<string | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const [units, setUnits] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [warehouses, setWarehouses] = useState<Array<{ id: string; name: string; isDefault?: boolean }>>([]);
   const [isConfettiActive, setIsConfettiActive] = useState(false);
   const [scanDurationSeconds, setScanDurationSeconds] = useState<string>("0.0");
   const [scannedSummaryTime, setScannedSummaryTime] = useState<string | null>(null);
   const [isAddItemsModalOpen, setIsAddItemsModalOpen] = useState(false);
+  const [isCreateItemModalOpen, setIsCreateItemModalOpen] = useState(false);
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
@@ -193,8 +198,10 @@ export default function NewInvoicePage() {
 
   // Form Fields matching MyBillBook
   const [category, setCategory] = useState<
-    "TAX_INVOICE" | "PROFORMA_INVOICE" | "BILL_OF_SUPPLY" | "DELIVERY_CHALLAN"
+    "TAX_INVOICE" | "PROFORMA_INVOICE" | "BILL_OF_SUPPLY" | "DELIVERY_CHALLAN" | "SALES_ORDER"
   >("TAX_INVOICE");
+  const [salespersonName, setSalespersonName] = useState("");
+  const [tcsSection, setTcsSection] = useState("");
   const [partyId, setPartyId] = useState("");
   const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false);
   const [partySearchTerm, setPartySearchTerm] = useState("");
@@ -371,10 +378,12 @@ export default function NewInvoicePage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [partiesRes, itemsRes, unitsRes, nextNumRes]: any = await Promise.all([
+      const [partiesRes, itemsRes, unitsRes, categoriesRes, warehousesRes, nextNumRes]: any = await Promise.all([
         apiClient.get("/masters/parties", { type: "CUSTOMER", limit: 500 }),
         apiClient.get("/masters/items", { limit: 500 }),
         apiClient.get("/masters/units").catch(() => []),
+        apiClient.get("/masters/categories").catch(() => []),
+        apiClient.get("/masters/warehouses").catch(() => []),
         apiClient.get(`/invoices/next-number?category=${category}`).catch(() => null),
       ]);
       const pList = extractList<PartyOption>(partiesRes).filter(
@@ -385,6 +394,8 @@ export default function NewInvoicePage() {
       setParties(pList);
       setItems(iList);
       setUnits(uList);
+      setCategories(extractList<any>(categoriesRes));
+      setWarehouses(extractList<any>(warehousesRes));
       if (nextNumRes?.nextNumber) {
         setInvoiceNumber(nextNumRes.nextNumber);
       }
@@ -404,13 +415,14 @@ export default function NewInvoicePage() {
               setPlaceOfSupply(cloneData.placeOfSupply || resolvePartyStateCode(cloneData.party));
             }
             if (Array.isArray(cloneData.items) && cloneData.items.length > 0) {
-              const clonedRows: InvoiceItemRow[] = cloneData.items.map((it: any) => ({
+              const clonedRows: InvoiceItemRow[] = cloneData.items.map((it: any, i: number) => ({
+                rowId: `row-${Date.now()}-${i}`,
                 itemId: it.itemId || it.item?.id || "",
                 quantity: Number(it.quantity) || 1,
-                unit: it.unit || it.item?.baseUnit || "PCS",
-                unitPrice: Number(it.unitPrice) || 0,
+                unit: it.unit || it.item?.primaryUom?.symbol || it.item?.baseUnit || "PCS",
+                unitPrice: Number(it.unitPrice ?? it.rate ?? 0),
                 discountPercent: Number(it.discountPercent) || 0,
-                taxRate: Number(it.taxRate) || 0,
+                taxRate: Number(it.taxRate ?? it.gstRate ?? 0),
                 hsnCode: it.hsnCode || it.item?.hsnCode || "1001",
               }));
               setRows(clonedRows);
@@ -426,8 +438,19 @@ export default function NewInvoicePage() {
             if (cloneData.poDate) setPoDate(cloneData.poDate.split("T")[0]);
             if (cloneData.vehicleNumber) setVehicleNumber(cloneData.vehicleNumber);
             if (cloneData.ewayBillNumber) setEwayBillNumber(cloneData.ewayBillNumber);
-            if (cloneData.shippingAddress) setShippingAddress(cloneData.shippingAddress);
-            setToastMessage("Cloned invoice loaded. You can modify and save as a new invoice.");
+            if (cloneData.shippingAddress) {
+              if (typeof cloneData.shippingAddress === "string") {
+                setShippingAddress(cloneData.shippingAddress);
+              } else if (typeof cloneData.shippingAddress === "object") {
+                if (cloneData.shippingAddress.address) setShippingAddress(String(cloneData.shippingAddress.address));
+                const fAmt = Number(cloneData.freightAmount ?? cloneData.shippingAddress.freightAmount ?? cloneData.shippingAddress.freight ?? 0);
+                if (fAmt > 0) setFreightAmount(fAmt);
+                if (cloneData.shippingAddress.vehicleNo) setVehicleNo(String(cloneData.shippingAddress.vehicleNo));
+                if (cloneData.shippingAddress.transportMode) setTransportMode(String(cloneData.shippingAddress.transportMode));
+                if (cloneData.shippingAddress.salespersonName) setSalespersonName(String(cloneData.shippingAddress.salespersonName));
+              }
+            }
+            setToastMessage("Cloned document loaded. You can modify and save.");
           } catch (e) {
             console.error("Failed to parse cloned invoice:", e);
           }
@@ -459,6 +482,51 @@ export default function NewInvoicePage() {
       setIsLoading(false);
     }
   }, [tenantContext.companyId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const catParam = params.get("category");
+    if (
+      catParam === "SALES_ORDER" ||
+      catParam === "PROFORMA_INVOICE" ||
+      catParam === "BILL_OF_SUPPLY" ||
+      catParam === "DELIVERY_CHALLAN" ||
+      catParam === "TAX_INVOICE"
+    ) {
+      setCategory(catParam);
+    }
+    const fromQ = params.get("fromQuotation");
+    if (fromQ) {
+      apiClient
+        .get<any>(`/sales/invoices/${fromQ}`)
+        .then((q) => {
+          if (!q) return;
+          if (q.partyId || q.party?.id) setPartyId(q.partyId || q.party?.id);
+          if (q.placeOfSupply || q.party) setPlaceOfSupply(q.placeOfSupply || resolvePartyStateCode(q.party));
+          if (Array.isArray(q.items) && q.items.length > 0) {
+            setRows(
+              q.items.map((it: any) => ({
+                itemId: it.itemId || it.item?.id || "",
+                quantity: Number(it.quantity) || 1,
+                unit: it.unit || it.item?.baseUnit || "PCS",
+                unitPrice: Number(it.unitPrice) || 0,
+                discountPercent: Number(it.discountPercent) || 0,
+                taxRate: Number(it.taxRate) || 0,
+                hsnCode: it.hsnCode || it.item?.hsnCode || "1001",
+              })),
+            );
+          }
+          if (q.notes) {
+            setNotes(q.notes);
+            setShowNotes(true);
+          }
+          if (q.termsAndConditions) setTermsAndConditions(q.termsAndConditions);
+          if (q.shippingAddress?.salespersonName) setSalespersonName(q.shippingAddress.salespersonName);
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     if (tenantContext.companyId) {
@@ -667,7 +735,17 @@ export default function NewInvoicePage() {
   let totalAdditionalCharges = 0;
   let additionalChargesTax = 0;
   const freightVal = Number(freightAmount) || 0;
+  const freightTaxRate = rows.reduce((max, r) => Math.max(max, Number(r.taxRate) || 0), 0);
   totalAdditionalCharges += freightVal;
+  if (freightVal > 0 && freightTaxRate > 0) {
+    const freightTax = (freightVal * freightTaxRate) / 100;
+    if (isInterState) {
+      totalIgst += freightTax;
+    } else {
+      totalCgst += freightTax / 2;
+      totalSgst += freightTax / 2;
+    }
+  }
   additionalCharges.forEach((c) => {
     const amt = Number(c.amount) || 0;
     totalAdditionalCharges += amt;
@@ -1256,6 +1334,21 @@ export default function NewInvoicePage() {
       }
     }
 
+    // 4. Validate Additional Information (Vehicle No., E-Way Bill No., Freight)
+    const addInfoErrors = validateAdditionalInfo({
+      transportMode,
+      vehicleNo: vehicleNo || vehicleNumber,
+      ewayBillNo: ewayBillNumber,
+      freightAmount,
+    });
+    const firstAddInfoError =
+      addInfoErrors.vehicleNo || addInfoErrors.ewayBillNo || addInfoErrors.freightAmount;
+    if (firstAddInfoError) {
+      setError(firstAddInfoError);
+      setToastMessage(firstAddInfoError);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -1274,7 +1367,7 @@ export default function NewInvoicePage() {
         placeOfSupply: placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState) || "24",
         notes: notes.trim() || undefined,
         termsAndConditions: termsAndConditions.trim() || undefined,
-        additionalCharges: totalAdditionalCharges > 0 ? [{ name: "Freight", amount: totalAdditionalCharges }] : [],
+        additionalCharges: totalAdditionalCharges > 0 ? [{ name: "Freight", amount: totalAdditionalCharges, taxRate: freightTaxRate }] : [],
         overallDiscount: discValue,
         items: rows.map((r) => ({
           itemId: r.itemId || items[0]?.id,
@@ -1291,11 +1384,20 @@ export default function NewInvoicePage() {
         ewayBillNumber: (quickSettings.enableEwayBill && ewayBillNumber) || undefined,
         shippingAddress: {
           ...((quickSettings.showShippingAddress && shippingAddress) ? { address: shippingAddress } : {}),
-          ...(freightVal > 0 ? { freight: freightVal, freightAmount: freightVal } : {}),
+          ...(freightVal > 0 ? { freight: freightVal, freightAmount: freightVal, freightTaxRate } : {}),
           ...(vehicleNo || vehicleNumber ? { vehicleNo: vehicleNo || vehicleNumber } : {}),
           ...(transportMode ? { transportMode } : {}),
+          ...(salespersonName.trim() ? { salespersonName: salespersonName.trim() } : {}),
+          ...(tcsSection
+            ? {
+                tcsSection,
+                tcsRate: tcsSection === "206C_1H" ? 0.1 : 1,
+                tcsAmount: Math.round((roundedGrandTotal * (tcsSection === "206C_1H" ? 0.1 : 1)) / 100 * 100) / 100,
+              }
+            : {}),
         },
         freightAmount: freightVal > 0 ? freightVal : undefined,
+        freightTaxRate: freightVal > 0 ? freightTaxRate : undefined,
       };
 
       const res: any = await apiClient.post(
@@ -1356,8 +1458,20 @@ export default function NewInvoicePage() {
         setUploadedFile(null);
         setToastMessage("Invoice created successfully! Ready for next invoice.");
       } else {
-        setToastMessage(`Invoice #${invoiceNumber} created successfully!`);
-        router.push("/sales/invoices");
+        const dest =
+          category === "SALES_ORDER"
+            ? "/sales/orders"
+            : category === "PROFORMA_INVOICE"
+              ? "/sales/proforma"
+              : category === "DELIVERY_CHALLAN"
+                ? "/sales/delivery-challan"
+                : "/sales/invoices";
+        setToastMessage(
+          category === "SALES_ORDER"
+            ? `Sales Order #${invoiceNumber} created successfully!`
+            : `Invoice #${invoiceNumber} created successfully!`,
+        );
+        router.push(dest);
       }
     } catch (err: any) {
       console.error("Error creating sales invoice:", err);
@@ -2001,7 +2115,7 @@ export default function NewInvoicePage() {
                                   options={items.map((it) => ({
                                     value: it.id,
                                     label: it.name,
-                                    sublabel: `Stock: ${it.stockQuantity ?? 0}`,
+                                    sublabel: `Stock: ${Number((it as any).currentStock ?? it.stockQuantity ?? 0)}`,
                                   }))}
                                   placeholder="Select Item..."
                                   triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
@@ -2113,19 +2227,49 @@ export default function NewInvoicePage() {
                   onDispatchDateChange={setDispatchDate}
                   freightAmount={freightAmount}
                   onFreightAmountChange={setFreightAmount}
+                  salespersonName={salespersonName}
+                  onSalespersonNameChange={setSalespersonName}
+                  customFields={undefined}
                 />
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-700">TCS Collection (Section 206C)</p>
+                    <p className="text-[11px] text-slate-400">Optional Tax Collected at Source on high-value sales</p>
+                  </div>
+                  <select
+                    value={tcsSection}
+                    onChange={(e) => setTcsSection(e.target.value)}
+                    className="h-9 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8]"
+                  >
+                    <option value="">No TCS</option>
+                    <option value="206C_1H">206C(1H) - Sale of Goods (0.1%)</option>
+                    <option value="206C_1">206C(1) - Scrap /Specified Goods (1%)</option>
+                  </select>
+                </div>
               </div>
 
               {/* Right Column (5 cols): Summary Card + Payment Details Card */}
               <div className="lg:col-span-5 space-y-5">
                 <DocumentSummaryCard
                   title="Invoice Summary"
-                  subtotal={itemsSubtotal}
+                  subtotal={totalTaxable}
                   discount={discValue > 0 ? discValue : undefined}
+                  preTaxRows={
+                    freightVal > 0
+                      ? [
+                          { label: "Freight", value: freightVal },
+                          {
+                            label: "Taxable Amount",
+                            value: totalTaxable + freightVal,
+                            className: "font-semibold pt-1 border-t border-slate-100",
+                          },
+                        ]
+                      : []
+                  }
                   cgst={!isInterState ? totalCgst : undefined}
                   sgst={!isInterState ? totalSgst : undefined}
                   igst={isInterState ? totalIgst : undefined}
-                  customRows={freightVal > 0 ? [{ label: "Freight", value: freightVal }] : []}
+                  customRows={[]}
                   roundOff={roundOff}
                   grandTotal={roundedGrandTotal}
                   amountInWords={numberToWordsINR(roundedGrandTotal)}
@@ -2157,8 +2301,16 @@ export default function NewInvoicePage() {
               onSaveAsDraft={() => handleSubmit(true, false)}
               onSave={() => handleSubmit(false, false)}
               isSaving={isSubmitting}
-              saveButtonLabel="Save Invoice"
-              backHref="/sales/invoices"
+              saveButtonLabel={category === "SALES_ORDER" ? "Save Sales Order" : "Save Invoice"}
+              backHref={
+                category === "SALES_ORDER"
+                  ? "/sales/orders"
+                  : category === "PROFORMA_INVOICE"
+                    ? "/sales/proforma"
+                    : category === "DELIVERY_CHALLAN"
+                      ? "/sales/delivery-challan"
+                      : "/sales/invoices"
+              }
             />
           </div>
 
@@ -2864,12 +3016,17 @@ export default function NewInvoicePage() {
             id: it.id,
             name: it.name,
             hsnCode: it.hsnCode,
+            category:
+              (it as any).category?.name ||
+              (typeof (it as any).category === "string" ? (it as any).category : undefined) ||
+              categories.find((c) => c.id === (it as any).categoryId)?.name,
             taxRate: it.taxRate,
             retailPrice: partyPrice !== null ? partyPrice : it.retailPrice,
             baseRetailPrice: it.retailPrice,
             isPartyRate: partyPrice !== null,
-            stockQuantity: it.stockQuantity ?? 50,
-            unit: "PCS",
+            purchasePrice: Number((it as any).purchaseRate ?? (it as any).purchasePrice ?? 0) || undefined,
+            stockQuantity: Number((it as any).currentStock ?? (it as any).stockQuantity ?? 0),
+            unit: (it as any).primaryUom?.symbol || (it as any).primaryUom?.uqcCode || (it as any).unit || "PCS",
           };
         })}
         onAddSelectedItems={(selected) => {
@@ -2903,9 +3060,96 @@ export default function NewInvoicePage() {
         }}
         onCreateNewItem={() => {
           setIsAddItemsModalOpen(false);
-          handleAddRow();
+          setIsCreateItemModalOpen(true);
         }}
       />
+
+      {/* Create New Item Step Modal */}
+      {isCreateItemModalOpen && (
+        <ItemStepModal
+          isOpen={isCreateItemModalOpen}
+          onClose={() => setIsCreateItemModalOpen(false)}
+          onSubmit={async (data: ItemFormData) => {
+            let uomId = data.primaryUomId || units[0]?.id;
+            if (!uomId) {
+              const uRes: any = await apiClient.get("/masters/units").catch(() => []);
+              const uList = extractList<any>(uRes);
+              if (uList.length > 0) uomId = uList[0].id;
+            }
+            const createdRes: any = await apiClient.post("/masters/items", {
+              type: data.type,
+              name: data.name.trim(),
+              nameGujarati: data.nameGujarati?.trim() || undefined,
+              sku: data.sku?.trim() || undefined,
+              barcode: data.barcode?.trim() || undefined,
+              hsnCode: data.hsnCode?.trim() || "1001",
+              primaryUomId: uomId,
+              secondaryUomId: data.secondaryUomId || undefined,
+              conversionFactor: data.secondaryUomId ? Number(data.conversionFactor) || 1 : undefined,
+              categoryId: data.categoryId || undefined,
+              taxRate: Number(data.taxRate) || 0,
+              isTaxInclusive: data.isTaxInclusive,
+              retailPrice: Number(data.retailPrice) || 0,
+              purchaseRate: Number(data.purchaseRate) || 0,
+              mrp: data.mrp ? Number(data.mrp) : undefined,
+              wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
+              openingStock: data.type === "PRODUCT" && data.openingStock !== "" ? Number(data.openingStock) : 0,
+              warehouseId: data.warehouseId || undefined,
+              minStockLevel: data.enableLowStockWarning ? Number(data.minStockLevel) || 0 : 0,
+              trackBatches: Boolean(data.trackBatches),
+              trackSerialNo: Boolean(data.trackSerialNo),
+            });
+            const createdItem = createdRes?.data || createdRes;
+            if (createdItem?.id) {
+              const newOpt: any = {
+                ...createdItem,
+                id: createdItem.id,
+                name: createdItem.name,
+                hsnCode: createdItem.hsnCode || "1001",
+                taxRate: Number(createdItem.taxRate) || 0,
+                retailPrice: Number(createdItem.retailPrice ?? data.retailPrice) || 0,
+                currentStock: Number(createdItem.currentStock ?? (data.type === "PRODUCT" ? data.openingStock : 0)) || 0,
+              };
+              setItems((prev) => [newOpt, ...prev]);
+              const newRow: InvoiceItemRow = {
+                rowId: `row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                itemId: createdItem.id,
+                quantity: 1,
+                unit: createdItem.primaryUom?.symbol || units.find((u) => u.id === uomId)?.symbol || "PCS",
+                unitPrice: Number(createdItem.retailPrice ?? data.retailPrice) || 0,
+                discountPercent: 0,
+                taxRate: Number(createdItem.taxRate ?? data.taxRate) || 0,
+                hsnCode: createdItem.hsnCode || "1001",
+              };
+              setRows((prev) => {
+                const isFirstEmpty = prev.length === 1 && !prev[0].itemId;
+                return isFirstEmpty ? [newRow] : [...prev, newRow];
+              });
+              setToastMessage(`Item "${createdItem.name}" created and added to invoice.`);
+            }
+            setIsCreateItemModalOpen(false);
+          }}
+          units={units}
+          categories={categories}
+          warehouses={warehouses}
+          parties={parties as any}
+          companyName={currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook"}
+          lang={lang}
+          onAddCategory={async (name: string) => {
+            try {
+              const res: any = await apiClient.post("/masters/categories", { name });
+              const created = res?.data || res;
+              if (created?.id) {
+                setCategories((prev) => [...prev, created]);
+                return created;
+              }
+            } catch {
+              // ignore
+            }
+            return null;
+          }}
+        />
+      )}
 
       {/* Quick Settings Modal */}
       <QuickSettingsModal

@@ -254,14 +254,34 @@ function CreateSalesReturnForm() {
     }
   }, [paramInvoiceId]);
 
-  // Populate returnable items when an invoice is selected
-  const handleSelectInvoice = useCallback((invoice: SalesInvoice) => {
+  // Populate returnable items when an invoice is selected (always fetch full detail so item name, unitPrice, UOM, and prior returns are loaded)
+  const handleSelectInvoice = useCallback(async (invoice: SalesInvoice) => {
     setSelectedInvoice(invoice);
     setIsInvoiceDropdownOpen(false);
 
+    let fullInvoice: SalesInvoice = invoice;
+    const needsDetail =
+      !invoice.items ||
+      invoice.items.length === 0 ||
+      invoice.items.some((it: any) => it.unitPrice === undefined || !it.item?.name);
+    if (needsDetail && invoice.id) {
+      try {
+        const detailRes: any = await apiClient
+          .get<any>(`/sales/invoices/${invoice.id}`)
+          .catch(() => apiClient.get<any>(`/invoices/${invoice.id}`));
+        const resolved = detailRes?.data || detailRes;
+        if (resolved?.id) {
+          fullInvoice = resolved;
+          setSelectedInvoice(resolved);
+        }
+      } catch {
+        // Fallback to list object if detail fetch fails
+      }
+    }
+
     // Calculate previously returned quantities from invoice.returns
     const returnedMap = new Map<string, number>();
-    (invoice.returns || []).forEach((ret) => {
+    (fullInvoice.returns || []).forEach((ret) => {
       (ret.items || []).forEach((ri) => {
         if (ri.salesItemId) {
           const cur = returnedMap.get(ri.salesItemId) || 0;
@@ -270,24 +290,28 @@ function CreateSalesReturnForm() {
       });
     });
 
-    const lines: ReturnLineItem[] = (invoice.items || []).map((it) => {
+    const lines: ReturnLineItem[] = (fullInvoice.items || []).map((it: any) => {
       const origQty = Number(it.quantity || 0);
       const prevQty = returnedMap.get(it.id) || 0;
       const availQty = Math.max(0, origQty - prevQty);
+      const taxableAmt = Number(it.taxableAmount || 0);
+      const computedUnitPrice =
+        Number(it.unitPrice ?? it.rate ?? 0) ||
+        (origQty > 0 && taxableAmt > 0 ? taxableAmt / origQty : 0);
 
       return {
         salesItemId: it.id,
         itemId: it.itemId || it.item?.id,
-        itemName: it.item?.name || "Item",
-        sku: it.item?.sku,
-        hsnCode: it.item?.hsnCode,
-        uom: it.item?.primaryUom?.code || "Unit",
+        itemName: it.item?.name || it.itemName || it.description || "Item",
+        sku: it.item?.sku || it.sku,
+        hsnCode: it.item?.hsnCode || it.hsnCode,
+        uom: it.item?.primaryUom?.symbol || it.item?.primaryUom?.code || it.uom || "Unit",
         originalQty: origQty,
         previouslyReturnedQty: prevQty,
         availableQty: availQty,
-        returnQty: availQty > 0 ? 0 : 0, // default to 0; user enters returned amount
-        unitPrice: Number(it.unitPrice || 0),
-        discountPercent: Number(it.discountRate || 0),
+        returnQty: 0,
+        unitPrice: computedUnitPrice,
+        discountPercent: Number(it.discountRate ?? it.discountPercent ?? 0),
         taxRate: Number(it.taxRate || 0),
         disposition: "SELLABLE",
       };
@@ -299,11 +323,11 @@ function CreateSalesReturnForm() {
   // Update line return quantity
   const handleQtyChange = (index: number, val: number) => {
     setLineItems((prev) => {
-      const updated = [...prev];
-      const target = updated[index];
+      const target = prev[index];
       if (!target) return prev;
       const validQty = Math.min(Math.max(0, val), target.availableQty);
-      target.returnQty = validQty;
+      const updated = [...prev];
+      updated[index] = { ...target, returnQty: validQty };
       return updated;
     });
   };
@@ -505,7 +529,7 @@ function CreateSalesReturnForm() {
             {/* Customer Picker */}
             <div className="relative" ref={partyDropdownRef}>
               <label className="block text-[12px] font-semibold text-slate-700 mb-1">
-                Customer (ગ્રાહક) <span className="text-rose-500">*</span>
+                Customer <span className="text-rose-500">*</span>
               </label>
               {selectedParty ? (
                 <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/50 px-3.5 py-2.5 text-xs">
@@ -679,7 +703,7 @@ function CreateSalesReturnForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
             <div>
               <label className="block text-[12px] font-semibold text-slate-700 mb-1">
-                Warehouse / Godown (ગોડાઉન) <span className="text-rose-500">*</span>
+                Warehouse / Godown <span className="text-rose-500">*</span>
               </label>
               <CustomCombobox
                 value={selectedWarehouseId}
@@ -694,7 +718,7 @@ function CreateSalesReturnForm() {
 
             <div>
               <label className="block text-[12px] font-semibold text-slate-700 mb-1">
-                Return Reason (પરત આવવાનું કારણ)
+                Return Reason
               </label>
               <CustomSelect
                 value={returnReason}
@@ -757,7 +781,7 @@ function CreateSalesReturnForm() {
         <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <div>
             <h3 className="text-[13px] font-bold text-slate-900">
-              Return Line Items & Disposition (પરત માલ અને સ્ટોક વિગત)
+              Return Line Items & Disposition
             </h3>
             <p className="text-[11px] text-slate-500 mt-0.5">
               Enter return quantity and set physical disposition for each item.

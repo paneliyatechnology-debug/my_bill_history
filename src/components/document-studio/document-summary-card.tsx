@@ -15,6 +15,7 @@ export function DocumentSummaryCard({
   roundOff,
   grandTotal,
   amountInWords,
+  preTaxRows = [],
   customRows = [],
 }: DocumentSummaryCardProps) {
   const formatCur = (val: string | number | undefined) => {
@@ -55,6 +56,16 @@ export function DocumentSummaryCard({
             </span>
           </div>
         )}
+
+        {/* Pre-Tax Rows (e.g. Freight & Taxable Amount in Tally format) */}
+        {preTaxRows.map((row, idx) => (
+          <div key={`pre-${idx}`} className={`flex items-center justify-between typo-label text-slate-600 ${row.className || ""}`}>
+            <span>{row.label}</span>
+            <span className={`typo-table-amount ${row.isDeduction ? "text-rose-600" : "text-slate-800"}`}>
+              {row.isDeduction ? "- " : ""}{typeof row.value === "number" ? formatCur(row.value) : row.value}
+            </span>
+          </div>
+        ))}
 
         {/* Taxes */}
         {cgst !== undefined && cgst !== null && Number(cgst) > 0 && (

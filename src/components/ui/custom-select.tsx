@@ -334,8 +334,11 @@ export const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps<any>
     const heightClass =
       size === "sm" ? "h-[34px] text-[12.5px]" : size === "lg" ? "h-[44px] text-[14px]" : "h-[40px] text-[13px]";
 
+    const hasExplicitWidth = /\bw-(?:\d+|auto|fit|min|max|\[)/.test(className) && !/\bw-full\b/.test(className);
+    const widthClass = fullWidth && !hasExplicitWidth ? "w-full" : hasExplicitWidth ? "inline-block" : "inline-block";
+
     return (
-      <div className={`relative ${fullWidth ? "w-full" : "inline-block"} ${className}`}>
+      <div className={`relative ${widthClass} ${className}`}>
         {label && (
           <label
             htmlFor={id}

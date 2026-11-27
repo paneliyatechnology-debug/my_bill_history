@@ -361,6 +361,8 @@ function NewPurchaseInvoiceContent() {
   const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
   const [transportMode, setTransportMode] = useState("Road");
   const [vehicleNo, setVehicleNo] = useState("");
+  const [mrnNumber, setMrnNumber] = useState("");
+  const [tdsSection, setTdsSection] = useState<string>("");
   const [ewayBillNo, setEwayBillNo] = useState("");
   const [dispatchDate, setDispatchDate] = useState("");
   const [notes, setNotes] = useState("");
@@ -735,8 +737,18 @@ function NewPurchaseInvoiceContent() {
       totalDiscount += overallDiscVal;
     }
 
-    // Additional freight charges calculation (Freight is added to Grand Total, not items taxable or items GST)
+    // Additional freight charges calculation (uses principal/highest item GST rate, Tally style)
     const freightVal = Number(additionalChargeAmount) || 0;
+    const freightGstPct = rows.reduce((max, r) => Math.max(max, Number(r.taxRate) || 0), 0);
+    const freightTax = (freightVal * freightGstPct) / 100;
+    if (freightTax > 0) {
+      if (isInterState) {
+        totalIgst += freightTax;
+      } else {
+        totalCgst += freightTax / 2;
+        totalSgst += freightTax / 2;
+      }
+    }
     const itemsTaxable = totalTaxable;
     const totalTax = totalCgst + totalSgst + totalIgst;
     const rawGrandTotal = itemsTaxable + totalTax + freightVal;
@@ -1250,29 +1262,79 @@ function NewPurchaseInvoiceContent() {
       const formData = new FormData();
       formData.append("file", file, file.name);
 
-      const response: any = await apiClient.post(
-        "/purchases/scans/upload?async=true",
-        formData,
-        undefined,
-        undefined,
-        { timeoutMs: 60000 }
-      );
+      let response: any;
+      try {
+        response = await apiClient.post(
+          "/purchases/scans/upload?async=true",
+          formData,
+          undefined,
+          undefined,
+          { timeoutMs: 60000 }
+        );
+      } catch (multipartErr: any) {
+        const msg = String(multipartErr?.message || "");
+        const st = multipartErr?.status ?? multipartErr?.statusCode;
+        const canFallbackBase64 =
+          file.size <= 10 * 1024 * 1024 &&
+          (st === 502 || st === 0 || /502|fetch|network|gateway/i.test(msg));
+        if (!canFallbackBase64) throw multipartErr;
+
+        // Fallback to JSON base64 upload if multipart proxy fails (e.g. 502 gateway on multipart stream)
+        const fileBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const res = String(reader.result || "");
+            const idx = res.indexOf(",");
+            resolve(idx >= 0 ? res.slice(idx + 1) : res);
+          };
+          reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+          reader.readAsDataURL(file);
+        });
+        response = await apiClient.post(
+          "/purchases/scans/upload?async=true",
+          {
+            fileBase64,
+            fileName: file.name,
+            mimeType: file.type || "application/pdf",
+            async: true,
+          },
+          undefined,
+          undefined,
+          { timeoutMs: 60000 }
+        );
+      }
 
       let finalRecord = response;
       if (response?.status === "PROCESSING" || response?.status === "PENDING") {
         const pollStart = performance.now();
+        let consecutivePollErrors = 0;
         while (finalRecord.status === "PROCESSING" || finalRecord.status === "PENDING") {
-          if (performance.now() - pollStart > 90000) break;
+          if (performance.now() - pollStart > 90000) {
+            throw new Error(
+              "AI document analysis timed out after 90s. Your document is attached; please enter details manually or click Retry AI Scan."
+            );
+          }
           await new Promise((r) => setTimeout(r, 1200));
           try {
             finalRecord = await apiClient.get(`/purchases/scans/${response.id}`);
-          } catch {
-            break;
+            consecutivePollErrors = 0;
+          } catch (pollErr: any) {
+            consecutivePollErrors++;
+            if (consecutivePollErrors >= 3) {
+              throw pollErr;
+            }
           }
         }
       }
 
       setLastScanRecord(finalRecord);
+
+      if (finalRecord?.status === "FAILED") {
+        throw new Error(
+          finalRecord.errorMessage ||
+            "AI scanning could not extract data from this document. Please enter details manually or click Retry AI Scan."
+        );
+      }
 
       const ed = finalRecord?.extractedData;
       if (ed) {
@@ -1662,6 +1724,17 @@ function NewPurchaseInvoiceContent() {
 
     try {
       const freightVal = Number(additionalChargeAmount) || 0;
+      const freightGstPct = validRows.reduce((max, r) => Math.max(max, Number(r.taxRate) || 0), 0);
+      const tdsRateMap: Record<string, number> = {
+        "194C_1": 1,
+        "194C_2": 2,
+        "194H": 5,
+        "194J": 10,
+        "194Q": 0.1,
+      };
+      const tdsRate = tdsSection ? (tdsRateMap[tdsSection] || 0) : 0;
+      const itemsGross = validRows.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.unitPrice || 0), 0);
+      const tdsAmount = tdsRate > 0 ? Math.round(((itemsGross + freightVal) * tdsRate) / 100 * 100) / 100 : 0;
       const payload = {
         partyId,
         vendorInvoiceNumber: finalBillNumber,
@@ -1675,8 +1748,9 @@ function NewPurchaseInvoiceContent() {
         paidFromAccountId: payAccountId || undefined,
         paymentDate: formatIsoDate(paymentDate) || formatIsoDate(invoiceDate) || new Date().toISOString(),
         paymentReference: payReference || undefined,
-        additionalCharges: freightVal > 0 ? [{ name: "Freight", amount: freightVal }] : [],
+        additionalCharges: freightVal > 0 ? [{ name: "Freight", amount: freightVal, taxRate: freightGstPct }] : [],
         freightAmount: freightVal > 0 ? freightVal : 0,
+        freightTaxRate: freightVal > 0 ? freightGstPct : 0,
         vehicleNumber: vehicleNo || undefined,
         transportMode: transportMode || undefined,
         notes: notes || undefined,
@@ -1684,10 +1758,13 @@ function NewPurchaseInvoiceContent() {
         shippingAddress: {
           freight: freightVal,
           freightAmount: freightVal,
+          freightTaxRate: freightVal > 0 ? freightGstPct : 0,
           ...(vehicleNo ? { vehicleNo } : {}),
           ...(transportMode ? { transportMode } : {}),
           ...(ewayBillNo ? { ewayBillNo } : {}),
           ...(dispatchDate ? { dispatchDate } : {}),
+          ...(mrnNumber.trim() ? { mrnNumber: mrnNumber.trim() } : {}),
+          ...(tdsSection ? { tdsSection, tdsRate, tdsAmount } : {}),
         },
         items: validRows.map((r) => {
           const qty = Number(r.quantity);
@@ -2693,50 +2770,6 @@ function NewPurchaseInvoiceContent() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Import dropdown */}
-                    <div className="relative" ref={importMenuRef}>
-                      <button
-                        type="button"
-                        onClick={() => setShowImportMenu((prev) => !prev)}
-                        className="h-8 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                        <span>Import</span>
-                        <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-
-                      {showImportMenu && (
-                        <div className="absolute right-0 top-full mt-1.5 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsAddItemsCatalogOpen(true);
-                              setShowImportMenu(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
-                          >
-                            <Package className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={1.75} />
-                            <span>From Items Catalog</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              router.push("/tools/import");
-                              setShowImportMenu(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
-                          >
-                            <BarChart2 className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={1.75} />
-                            <span>From Excel / CSV</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
                     {/* + Add Item dropdown */}
                     <div className="relative" ref={addItemMenuRef}>
                       <button
@@ -3086,15 +3119,58 @@ function NewPurchaseInvoiceContent() {
                         </div>
                         <div>
                           <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
-                            Vehicle Number
+                            {transportMode === "Rail"
+                              ? "RR / Wagon No."
+                              : transportMode === "Air"
+                              ? "Airway Bill (AWB) No."
+                              : transportMode === "Ship"
+                              ? "B/L / Vessel No."
+                              : "Vehicle Number"}
                           </label>
                           <input
                             type="text"
+                            maxLength={transportMode === "Road" ? 15 : 20}
                             value={vehicleNo}
-                            onChange={(e) => setVehicleNo(e.target.value)}
-                            placeholder="GJ-01-AB-1234"
-                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none uppercase"
+                            onChange={(e) => {
+                              const pattern = transportMode === "Road" ? /[^A-Z0-9-\s]/g : /[^A-Z0-9-\/\s]/g;
+                              setVehicleNo(e.target.value.toUpperCase().replace(pattern, ""));
+                            }}
+                            placeholder={
+                              transportMode === "Rail"
+                                ? "e.g. RR-2120001234"
+                                : transportMode === "Air"
+                                ? "e.g. 176-12345678"
+                                : transportMode === "Ship"
+                                ? "e.g. BOL-9876543"
+                                : "GJ-01-AB-1234"
+                            }
+                            className={`w-full h-9 px-2 text-xs bg-white border rounded-xl text-slate-800 focus:outline-none uppercase ${
+                              vehicleNo.trim() &&
+                              !(
+                                transportMode === "Road"
+                                  ? /^(?:[A-Z]{2}[-\s]?\d{1,2}[-\s]?[A-Z]{0,3}[-\s]?\d{4}|\d{2}[-\s]?BH[-\s]?\d{4}[-\s]?[A-Z]{1,2})$/
+                                  : transportMode === "Air"
+                                  ? /^[A-Z0-9][A-Z0-9-\/\s]{5,19}$/
+                                  : /^[A-Z0-9][A-Z0-9-\/\s]{3,19}$/
+                              ).test(vehicleNo.trim().toUpperCase())
+                                ? "border-rose-400 focus:border-rose-500"
+                                : "border-slate-200 focus:border-[#1677E8]"
+                            }`}
                           />
+                          {vehicleNo.trim() &&
+                            !(
+                              transportMode === "Road"
+                                ? /^(?:[A-Z]{2}[-\s]?\d{1,2}[-\s]?[A-Z]{0,3}[-\s]?\d{4}|\d{2}[-\s]?BH[-\s]?\d{4}[-\s]?[A-Z]{1,2})$/
+                                : transportMode === "Air"
+                                ? /^[A-Z0-9][A-Z0-9-\/\s]{5,19}$/
+                                : /^[A-Z0-9][A-Z0-9-\/\s]{3,19}$/
+                            ).test(vehicleNo.trim().toUpperCase()) && (
+                              <p className="text-[10px] text-rose-600 mt-0.5 font-medium">
+                                {transportMode === "Road"
+                                  ? "Invalid vehicle no. (e.g. GJ-01-AB-1234)"
+                                  : `Invalid ${transportMode} reference number`}
+                              </p>
+                            )}
                         </div>
                         <div>
                           <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
@@ -3102,10 +3178,31 @@ function NewPurchaseInvoiceContent() {
                           </label>
                           <input
                             type="text"
+                            inputMode="numeric"
+                            maxLength={12}
                             value={ewayBillNo}
-                            onChange={(e) => setEwayBillNo(e.target.value)}
-                            placeholder="e.g. 24109845231"
-                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                            onChange={(e) => setEwayBillNo(e.target.value.replace(/\D/g, "").slice(0, 12))}
+                            placeholder="12-digit E-Way Bill No."
+                            className={`w-full h-9 px-2 text-xs bg-white border rounded-xl text-slate-800 focus:outline-none ${
+                              ewayBillNo.trim() && !/^\d{12}$/.test(ewayBillNo.trim())
+                                ? "border-rose-400 focus:border-rose-500"
+                                : "border-slate-200 focus:border-[#1677E8]"
+                            }`}
+                          />
+                          {ewayBillNo.trim() && !/^\d{12}$/.test(ewayBillNo.trim()) && (
+                            <p className="text-[10px] text-rose-600 mt-0.5 font-medium">E-Way Bill No. must be 12 digits</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                            MRN No. (Material Receipt)
+                          </label>
+                          <input
+                            type="text"
+                            value={mrnNumber}
+                            onChange={(e) => setMrnNumber(e.target.value)}
+                            placeholder="e.g. MRN/26-27/001"
+                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8]"
                           />
                         </div>
                         <div>
@@ -3132,7 +3229,7 @@ function NewPurchaseInvoiceContent() {
                               step="any"
                               value={additionalChargeAmount === 0 || additionalChargeAmount === "" ? "" : additionalChargeAmount}
                               onChange={(e) => {
-                                const v = e.target.value === "" ? "" : Number(e.target.value);
+                                const v = e.target.value === "" ? "" : Math.max(0, Number(e.target.value) || 0);
                                 setAdditionalChargeAmount(v);
                                 if (v !== "") setShowAdditionalCharges(true);
                               }}
@@ -3140,6 +3237,23 @@ function NewPurchaseInvoiceContent() {
                               className="w-full h-9 pl-6 pr-2 text-xs text-right tabular-nums font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
                             />
                           </div>
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                            TDS Section
+                          </label>
+                          <select
+                            value={tdsSection}
+                            onChange={(e) => setTdsSection(e.target.value)}
+                            className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8]"
+                          >
+                            <option value="">No TDS</option>
+                            <option value="194C_1">194C - Contractor Ind/HUF (1%)</option>
+                            <option value="194C_2">194C - Contractor Co/Firm (2%)</option>
+                            <option value="194H">194H - Commission (5%)</option>
+                            <option value="194J">194J - Professional Fees (10%)</option>
+                            <option value="194Q">194Q - Purchase of Goods (0.1%)</option>
+                          </select>
                         </div>
                       </div>
                     )}
@@ -3457,10 +3571,19 @@ function NewPurchaseInvoiceContent() {
           isOpen={zoomPreviewModal}
           onClose={() => setZoomPreviewModal(false)}
           title={uploadedDocName || "Scanned Document Preview"}
-          maxWidth="xl"
+          maxWidth="5xl"
         >
-          <div className="max-h-[75vh] overflow-auto flex items-center justify-center p-2">
-            <img src={uploadedDocUrl} alt="Document" className="max-w-full rounded-lg shadow-md" />
+          <div className="max-h-[85vh] overflow-auto flex items-center justify-center p-2">
+            {uploadedDocType === "application/pdf" ||
+            uploadedDocName?.toLowerCase().endsWith(".pdf") ? (
+              <iframe
+                src={`${uploadedDocUrl}#navpanes=0&view=FitH`}
+                title={uploadedDocName || "Document Preview"}
+                className="w-full h-[80vh] rounded-lg border border-slate-200 bg-slate-50"
+              />
+            ) : (
+              <img src={uploadedDocUrl} alt="Document" className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-md" />
+            )}
           </div>
         </Modal>
       )}
@@ -3701,15 +3824,20 @@ function NewPurchaseInvoiceContent() {
       {isAddItemsCatalogOpen && (
         <AddItemsModal
           isOpen={isAddItemsCatalogOpen}
+          enforceStockLimit={false}
           onClose={() => setIsAddItemsCatalogOpen(false)}
           items={items.map((it) => ({
             id: it.id,
             name: it.name,
             hsnCode: it.hsnCode,
+            category:
+              (it as any).category?.name ||
+              (typeof (it as any).category === "string" ? (it as any).category : undefined) ||
+              categories.find((c) => c.id === (it as any).categoryId)?.name,
             taxRate: it.taxRate,
             retailPrice: it.retailPrice ?? it.purchasePrice ?? 0,
-            purchasePrice: it.purchasePrice ?? it.retailPrice ?? 0,
-            stockQuantity: it.stockQuantity,
+            purchasePrice: Number((it as any).purchaseRate ?? it.purchasePrice ?? it.retailPrice ?? 0),
+            stockQuantity: Number((it as any).currentStock ?? it.stockQuantity ?? 0),
             unit: it.primaryUom?.symbol || "PCS",
           }))}
           onAddSelectedItems={(selectedList) => {

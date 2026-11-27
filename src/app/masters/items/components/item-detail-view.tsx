@@ -232,7 +232,7 @@ export function ItemDetailView({
     } else if (activeTab === "party_prices") {
       loadPartyPrices();
     }
-  }, [activeTab, loadStockDetails, loadPartyReport, loadPartyPrices]);
+  }, [activeTab, item.currentStock, loadStockDetails, loadPartyReport, loadPartyPrices]);
 
   // Left side item search filter
   const filteredLeftItems = useMemo(() => {

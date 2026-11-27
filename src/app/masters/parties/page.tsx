@@ -930,12 +930,6 @@ export default function PartiesPage() {
         ),
       },
       {
-        id: "category",
-        header: lang === "gu" ? "કેટેગરી" : "Category",
-        className: "text-slate-500 text-xs font-normal",
-        cell: () => "-",
-      },
-      {
         id: "phone",
         header: lang === "gu" ? "મોબાઇલ નંબર" : "Mobile Number",
         accessorKey: "phone",

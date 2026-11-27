@@ -1478,9 +1478,21 @@ export default function CreatePurchaseReturnPage() {
                   title={isDebitMemo ? "Debit Memo Summary" : "Return Summary"}
                   subtotal={calculations.totalTaxable}
                   discount={calculations.totalDiscount > 0 ? calculations.totalDiscount : undefined}
+                  preTaxRows={
+                    Number(additionalCharges) > 0
+                      ? [
+                          { label: "Freight", value: Number(additionalCharges) },
+                          {
+                            label: "Taxable Amount",
+                            value: calculations.totalTaxable + Number(additionalCharges),
+                            className: "font-semibold pt-1 border-t border-slate-100",
+                          },
+                        ]
+                      : []
+                  }
                   cgst={calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : undefined}
                   sgst={calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : undefined}
-                  customRows={Number(additionalCharges) > 0 ? [{ label: "Freight", value: Number(additionalCharges) }] : []}
+                  customRows={[]}
                   roundOff={calculations.roundOffDiff !== 0 ? calculations.roundOffDiff : undefined}
                   grandTotal={calculations.finalTotal}
                 />

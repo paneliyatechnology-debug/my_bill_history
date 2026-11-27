@@ -188,6 +188,43 @@ export default function CreateDeliveryChallanPage() {
           setChallanNumber(String(nextRes.nextNumber));
         }
       } catch { }
+
+      // Pre-fill if converting from a Quotation or Proforma Invoice
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const sourceId = params.get("fromQuotation") || params.get("fromProforma");
+        if (sourceId) {
+          try {
+            const srcRes: any = await apiClient.get(`/sales/invoices/${sourceId}`);
+            const src = srcRes?.data || srcRes;
+            if (src?.id) {
+              if (src.partyId || src.party?.id) setPartyId(src.partyId || src.party.id);
+              if (src.placeOfSupply) setPlaceOfSupply(src.placeOfSupply);
+              if (src.notes) setNotes(src.notes);
+              if (src.termsAndConditions) setTerms(src.termsAndConditions);
+              const fAmt = Number(src.freightAmount ?? src.shippingAddress?.freightAmount ?? 0);
+              if (fAmt > 0) setAdditionalChargeAmount(fAmt);
+              if (Array.isArray(src.items) && src.items.length > 0) {
+                setRows(
+                  src.items.map((it: any) => ({
+                    id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                    itemId: it.itemId || it.item?.id || "",
+                    itemName: it.name || it.item?.name || it.description || "",
+                    hsnCode: it.hsnCode || it.item?.hsnCode || "1001",
+                    quantity: Number(it.quantity) || 1,
+                    unit: it.unit || it.item?.primaryUom?.symbol || "PCS",
+                    unitPrice: Number(it.unitPrice) || 0,
+                    discountPercent: Number(it.discountPercent) || 0,
+                    taxRate: Number(it.taxRate) || 0,
+                  })),
+                );
+              }
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
     } catch (err: any) {
       setError(err?.message || "Failed to load master data.");
     } finally {
@@ -903,7 +940,7 @@ export default function CreateDeliveryChallanPage() {
                                   onChange={(val: any) => handleUpdateRow(row.id, "itemId", val)}
                                   options={items.map((it) => ({
                                     value: it.id,
-                                    label: `${it.name} (Stock: ${it.stockQuantity ?? 0})`,
+                                    label: `${it.name} (Stock: ${Number((it as any).currentStock ?? it.stockQuantity ?? 0)})`,
                                   }))}
                                   placeholder="Select Item..."
                                   triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
@@ -1021,10 +1058,22 @@ export default function CreateDeliveryChallanPage() {
                   title="Challan Valuation Summary"
                   subtotal={totalTaxable}
                   discount={Number(overallDiscountAmount) > 0 ? Number(overallDiscountAmount) : undefined}
+                  preTaxRows={
+                    Number(additionalChargeAmount) > 0
+                      ? [
+                          { label: "Freight", value: Number(additionalChargeAmount) },
+                          {
+                            label: "Taxable Amount",
+                            value: totalTaxable + Number(additionalChargeAmount),
+                            className: "font-semibold pt-1 border-t border-slate-100",
+                          },
+                        ]
+                      : []
+                  }
                   cgst={!isInterState ? totalCgst : undefined}
                   sgst={!isInterState ? totalSgst : undefined}
                   igst={isInterState ? totalIgst : undefined}
-                  customRows={Number(additionalChargeAmount) > 0 ? [{ label: "Freight", value: Number(additionalChargeAmount) }] : []}
+                  customRows={[]}
                   roundOff={autoRoundOff ? (grandTotal - (totalTaxable + totalTax)) : undefined}
                   grandTotal={grandTotal}
                 />
@@ -1171,9 +1220,12 @@ export default function CreateDeliveryChallanPage() {
           id: i.id,
           name: i.name,
           hsnCode: i.hsnCode,
+          category: (i as any).category?.name || (typeof (i as any).category === "string" ? (i as any).category : undefined),
+          categoryId: (i as any).categoryId,
           retailPrice: i.retailPrice,
           taxRate: i.taxRate,
-          stockQuantity: i.stockQuantity,
+          purchasePrice: Number((i as any).purchaseRate ?? (i as any).purchasePrice ?? 0) || undefined,
+          stockQuantity: Number((i as any).currentStock ?? i.stockQuantity ?? 0),
           unit: i.primaryUom?.symbol || "PCS",
         }))}
       />

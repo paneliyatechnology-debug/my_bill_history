@@ -4,6 +4,8 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { X, Search, Tag } from "lucide-react";
 import { StockQuantityDisplay } from "../inventory/stock-quantity-display";
 import { CustomCombobox } from "@/components/ui/dropdown-system";
+import { apiClient, extractList } from "@/lib/api-client";
+import { ItemStepModal, ItemFormData } from "@/app/masters/items/components/item-step-modal";
 
 export interface CatalogItem {
   id: string;
@@ -13,7 +15,9 @@ export interface CatalogItem {
   retailPrice: number;
   purchasePrice?: number;
   stockQuantity?: number;
+  minStockLevel?: number;
   category?: string;
+  categoryId?: string;
   unit?: string;
   isPartyRate?: boolean;
   baseRetailPrice?: number;
@@ -31,6 +35,7 @@ interface AddItemsModalProps {
     }>
   ) => void;
   onCreateNewItem?: () => void;
+  enforceStockLimit?: boolean;
 }
 
 export function AddItemsModal({
@@ -39,14 +44,22 @@ export function AddItemsModal({
   items = [],
   onAddSelectedItems,
   onCreateNewItem,
+  enforceStockLimit = true,
 }: AddItemsModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const [localCreatedItems, setLocalCreatedItems] = useState<CatalogItem[]>([]);
+  const [fetchedCategories, setFetchedCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [fetchedMinStockMap, setFetchedMinStockMap] = useState<Record<string, number>>({});
+  const [fetchedUnits, setFetchedUnits] = useState<any[]>([]);
+  const [fetchedWarehouses, setFetchedWarehouses] = useState<any[]>([]);
+  const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
+  const [stockLimitWarning, setStockLimitWarning] = useState<string | null>(null);
 
-  // Auto-focus search input when modal opens
+  // Auto-focus search input & load categories/minStockLevel when modal opens
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
@@ -55,21 +68,72 @@ export function AddItemsModal({
       setSearchTerm("");
       setQuantities({});
       setFocusedIndex(0);
+
+      apiClient.get("/masters/categories").then((res) => {
+        setFetchedCategories(extractList<any>(res));
+      }).catch(() => {});
+
+      apiClient.get("/masters/items", { limit: 500 }).then((res) => {
+        const list = extractList<any>(res);
+        const map: Record<string, number> = {};
+        list.forEach((it: any) => {
+          if (it?.id && it.minStockLevel !== undefined && it.minStockLevel !== null) {
+            map[it.id] = Number(it.minStockLevel) || 0;
+          }
+        });
+        setFetchedMinStockMap(map);
+      }).catch(() => {});
     }
   }, [isOpen]);
+
+  const openBuiltInCreateItem = async () => {
+    setIsCreateItemOpen(true);
+    try {
+      const [uRes, cRes, wRes] = await Promise.all([
+        apiClient.get("/masters/units").catch(() => []),
+        apiClient.get("/masters/categories").catch(() => []),
+        apiClient.get("/masters/warehouses").catch(() => []),
+      ]);
+      setFetchedUnits(extractList<any>(uRes));
+      setFetchedCategories(extractList<any>(cRes));
+      setFetchedWarehouses(extractList<any>(wRes));
+    } catch {
+      // ignore
+    }
+  };
+
+  const mergedItems = useMemo<CatalogItem[]>(() => {
+    const catMap = new Map(fetchedCategories.map((c) => [c.id, c.name]));
+    const combined = [...localCreatedItems, ...(items || [])];
+    const seen = new Set<string>();
+    return combined
+      .filter((it) => {
+        if (seen.has(it.id)) return false;
+        seen.add(it.id);
+        return true;
+      })
+      .map((it) => ({
+        ...it,
+        category: it.category || (it.categoryId ? catMap.get(it.categoryId) : undefined),
+        minStockLevel: it.minStockLevel ?? fetchedMinStockMap[it.id] ?? 0,
+      }));
+  }, [items, localCreatedItems, fetchedCategories, fetchedMinStockMap]);
 
   // Categories list
   const categories = useMemo(() => {
     const set = new Set<string>();
-    (items || []).forEach((it) => {
+    mergedItems.forEach((it) => {
       if (it.category) set.add(it.category);
     });
+    fetchedCategories.forEach((c) => {
+      if (c.name) set.add(c.name);
+    });
     return ["ALL", ...Array.from(set)];
-  }, [items]);
+  }, [mergedItems, fetchedCategories]);
 
   // Filter items
   const filteredItems = useMemo(() => {
-    return items.filter((it) => {
+    return mergedItems.filter((it) => {
       const matchesCategory =
         selectedCategory === "ALL" || it.category === selectedCategory;
       const q = searchTerm.trim().toLowerCase();
@@ -79,13 +143,26 @@ export function AddItemsModal({
         (it.hsnCode && it.hsnCode.toLowerCase().includes(q));
       return matchesCategory && matchesSearch;
     });
-  }, [items, selectedCategory, searchTerm]);
+  }, [mergedItems, selectedCategory, searchTerm]);
 
-  // Increment / Decrement
+  // Increment / Decrement (clamped to available stock when enforceStockLimit is true)
   const handleQuantityChange = (itemId: string, delta: number) => {
+    const targetItem = mergedItems.find((i) => i.id === itemId);
+    const maxAvail = Math.max(0, Number(targetItem?.stockQuantity ?? 0));
+
     setQuantities((prev) => {
       const current = prev[itemId] || 0;
-      const next = Math.max(0, current + delta);
+      let next = Math.max(0, current + delta);
+      if (enforceStockLimit && delta > 0 && next > maxAvail) {
+        next = maxAvail;
+        setStockLimitWarning(
+          maxAvail === 0
+            ? `${targetItem?.name || "Item"} is out of stock.`
+            : `Only ${maxAvail} ${targetItem?.unit || "PCS"} available in stock for ${targetItem?.name || "this item"}.`
+        );
+      } else {
+        setStockLimitWarning(null);
+      }
       if (next === 0) {
         const copy = { ...prev };
         delete copy[itemId];
@@ -96,7 +173,21 @@ export function AddItemsModal({
   };
 
   const handleDirectInput = (itemId: string, value: string) => {
-    const val = Number(value);
+    const targetItem = mergedItems.find((i) => i.id === itemId);
+    const maxAvail = Math.max(0, Number(targetItem?.stockQuantity ?? 0));
+    let val = Number(value);
+
+    if (enforceStockLimit && !isNaN(val) && val > maxAvail) {
+      val = maxAvail;
+      setStockLimitWarning(
+        maxAvail === 0
+          ? `${targetItem?.name || "Item"} is out of stock.`
+          : `Only ${maxAvail} ${targetItem?.unit || "PCS"} available in stock for ${targetItem?.name || "this item"}.`
+      );
+    } else {
+      setStockLimitWarning(null);
+    }
+
     setQuantities((prev) => {
       if (isNaN(val) || val <= 0) {
         const copy = { ...prev };
@@ -111,11 +202,11 @@ export function AddItemsModal({
   const selectedEntries = useMemo(() => {
     return Object.entries(quantities)
       .map(([id, qty]) => {
-        const it = items.find((i) => i.id === id);
+        const it = mergedItems.find((i) => i.id === id);
         return it ? { item: it, quantity: qty, unitPrice: it.retailPrice } : null;
       })
       .filter((entry): entry is { item: CatalogItem; quantity: number; unitPrice: number } => entry !== null);
-  }, [quantities, items]);
+  }, [quantities, mergedItems]);
 
   const totalItemsCount = selectedEntries.length;
   const totalQuantity = selectedEntries.reduce((sum, e) => sum + e.quantity, 0);
@@ -237,7 +328,13 @@ export function AddItemsModal({
           {/* Create New Item Button */}
           <button
             type="button"
-            onClick={onCreateNewItem}
+            onClick={() => {
+              if (onCreateNewItem) {
+                onCreateNewItem();
+              } else {
+                openBuiltInCreateItem();
+              }
+            }}
             className="h-9 px-3.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg typo-btn-primary transition-all shadow-xs shrink-0 cursor-pointer active:scale-95"
           >
             Create New Item
@@ -300,7 +397,12 @@ export function AddItemsModal({
 
                       {/* Stock */}
                       <td className="py-3 px-3 text-center">
-                        <StockQuantityDisplay quantity={stock} unit={it.unit || "PCS"} />
+                        <StockQuantityDisplay
+                          quantity={stock}
+                          unit={it.unit || "PCS"}
+                          minStockLevel={it.minStockLevel}
+                          className="justify-center"
+                        />
                       </td>
 
                       {/* Sales Price */}
@@ -335,17 +437,20 @@ export function AddItemsModal({
                           <input
                             type="number"
                             min="0"
+                            max={enforceStockLimit ? Math.max(0, stock) : undefined}
+                            disabled={enforceStockLimit && stock <= 0}
                             value={qty > 0 ? qty : ""}
                             placeholder="0"
                             onChange={(e) =>
                               handleDirectInput(it.id, e.target.value)
                             }
-                            className="w-12 h-7 text-center typo-input typo-tabular bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-indigo-500"
+                            className="w-12 h-7 text-center typo-input typo-tabular bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed"
                           />
                           <button
                             type="button"
                             onClick={() => handleQuantityChange(it.id, 1)}
-                            className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 flex items-center justify-center font-medium typo-btn-secondary transition-colors"
+                            disabled={enforceStockLimit && qty >= stock}
+                            className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 flex items-center justify-center font-medium typo-btn-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                           >
                             +
                           </button>
@@ -359,54 +464,127 @@ export function AddItemsModal({
           )}
         </div>
 
-        {/* Summary & Keyboard Shortcuts Toolbar (Matching Screenshot 2) */}
-        <div className="px-6 py-3 bg-[#F8F9FA] border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
-          {/* Left: Selected count & totals */}
-          <div className="flex items-center gap-4 typo-card-desc font-semibold text-slate-700">
-            <span>{totalItemsCount} Item(s) Selected</span>
-            <span className="text-slate-300">•</span>
-            <span className="typo-table-amount text-slate-900">
+        {stockLimitWarning && (
+          <div className="px-6 py-2 bg-amber-50 border-t border-amber-200 text-amber-800 text-xs font-medium">
+            {stockLimitWarning}
+          </div>
+        )}
+
+        {/* Clean Summary & Actions Footer */}
+        <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-200 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-xs text-slate-600">
+            <span className="font-semibold text-slate-900">{totalItemsCount} selected</span>
+            <span className="text-slate-300">|</span>
+            <span className="font-semibold tabular-nums text-slate-900">
               ₹ {totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
-            <span className="text-slate-300">•</span>
-            <span className="typo-tabular text-slate-900">{totalQuantity}</span>
+            {totalQuantity > 0 && (
+              <>
+                <span className="text-slate-300">|</span>
+                <span className="tabular-nums text-slate-500">{totalQuantity} qty</span>
+              </>
+            )}
           </div>
 
-          {/* Center: Keyboard Shortcuts Hint */}
-          <div className="hidden md:flex items-center gap-4 text-[11px] text-slate-500">
-            <span className="font-semibold text-slate-600">Keyboard Shortcuts :</span>
-            <span className="flex items-center gap-1">
-              <span>Change Quantity</span>
-              <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-[10px] tabular-nums text-slate-700 shadow-2xs">Enter</kbd>
-            </span>
-            <span className="flex items-center gap-1">
-              <span>Move between Items</span>
-              <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-[10px] tabular-nums text-slate-700 shadow-2xs">↑</kbd>
-              <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-[10px] tabular-nums text-slate-700 shadow-2xs">↓</kbd>
-            </span>
-          </div>
-
-          {/* Right: Actions */}
           <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="h-9 px-3 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg typo-btn-secondary text-slate-700 transition-colors shadow-2xs"
+              className="h-9 px-4 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
             >
-              Cancel [ESC]
+              Cancel
             </button>
             <button
               type="button"
               onClick={handleApply}
               disabled={totalItemsCount === 0}
-              className="h-9 px-3.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg typo-btn-primary shadow-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 active:scale-95"
+              className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95"
             >
-              <span>Add to Bill [F7]</span>
+              Add to Bill
             </button>
           </div>
         </div>
 
       </div>
+
+      {isCreateItemOpen && (
+        <ItemStepModal
+          isOpen={isCreateItemOpen}
+          onClose={() => setIsCreateItemOpen(false)}
+          onSubmit={async (data: ItemFormData) => {
+            let uomId = data.primaryUomId || fetchedUnits[0]?.id;
+            if (!uomId) {
+              const uRes = await apiClient.get("/masters/units").catch(() => []);
+              const uList = extractList<any>(uRes);
+              if (uList.length > 0) uomId = uList[0].id;
+            }
+            const createdRes: any = await apiClient.post("/masters/items", {
+              type: data.type,
+              name: data.name.trim(),
+              nameGujarati: data.nameGujarati?.trim() || undefined,
+              sku: data.sku?.trim() || undefined,
+              barcode: data.barcode?.trim() || undefined,
+              hsnCode: data.hsnCode?.trim() || "1001",
+              primaryUomId: uomId,
+              secondaryUomId: data.secondaryUomId || undefined,
+              conversionFactor: data.secondaryUomId ? Number(data.conversionFactor) || 1 : undefined,
+              categoryId: data.categoryId || undefined,
+              taxRate: Number(data.taxRate) || 0,
+              isTaxInclusive: data.isTaxInclusive,
+              retailPrice: Number(data.retailPrice) || 0,
+              purchaseRate: Number(data.purchaseRate) || 0,
+              mrp: data.mrp ? Number(data.mrp) : undefined,
+              wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
+              openingStock: data.type === "PRODUCT" && data.openingStock !== "" ? Number(data.openingStock) : 0,
+              warehouseId: data.warehouseId || undefined,
+              minStockLevel: data.enableLowStockWarning ? Number(data.minStockLevel) || 0 : 0,
+              trackBatches: Boolean(data.trackBatches),
+              trackSerialNo: Boolean(data.trackSerialNo),
+            });
+            const created = createdRes?.data || createdRes;
+            if (created?.id) {
+              const catName =
+                created.category?.name ||
+                fetchedCategories.find((c) => c.id === (created.categoryId || data.categoryId))?.name;
+              const unitSymbol =
+                created.primaryUom?.symbol ||
+                fetchedUnits.find((u) => u.id === uomId)?.symbol ||
+                "PCS";
+              const newCatalogItem: CatalogItem = {
+                id: created.id,
+                name: created.name,
+                hsnCode: created.hsnCode || "1001",
+                taxRate: Number(created.taxRate ?? data.taxRate) || 0,
+                retailPrice: Number(created.retailPrice ?? data.retailPrice) || 0,
+                purchasePrice: Number(created.purchaseRate ?? data.purchaseRate) || 0,
+                stockQuantity: Number(created.currentStock ?? (data.type === "PRODUCT" ? data.openingStock : 0)) || 0,
+                category: catName,
+                categoryId: created.categoryId || data.categoryId || undefined,
+                unit: unitSymbol,
+              };
+              setLocalCreatedItems((prev) => [newCatalogItem, ...prev]);
+              setQuantities((prev) => ({ ...prev, [created.id]: 1 }));
+            }
+            setIsCreateItemOpen(false);
+          }}
+          units={fetchedUnits}
+          categories={fetchedCategories}
+          warehouses={fetchedWarehouses}
+          onAddCategory={async (name: string) => {
+            try {
+              const res: any = await apiClient.post("/masters/categories", { name });
+              const created = res?.data || res;
+              if (created?.id) {
+                setFetchedCategories((prev) => [...prev, created]);
+                return created;
+              }
+            } catch {
+              // ignore
+            }
+            return null;
+          }}
+        />
+      )}
     </div>
   );
 }
