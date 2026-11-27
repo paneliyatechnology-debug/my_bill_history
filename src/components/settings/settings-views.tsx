@@ -891,8 +891,6 @@ function AccountSettingsView() {
   const [suggestionText, setSuggestionText] = useState("");
   const [suggestionSuccess, setSuggestionSuccess] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [isUpgradingPlan, setIsUpgradingPlan] = useState(false);
 
   // Billing History dynamic states
   const [billingHistory, setBillingHistory] = useState<any[]>([]);
@@ -1085,85 +1083,6 @@ function AccountSettingsView() {
       }, 1800);
     } catch (err: any) {
       setSaveBanner(err?.message || "Could not email the suggestion.");
-    }
-  };
-
-  // Dynamic upgrade subscription handler with Razorpay
-  const handleUpgradePlan = async (tier: string, cycle: "monthly" | "yearly" = "yearly") => {
-    setIsUpgradingPlan(true);
-    try {
-      const order = await apiClient.post<any>("/subscriptions/create-order", {
-        tier,
-        billingCycle: cycle,
-      });
-
-      if (!order || !order.orderId) {
-        throw new Error("Could not initialize payment order.");
-      }
-
-      const opened = await openRazorpayCheckout({
-        orderId: order.orderId,
-        amount: order.amount,
-        keyId: order.keyId,
-        currency: order.currency || "INR",
-        name: "myBillBook Technologies",
-        description: `${order.planName} (${cycle})`,
-        prefill: {
-          name: user?.fullName || "",
-          email: user?.email || "",
-          contact: user?.phone || "",
-        },
-        notes: { tier, billingCycle: cycle },
-        onSuccess: async (response) => {
-          await apiClient.post("/subscriptions/verify-payment", {
-            orderId: response.razorpay_order_id,
-            paymentId: response.razorpay_payment_id,
-            signature: response.razorpay_signature,
-            tier,
-            billingCycle: cycle,
-          });
-          if (refreshTenantMetadata) {
-            await refreshTenantMetadata();
-          }
-          await loadBillingHistory();
-          setShowUpgradeModal(false);
-          setSaveBanner(
-            lang === "gu"
-              ? "સબ્સ્ક્રિપ્શન પ્લાન સફળતાપૂર્વક અપગ્રેડ થયો!"
-              : "Subscription plan upgraded successfully via Razorpay!",
-          );
-          setTimeout(() => setSaveBanner(null), 4000);
-        },
-        onError: (err) => {
-          setSaveBanner(err?.message || "Payment was cancelled or could not be completed.");
-        },
-      });
-
-      if (!opened) {
-        await apiClient.post("/tenants/subscription/upgrade", {
-          tier,
-          billingCycle: "1year",
-        });
-        if (refreshTenantMetadata) await refreshTenantMetadata();
-        await loadBillingHistory();
-        setShowUpgradeModal(false);
-        setSaveBanner(lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન સફળતાપૂર્વક અપગ્રેડ થયો!" : "Subscription plan upgraded successfully!");
-      }
-    } catch (err: any) {
-      try {
-        await apiClient.post("/tenants/subscription/upgrade", {
-          tier,
-          billingCycle: "1year",
-        });
-        if (refreshTenantMetadata) await refreshTenantMetadata();
-        await loadBillingHistory();
-        setShowUpgradeModal(false);
-        setSaveBanner(lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન સફળતાપૂર્વક અપગ્રેડ થયો!" : "Subscription plan upgraded successfully!");
-      } catch (fallbackErr: any) {
-        setSaveBanner(err?.message || fallbackErr?.message || "Failed to upgrade subscription");
-      }
-    } finally {
-      setIsUpgradingPlan(false);
     }
   };
 
@@ -1469,9 +1388,8 @@ function AccountSettingsView() {
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowUpgradeModal(true)}
+            <Link
+              href="/settings/pricing"
               className={`px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer ${
                 isExpired
                   ? "bg-rose-600 hover:bg-rose-700 ring-2 ring-rose-300"
@@ -1479,7 +1397,7 @@ function AccountSettingsView() {
               }`}
             >
               <span>{isExpired ? (lang === "gu" ? "હમણાં રિન્યૂ કરો" : "Renew Plan Now") : (lang === "gu" ? "પ્લાન અપગ્રેડ કરો" : "Upgrade Plan")}</span>
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -1498,13 +1416,12 @@ function AccountSettingsView() {
                   : "Attention: Your subscription plan has expired. Please renew or upgrade your plan to maintain uninterrupted access to GST invoicing and features."}
               </span>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowUpgradeModal(true)}
-              className="h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium text-[13px] shrink-0 cursor-pointer shadow-xs"
+            <Link
+              href="/settings/pricing"
+              className="h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium text-[13px] shrink-0 cursor-pointer shadow-xs inline-flex items-center justify-center"
             >
               {lang === "gu" ? "હમણાં રિન્યૂ કરો" : "Renew Now"}
-            </button>
+            </Link>
           </div>
         )}
       </div>
@@ -1813,95 +1730,6 @@ function AccountSettingsView() {
                 </div>
               </form>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Upgrade Plan Modal */}
-      {showUpgradeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-[15px] font-semibold text-slate-900 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-[#1677E8]" />
-                {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન રિન્યૂ / અપગ્રેડ કરો" : "Renew / Upgrade Subscription"}
-              </h3>
-              <button onClick={() => setShowUpgradeModal(false)} className="text-slate-400 hover:text-slate-600 p-1">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-600">
-              {lang === "gu"
-                ? "તમારા બિઝનેસ માટે યોગ્ય પ્લાન પસંદ કરો અને અનલિમિટેડ જીએસટી બિલિંગ, ઇ-વે બિલ અને ક્લાઉડ સિંક મેળવો."
-                : "Select the subscription plan for your business scale to keep GST invoicing, E-Way Bill, and multi-user sync uninterrupted."}
-            </p>
-
-            <div className="space-y-2.5">
-              {[
-                {
-                  tier: "WHOLESALE_PRO",
-                  name: "Professional Plan",
-                  price: "₹ 9,588/yr (₹799/mo)",
-                  desc: "Up to 3 Businesses • Unlimited Invoices & E-Way Bills • AI OCR Scanner • WhatsApp Reminders",
-                  recommended: true,
-                },
-                {
-                  tier: "DISTRIBUTION_ENTERPRISE",
-                  name: "Enterprise Plan",
-                  price: "₹ 19,188/yr (₹1,599/mo)",
-                  desc: "Unlimited Businesses & Warehouses • Direct Govt E-Invoicing API • Real-time Multi-Branch Sync",
-                },
-                {
-                  tier: "RETAIL_BASIC",
-                  name: "Starter Plan",
-                  price: "₹ 4,788/yr (₹399/mo)",
-                  desc: "1 Business • Up to 3,000 Invoices/yr • Standard GST & Thermal Print",
-                },
-              ].map((p) => (
-                <div
-                  key={p.tier}
-                  className={`p-3.5 rounded-xl border flex items-center justify-between transition-all ${
-                    p.recommended
-                      ? "border-[#1677E8] bg-[#EFF6FF]/40 ring-1 ring-[#1677E8]/20"
-                      : "border-slate-200 bg-slate-50/50 hover:bg-slate-50"
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-xs text-slate-900">{p.name}</span>
-                      {p.recommended && (
-                        <span className="text-[9px] font-semibold bg-[#1677E8] text-white px-1.5 py-0.2 rounded-full">
-                          MOST POPULAR
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{p.desc}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold text-xs text-slate-900 tabular-nums">{p.price}</span>
-                    <button
-                      type="button"
-                      disabled={isUpgradingPlan}
-                      onClick={() => handleUpgradePlan(p.tier, "yearly")}
-                      className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      {isUpgradingPlan ? "Connecting..." : "Pay with Razorpay"}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowUpgradeModal(false)}
-                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl"
-              >
-                Cancel
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -4556,12 +4384,21 @@ function CaSharingView() {
             setInviteError(null);
             try {
               const business = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+              const portalUrl = typeof window !== "undefined" ? `${window.location.origin}/reports` : undefined;
               const result = await sendAppEmail({
                 to: caEmail.trim(),
-                subject: `${business} audit portal invitation`,
-                heading: "Audit portal invitation",
-                intro: `You have been invited to review the books of ${business}.`,
-                details: [{ label: "Business", value: business }],
+                category: "ca_invite",
+                companyName: business,
+                subject: `${business} — CA Audit Portal Invitation`,
+                heading: "CA Audit Portal Invitation",
+                intro: `You have been invited to review the GST and financial books of ${business}.`,
+                actionUrl: portalUrl,
+                actionLabel: "Open Audit Portal →",
+                details: [
+                  { label: "Business", value: business },
+                  { label: "Access Type", value: "Read-Only GST & Audit Reports" },
+                ],
+                note: "Sign in with the access shared by your client to download GSTR-1, GSTR-3B JSON, ledgers, and P&L statements.",
                 text: "Sign in with the access your client shares, then download GSTR-1, GSTR-3B, ledgers, and the profit and loss statement.",
               });
               setInvited(true);
@@ -5335,229 +5172,146 @@ function PricingSettingsView() {
         })}
       </div>
 
-      {/* Upgrade Checkout Modal with Transparent Proration Breakdown */}
+      {/* Checkout Modal */}
       <AnimatePresence>
         {selectedPlan && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4"
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 space-y-4"
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div className="flex items-center gap-2">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#1677E8] flex items-center justify-center shrink-0">
                     <CreditCard className="w-4 h-4 stroke-[2.2]" />
                   </div>
                   <div>
-                    <h3 className="text-[15px] font-bold text-slate-900">
-                      {isSelectedRenewal
-                        ? gu
-                          ? `રીન્યુઅલ: ${selectedPlan.nameGujarati || selectedPlan.name}`
-                          : `Renew: ${selectedPlan.name}`
-                        : gu
-                          ? `અપગ્રેડ ચેકઆઉટ: ${selectedPlan.nameGujarati || selectedPlan.name}`
-                          : `Checkout: ${selectedPlan.name}`}
+                    <h3 className="text-sm font-bold text-slate-900 leading-tight">
+                      {gu ? selectedPlan.nameGujarati || selectedPlan.name : selectedPlan.name}
                     </h3>
-                    <p className="text-[11px] text-slate-500">
+                    <span className="inline-block text-[11px] font-medium text-slate-500 mt-0.5">
                       {billingCycle === "yearly"
                         ? gu
-                          ? "૧ વર્ષ (વાર્ષિક બિલિંગ) - 20% બચત"
-                          : "1 Year (Annual Billing) - Save 20%"
+                          ? "વાર્ષિક પ્લાન (૧ વર્ષ)"
+                          : "Annual Plan (1 Year)"
                         : gu
-                          ? "૧ મહિનો (માસિક બિલિંગ)"
-                          : "1 Month (Monthly Billing)"}
-                    </p>
+                          ? "માસિક પ્લાન (૧ મહિનો)"
+                          : "Monthly Plan (1 Month)"}
+                    </span>
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={handleCloseModal}
-                  className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                  className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Informative SaaS Proration Explanation Banner */}
-              {isSelectedUpgrade && proratedCredit > 0 ? (
-                <div className="p-3 bg-blue-50/80 border border-blue-200/80 rounded-xl text-xs text-blue-900 flex items-start gap-2.5">
-                  <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-blue-900">
-                      {gu ? "પ્રોરેટેડ અપગ્રેડ ક્રેડિટ લાગુ થયેલ છે" : "Prorated Upgrade Credit Applied"}
-                    </p>
-                    <p className="text-[11px] text-blue-700 mt-0.5 leading-relaxed">
-                      {gu
-                        ? `તમારા હાલના ${currentPlanName} ના બાકી રહેલા ${daysRemaining} દિવસોનું ₹${proratedCredit.toLocaleString("en-IN")} ક્રેડિટ આ અપગ્રેડમાંથી બાદ કરવામાં આવ્યું છે. નવો પ્લાન આજથી ૧ સંપૂર્ણ વર્ષ માટે સક્રિય થશે.`
-                        : `Your remaining ${daysRemaining} days on ${currentPlanName} are credited as -₹${proratedCredit.toLocaleString("en-IN")}. Your new ${selectedPlan.name} takes effect immediately for 1 full year.`}
-                    </p>
-                  </div>
-                </div>
-              ) : isSelectedRenewal ? (
-                <div className="p-3 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-xs text-emerald-900 flex items-start gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-emerald-900">
-                      {gu ? "સબ્સ્ક્રિપ્શન રીન્યુઅલ" : "Subscription Renewal"}
-                    </p>
-                    <p className="text-[11px] text-emerald-700 mt-0.5 leading-relaxed">
-                      {gu
-                        ? `રીન્યુ કરવાથી તમારી હાલની માન્યતા તારીખમાં વધુ ${billingCycle === "yearly" ? "૧ વર્ષ (૩૬૫ દિવસ)" : "૩૦ દિવસ"} ઉમેરાશે.`
-                        : `Renewing extends your current expiration date by +${billingCycle === "yearly" ? "1 full year (365 days)" : "30 days"} with zero downtime.`}
-                    </p>
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Transparent Cost Breakdown */}
-              <div className="space-y-2 text-xs bg-slate-50/60 p-3.5 rounded-xl border border-slate-200/70">
+              {/* Price Breakdown */}
+              <div className="space-y-2 text-xs bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80">
                 <div className="flex justify-between text-slate-600">
-                  <span>{gu ? "પ્લાન બેઝ પ્રાઇસ:" : "Selected Plan Price:"}</span>
+                  <span>{gu ? "પ્લાન પ્રાઇસ" : "Plan Price"}</span>
                   <span className="font-semibold text-slate-900 tabular-nums">
                     ₹ {targetPlanBasePrice.toLocaleString("en-IN")}
                   </span>
                 </div>
 
-                {/* Prorated Unused Credit Deduction */}
                 {isSelectedUpgrade && proratedCredit > 0 && (
-                  <div className="flex justify-between text-blue-700 font-semibold bg-blue-100/50 -mx-2 px-2 py-1 rounded-lg">
-                    <span className="flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                      <span>
-                        {gu
-                          ? `બાદ: હાલના પ્લાનની ક્રેડિટ (${daysRemaining} દિવસ બાકી):`
-                          : `Less: Prorated credit (${daysRemaining} days remaining):`}
-                      </span>
+                  <div className="flex justify-between text-blue-700 font-medium">
+                    <span>
+                      {gu
+                        ? `અપગ્રેડ ક્રેડિટ (${daysRemaining} દિવસ)`
+                        : `Upgrade Credit (${daysRemaining}d)`}
                     </span>
-                    <span className="tabular-nums">- ₹ {proratedCredit.toLocaleString("en-IN")}</span>
+                    <span className="tabular-nums font-semibold">- ₹ {proratedCredit.toLocaleString("en-IN")}</span>
                   </div>
                 )}
 
-                {/* Coupon discount if applied */}
                 {appliedCoupon && appliedCoupon.discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-700 font-semibold bg-emerald-100/70 -mx-2 px-2.5 py-1.5 rounded-lg border border-emerald-200">
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>
-                        {gu
-                          ? `કૂપન ડિસ્કાઉન્ટ (${appliedCoupon.code}):`
-                          : `Coupon Discount (${appliedCoupon.code}):`}
-                      </span>
+                  <div className="flex justify-between text-emerald-700 font-medium">
+                    <span>
+                      {gu
+                        ? `કૂપન (${appliedCoupon.code})`
+                        : `Coupon (${appliedCoupon.code})`}
                     </span>
-                    <span className="tabular-nums font-bold">- ₹ {appliedCoupon.discountAmount.toLocaleString("en-IN")}</span>
+                    <span className="tabular-nums font-semibold">- ₹ {appliedCoupon.discountAmount.toLocaleString("en-IN")}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-slate-600 pt-1 border-t border-slate-200/60">
-                  <span>{gu ? "નેટ ટેક્સેબલ રકમ:" : "Net Taxable Subtotal:"}</span>
+                <div className="flex justify-between text-slate-600 pt-2 border-t border-slate-200/70">
+                  <span>{gu ? "સબટોટલ" : "Subtotal"}</span>
                   <span className="font-semibold text-slate-900 tabular-nums">
                     ₹ {taxable.toLocaleString("en-IN")}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-slate-600">
-                  <span>{gu ? "GST (18% SAC 998314):" : "GST (18% SAC 998314):"}</span>
+                  <span>{gu ? "GST (18%)" : "GST (18%)"}</span>
                   <span className="font-semibold text-slate-900 tabular-nums">
                     ₹ {gstAmt.toLocaleString("en-IN")}
                   </span>
                 </div>
 
-                <div className="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
-                  <span>{gu ? "કુલ ચૂકવવાપાત્ર રકમ:" : "Total Amount Payable:"}</span>
+                <div className="flex justify-between items-center text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
+                  <span>{gu ? "કુલ રકમ" : "Total Payable"}</span>
                   <span className="text-[#1677E8] text-base tabular-nums font-extrabold">
                     ₹ {totalPayable.toLocaleString("en-IN")}
                   </span>
                 </div>
               </div>
 
-              {/* Dynamic Coupon Code Input & Applied State */}
-              <div className="pt-1 space-y-2">
+              {/* Coupon Input */}
+              <div className="space-y-2">
                 {appliedCoupon ? (
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-2 animate-in fade-in">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                        <Check className="w-4 h-4 stroke-[3]" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-emerald-900 text-xs tracking-wider uppercase">
-                            {appliedCoupon.code}
-                          </span>
-                          <span className="text-[10px] bg-emerald-200/90 text-emerald-800 font-bold px-1.5 py-0.2 rounded">
-                            {appliedCoupon.discountType === "PERCENTAGE"
-                              ? `${appliedCoupon.discountValue}% OFF`
-                              : `₹${appliedCoupon.discountAmount} OFF`}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-emerald-700 font-medium mt-0.5">
-                          {appliedCoupon.message ||
-                            (gu
-                              ? `તમે ₹${appliedCoupon.discountAmount.toLocaleString("en-IN")} બચાવ્યા!`
-                              : `You saved ₹${appliedCoupon.discountAmount.toLocaleString("en-IN")}!`)}
-                        </p>
-                      </div>
+                  <div className="px-3 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-600 stroke-[2.5] shrink-0" />
+                      <span className="font-bold text-emerald-900 text-xs uppercase tracking-wide">
+                        {appliedCoupon.code}
+                      </span>
+                      <span className="text-[11px] text-emerald-700 font-medium">
+                        (-₹{appliedCoupon.discountAmount.toLocaleString("en-IN")})
+                      </span>
                     </div>
                     <button
                       type="button"
                       onClick={handleRemoveCoupon}
-                      className="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-100/60 rounded-lg transition-colors cursor-pointer"
+                      className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 cursor-pointer"
                     >
                       {gu ? "દૂર કરો" : "Remove"}
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleApplyCoupon} className="space-y-1.5">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder={gu ? "કૂપન કોડ (દા.ત. MBBFIRST50, SAVE20)" : "Coupon code (e.g. MBBFIRST50, SAVE20)"}
-                        value={couponInput}
-                        onChange={(e) => {
-                          setCouponInput(e.target.value.toUpperCase());
-                          if (couponError) setCouponError(null);
-                        }}
-                        className="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase h-9 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 focus:bg-white transition-all font-semibold text-slate-800 placeholder:normal-case placeholder:font-normal placeholder:text-slate-400"
-                      />
-                      <button
-                        type="submit"
-                        disabled={isApplyingCoupon || !couponInput.trim()}
-                        className="h-9 px-4 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
-                      >
-                        {isApplyingCoupon ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>{gu ? "ચકાસી રહ્યું છે..." : "Checking..."}</span>
-                          </>
-                        ) : (
-                          <span>{gu ? "લાગુ કરો" : "Apply"}</span>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Quick Available Promo Pills */}
-                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {gu ? "ઉપલબ્ધ ઑફર્સ:" : "Popular codes:"}
-                      </span>
-                      {["MBBFIRST50", "SAVE20", "MBB500"].map((code) => (
-                        <button
-                          key={code}
-                          type="button"
-                          onClick={() => {
-                            setCouponInput(code);
-                            setCouponError(null);
-                          }}
-                          className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 font-semibold border border-slate-200/60 transition-colors cursor-pointer"
-                        >
-                          {code}
-                        </button>
-                      ))}
-                    </div>
+                  <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={gu ? "કૂપન કોડ દાખલ કરો" : "Enter coupon code"}
+                      value={couponInput}
+                      onChange={(e) => {
+                        setCouponInput(e.target.value.toUpperCase());
+                        if (couponError) setCouponError(null);
+                      }}
+                      className="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl uppercase h-9 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 focus:bg-white transition-all font-semibold text-slate-800 placeholder:normal-case placeholder:font-normal placeholder:text-slate-400"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isApplyingCoupon || !couponInput.trim()}
+                      className="h-9 px-4 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
+                    >
+                      {isApplyingCoupon ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <span>{gu ? "લાગુ કરો" : "Apply"}</span>
+                      )}
+                    </button>
                   </form>
                 )}
 
-                {/* Error Banner */}
                 {couponError && (
                   <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-center gap-2">
                     <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
@@ -5567,14 +5321,14 @@ function PricingSettingsView() {
               </div>
 
               {errorMessage && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium flex items-center gap-2">
+                <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                   <span>{errorMessage}</span>
                 </div>
               )}
 
-              {/* Modal Actions */}
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+              {/* Actions */}
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={handleCloseModal}
@@ -5591,15 +5345,15 @@ function PricingSettingsView() {
                   {isUpgrading ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Connecting Razorpay...</span>
+                      <span>{gu ? "પ્રક્રિયા..." : "Processing..."}</span>
                     </>
                   ) : (
                     <>
                       <CreditCard className="w-3.5 h-3.5" />
                       <span>
                         {gu
-                          ? `₹${totalPayable.toLocaleString("en-IN")} ચૂકવો (Razorpay)`
-                          : `Pay ₹${totalPayable.toLocaleString("en-IN")} with Razorpay`}
+                          ? `₹${totalPayable.toLocaleString("en-IN")} ચૂકવો`
+                          : `Pay ₹${totalPayable.toLocaleString("en-IN")}`}
                       </span>
                     </>
                   )}
@@ -5679,10 +5433,18 @@ function ReferEarnView() {
           try {
             const result = await sendAppEmail({
               to: referEmail.trim(),
-              subject: "Join myownbillbook with a referral",
-              heading: "You are invited to myownbillbook",
-              intro: "Start GST billing and accounts with this referral link.",
-              details: [{ label: "Referral link", value: shareUrl }],
+              category: "referral",
+              subject: "You're invited to myownbillbook — Get ₹500 Off!",
+              heading: "You Are Invited to myownbillbook",
+              intro: "Start GST billing, inventory, and accounting with an exclusive ₹500 signup discount.",
+              actionUrl: shareUrl,
+              actionLabel: "Claim ₹500 Discount & Sign Up →",
+              details: [
+                { label: "Referral Code", value: referralCode },
+                { label: "Signup Reward", value: "₹500 Instant Discount" },
+                { label: "Referral Link", value: shareUrl },
+              ],
+              note: "Use the button or referral link above when creating your account to automatically apply your ₹500 discount.",
               text: "Open the link to create an account.",
             });
             setReferNote(mailResultMessage(result, "en"));

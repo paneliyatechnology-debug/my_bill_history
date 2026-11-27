@@ -78,15 +78,21 @@ export function CaSharingModal({
       return;
     }
     try {
+      const reportsUrl = typeof window !== "undefined" ? `${window.location.origin}/reports` : undefined;
       const result = await sendAppEmail({
         to: caEmail.trim(),
-        subject: `${companyName} books are ready for review`,
-        heading: "Books ready for review",
+        category: "ca_invite",
+        companyName,
+        subject: `${companyName} — Books Ready for GST & Financial Review`,
+        heading: "Books Ready for Review",
         intro: `Hello ${caName || "Sir"}, ${companyName} has shared its books for GST and financial review.`,
+        actionUrl: reportsUrl,
+        actionLabel: "Open Reports & Registers →",
         details: [
           { label: "Business", value: companyName },
-          { label: "Prepared for", value: caName || "Chartered Accountant" },
+          { label: "Prepared For", value: caName || "Chartered Accountant" },
         ],
+        note: "All ledgers, GSTR-1/3B summaries, and financial registers are ready in myownbillbook.",
         text: "Open Reports and use Email Excel whenever a register needs to be sent.",
       });
       setEmailNote(mailResultMessage(result, lang === "gu" ? "gu" : "en"));

@@ -139,7 +139,7 @@ function getInvoiceStatus(inv: any): "PAID" | "PARTIALLY_PAID" | "UNPAID" | "CAN
 
 export default function SalesInvoicesDashboardPage() {
   const router = useRouter();
-  const { lang, user, tenantContext, hasPermission } = useAuth();
+  const { lang, user, tenantContext, currentCompany, hasPermission } = useAuth();
 
   const [invoices, setInvoices] = useState<SalesInvoice[]>([]);
   const [parties, setParties] = useState<PartyOption[]>([]);
@@ -518,17 +518,25 @@ export default function SalesInvoicesDashboardPage() {
       setIsExporting(true);
       try {
         const partyName = parties.find((p) => p.id === bulkDownloadPartyId)?.name || "All parties";
+        const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+        const invoicesUrl = typeof window !== "undefined" ? `${window.location.origin}/sales/invoices` : undefined;
         const result = await sendAppEmail({
           to: bulkDownloadCaEmail.trim(),
           cc: bulkDownloadEmail.includes("@") ? bulkDownloadEmail.trim() : undefined,
-          subject: `Sales invoice summary — ${bulkDownloadDateRange}`,
-          heading: "Sales invoice summary",
-          intro: "A sales invoice summary was shared from myownbillbook.",
+          category: "report",
+          companyName,
+          subject: `Sales Invoice Summary (${bulkDownloadDateRange}) — ${companyName}`,
+          heading: "Sales Invoice Summary",
+          intro: `${companyName} has shared a sales invoice summary for your review.`,
+          actionUrl: invoicesUrl,
+          actionLabel: "Open Sales Invoices →",
           details: [
-            { label: "Invoices", value: String(filteredInvoices.length) },
-            { label: "Date range", value: bulkDownloadDateRange },
-            { label: "Party", value: partyName },
+            { label: "Business", value: companyName },
+            { label: "Total Invoices", value: String(filteredInvoices.length) },
+            { label: "Date Range", value: bulkDownloadDateRange },
+            { label: "Party Filter", value: partyName },
           ],
+          note: "Sign in to myownbillbook to download the complete PDF and Excel bundle.",
           text: "Open Sales Invoices in myownbillbook to download the full bundle.",
         });
         setIsBulkDownloadOpen(false);

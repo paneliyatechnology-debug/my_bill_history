@@ -6,10 +6,21 @@ export interface MailSendResult {
   message: string;
 }
 
+export type EmailCategory =
+  | "invoice"
+  | "credit_note"
+  | "return"
+  | "report"
+  | "ca_invite"
+  | "referral"
+  | "support"
+  | "general";
+
 export async function sendAppEmail(input: {
   to: string;
   cc?: string;
   subject: string;
+  category?: EmailCategory;
   heading?: string;
   intro?: string;
   note?: string;

@@ -300,9 +300,10 @@ export default function SalesReturnViewPage() {
       const viewUrl = typeof window !== "undefined" ? window.location.href : "";
       const result = await sendAppEmail({
         to: to.trim(),
-        subject: `Sales return ${data.returnNumber} from ${companyName}`,
-        heading: `Sales return ${data.returnNumber}`,
-        intro: `${companyName} shared this sales return with you.`,
+        category: "return",
+        subject: `Sales Return ${data.returnNumber} from ${companyName}`,
+        heading: `Sales Return ${data.returnNumber}`,
+        intro: `${companyName} has shared this sales return voucher with you.`,
         actionUrl: viewUrl,
         actionLabel: "View Sales Return →",
         companyName,
@@ -312,6 +313,7 @@ export default function SalesReturnViewPage() {
           { label: "Date", value: formatDisplayDate(data.returnDate) },
           { label: "Total Amount", value: formatInr(data.grandTotal) },
         ],
+        note: "Please review the returned item details and credit adjustment in myownbillbook.",
         text: `Open the sales return in myownbillbook to print or download it: ${viewUrl}`,
       });
       showToast(mailResultMessage(result, lang === "gu" ? "gu" : "en"));

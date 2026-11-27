@@ -5727,16 +5727,23 @@ export default function ReportsPage({
           reportName={currentTabMeta.label}
           lang={lang}
           onSendEmail={async (email, notes) => {
+            const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+            const reportsUrl = typeof window !== "undefined" ? window.location.href : undefined;
             const result = await apiClient.post<any>("/mail/send", {
               to: email,
-              subject: `${currentTabMeta.label} — ${startDate} to ${endDate}`,
+              category: "report",
+              companyName,
+              subject: `${currentTabMeta.label} (${startDate} to ${endDate}) — ${companyName}`,
               heading: currentTabMeta.label,
-              intro: notes,
+              intro: notes?.trim() || `${companyName} has shared the ${currentTabMeta.label} report with you.`,
+              actionUrl: reportsUrl,
+              actionLabel: "Open Report in myownbillbook →",
               details: [
                 { label: "Report", value: currentTabMeta.label },
                 { label: "Period", value: `${startDate} to ${endDate}` },
-                { label: "Business", value: currentCompany?.tradeName || currentCompany?.legalName || "—" },
+                { label: "Business", value: companyName },
               ],
+              note: "Open Reports in myownbillbook and click Download Excel to export the full spreadsheet.",
               text: "Open Reports and use Download Excel if you also need the spreadsheet file.",
             });
             if (result && result.delivered === false) {

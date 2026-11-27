@@ -1190,9 +1190,10 @@ export default function InvoiceDetailPage() {
 
               const result = await sendAppEmail({
                 to: emailShareTo.trim(),
+                category: "invoice",
                 subject: `Invoice ${invoice.invoiceNumber} from ${companyName}`,
                 heading: `Invoice ${invoice.invoiceNumber}`,
-                intro: `${companyName} shared this tax invoice with you.`,
+                intro: `${companyName} has shared this tax invoice with you.`,
                 actionUrl: invoiceUrl,
                 actionLabel: "View & Download Invoice →",
                 companyName,
@@ -1203,6 +1204,7 @@ export default function InvoiceDetailPage() {
                   { label: "Grand Total", value: formattedGrandTotal },
                   { label: "Balance", value: formattedBalance },
                 ],
+                note: "Thank you for your business! Please quote the invoice number in your payment reference.",
                 text: `Open the invoice in myownbillbook to view, print or download the PDF: ${invoiceUrl}`,
               });
               setActionSuccess(mailResultMessage(result, lang === "gu" ? "gu" : "en"));

@@ -343,9 +343,10 @@ export default function CreditNoteViewPage() {
       const viewUrl = typeof window !== "undefined" ? window.location.href : "";
       const result = await sendAppEmail({
         to: to.trim(),
-        subject: `Credit note ${data.returnNumber} from ${companyName}`,
-        heading: `Credit note ${data.returnNumber}`,
-        intro: `${companyName} shared this credit note with you.`,
+        category: "credit_note",
+        subject: `Credit Note ${data.returnNumber} from ${companyName}`,
+        heading: `Credit Note ${data.returnNumber}`,
+        intro: `${companyName} has issued and shared this credit note with you.`,
         actionUrl: viewUrl,
         actionLabel: "View Credit Note →",
         companyName,
@@ -355,6 +356,7 @@ export default function CreditNoteViewPage() {
           { label: "Date", value: formatDisplayDate(data.returnDate) },
           { label: "Total Amount", value: formatInr(data.grandTotal) },
         ],
+        note: "This credit note has been recorded on your account and can be adjusted against future invoices.",
         text: `Open the credit note in myownbillbook to print or download it: ${viewUrl}`,
       });
       showToast(mailResultMessage(result, lang === "gu" ? "gu" : "en"));
