@@ -2024,9 +2024,9 @@ export default function NewInvoicePage() {
                   id: "invoiceNumber",
                   label: "Invoice No.",
                   type: "text",
-                  value: invoiceNumber || "Generating...",
+                  value: invoiceNumber,
                   readOnly: true,
-                  placeholder: "Auto-generated",
+                  placeholder: isLoading ? "Generating..." : "Auto-generated",
                 },
                 {
                   id: "invoiceDate",

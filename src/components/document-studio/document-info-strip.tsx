@@ -8,7 +8,11 @@ import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-3.5 shadow-xs">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 items-end">
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${
+          fields.length >= 6 ? "lg:grid-cols-6" : "lg:grid-cols-5"
+        } gap-2 sm:gap-2.5 items-end`}
+      >
         {fields.map((field) => (
           <div key={field.id} className="space-y-1 min-w-0">
             <label className="block typo-label text-slate-700 truncate">
