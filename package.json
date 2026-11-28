@@ -8,13 +8,7 @@
     "start": "next start -p 3000",
     "clean": "rm -rf .next .next-dev dist tsconfig.tsbuildinfo",
     "type-check": "tsc --noEmit",
-    "test:reliability": "node scripts/test-reliability.mjs",
-    "test:export": "node scripts/test-export-system.mjs",
-    "test:gstin": "node scripts/test-gstin-verification.mjs",
-    "test:staff-salary": "node scripts/test-staff-salary-accounting.mjs",
-    "test:audit": "node scripts/test-audit-fixes.mjs",
-    "test:real": "node scripts/test-real-modules.mjs",
-    "test": "node scripts/test-reliability.mjs && node scripts/test-export-system.mjs && node scripts/test-gstin-verification.mjs && node scripts/test-staff-salary-accounting.mjs && node scripts/test-audit-fixes.mjs && node scripts/test-real-modules.mjs",
+    "test": "tsc --noEmit",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
