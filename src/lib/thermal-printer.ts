@@ -1,6 +1,7 @@
 "use client";
 
 import QRCode from "qrcode";
+import { escapeHtml, sanitizeImageUrl } from "./html-utils";
 
 export interface ThermalPrintSettings {
   paperSize: "2inch" | "3inch"; // 2inch = 58mm (32 col), 3inch = 80mm (48 col)
@@ -199,11 +200,14 @@ export async function buildThermalReceiptHtml(
     0,
   );
 
+  const safeLogoUrl = sanitizeImageUrl(data.companyLogoUrl);
+  const safeQrDataUrl = sanitizeImageUrl(qrDataUrl);
+
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Receipt_${data.invoiceNumber || "POS"}</title>
+  <title>Receipt_${escapeHtml(data.invoiceNumber || "POS")}</title>
   <style>
     @page {
       size: ${rollWidth} auto;
@@ -307,30 +311,30 @@ export async function buildThermalReceiptHtml(
   <div class="content-box">
     <!-- Header -->
     <div class="text-center">
-      ${data.companyLogoUrl
-      ? `<div style="margin-bottom: 4px;"><img src="${data.companyLogoUrl}" alt="logo" style="max-height: ${is2Inch ? "34px" : "44px"
-      }; max-width: 120px; object-contain: contain; filter: grayscale(100%) contrast(150%);" /></div>`
+      ${safeLogoUrl
+      ? `<div style="margin-bottom: 4px;"><img src="${safeLogoUrl}" alt="logo" style="max-height: ${is2Inch ? "34px" : "44px"
+      }; max-width: 120px; object-fit: contain; filter: grayscale(100%) contrast(150%);" /></div>`
       : ""
     }
-      <div class="store-title">${data.companyName || "STORE RECEIPT"}</div>
+      <div class="store-title">${escapeHtml(data.companyName || "STORE RECEIPT")}</div>
       ${data.companyAddress
-      ? `<div style="font-size: 0.9em;">${data.companyAddress}</div>`
+      ? `<div style="font-size: 0.9em;">${escapeHtml(data.companyAddress)}</div>`
       : ""
     }
       ${data.companyPhone
-      ? `<div style="font-size: 0.9em;">Phone: <b>${data.companyPhone}</b></div>`
+      ? `<div style="font-size: 0.9em;">Phone: <b>${escapeHtml(data.companyPhone)}</b></div>`
       : ""
     }
       ${settings.showGstin && data.companyGstin
-      ? `<div style="font-size: 0.9em;">GSTIN: <b>${data.companyGstin}</b></div>`
+      ? `<div style="font-size: 0.9em;">GSTIN: <b>${escapeHtml(data.companyGstin)}</b></div>`
       : ""
     }
       ${data.companyFssai
-      ? `<div style="font-size: 0.85em;">FSSAI Lic: ${data.companyFssai}</div>`
+      ? `<div style="font-size: 0.85em;">FSSAI Lic: ${escapeHtml(data.companyFssai)}</div>`
       : ""
     }
       ${settings.customHeader
-      ? `<div style="font-size: 0.85em; font-style: italic; margin-top: 1px;">${settings.customHeader}</div>`
+      ? `<div style="font-size: 0.85em; font-style: italic; margin-top: 1px;">${escapeHtml(settings.customHeader)}</div>`
       : ""
     }
     </div>
@@ -342,46 +346,46 @@ export async function buildThermalReceiptHtml(
     <!-- Invoice Metadata -->
     <div style="font-size: 0.95em;">
       <div class="flex-row">
-        <span>Bill No: <b>${data.invoiceNumber || "-"}</b></span>
-        <span>Date: <b>${data.invoiceDate || ""}</b></span>
+        <span>Bill No: <b>${escapeHtml(data.invoiceNumber || "-")}</b></span>
+        <span>Date: <b>${escapeHtml(data.invoiceDate || "")}</b></span>
       </div>
       <div class="flex-row">
         ${settings.showTime && data.invoiceTime
-      ? `<span>Time: ${data.invoiceTime}</span>`
+      ? `<span>Time: ${escapeHtml(data.invoiceTime)}</span>`
       : "<span></span>"
     }
         ${data.cashierName
-      ? `<span>Cashier: ${data.cashierName}</span>`
+      ? `<span>Cashier: ${escapeHtml(data.cashierName)}</span>`
       : "<span></span>"
     }
       </div>
       ${settings.showDueDate && data.dueDate
-      ? `<div class="flex-row"><span>Due Date: ${data.dueDate}</span></div>`
+      ? `<div class="flex-row"><span>Due Date: ${escapeHtml(data.dueDate)}</span></div>`
       : ""
     }
       ${settings.showPlaceOfSupply && data.placeOfSupply
-      ? `<div class="flex-row"><span>Place of Supply: ${data.placeOfSupply}</span></div>`
+      ? `<div class="flex-row"><span>Place of Supply: ${escapeHtml(data.placeOfSupply)}</span></div>`
       : ""
     }
 
       <!-- Customer / Party Info -->
       ${data.customerName && data.customerName !== "Cash Sale"
       ? `<div class="divider-line"></div>
-             <div><b>Customer:</b> ${data.customerName}</div>
+             <div><b>Customer:</b> ${escapeHtml(data.customerName)}</div>
              ${settings.showCustomerPhone && data.customerPhone
-        ? `<div>Mobile: ${data.customerPhone}</div>`
+        ? `<div>Mobile: ${escapeHtml(data.customerPhone)}</div>`
         : ""
       }
              ${data.customerAddress
-        ? `<div style="font-size: 0.85em;">Address: ${data.customerAddress}</div>`
+        ? `<div style="font-size: 0.85em;">Address: ${escapeHtml(data.customerAddress)}</div>`
         : ""
       }
              ${settings.showGstin && data.customerGstin
-        ? `<div>Cust GSTIN: ${data.customerGstin}</div>`
+        ? `<div>Cust GSTIN: ${escapeHtml(data.customerGstin)}</div>`
         : ""
       }
              ${settings.showShippingAddress && data.shippingAddress
-        ? `<div style="font-size: 0.85em;">Ship To: ${data.shippingAddress}</div>`
+        ? `<div style="font-size: 0.85em;">Ship To: ${escapeHtml(data.shippingAddress)}</div>`
         : ""
       }`
       : ""
@@ -408,8 +412,8 @@ export async function buildThermalReceiptHtml(
         const hasDesc = settings.showItemDesc && (it.description || it.hsn);
         return `<tr>
               <td>${idx + 1}</td>
-              <td class="font-bold">${it.name}</td>
-              <td class="text-center">${it.quantity}${it.unit ? ` ${it.unit}` : ""}</td>
+              <td class="font-bold">${escapeHtml(it.name)}</td>
+              <td class="text-center">${escapeHtml(it.quantity)}${it.unit ? ` ${escapeHtml(it.unit)}` : ""}</td>
               ${settings.showRate
             ? `<td class="text-right">${Number(it.rate).toFixed(2)}</td>`
             : ""
@@ -420,10 +424,10 @@ export async function buildThermalReceiptHtml(
             ? `<tr>
                     <td></td>
                     <td colspan="${settings.showRate ? 4 : 3}" class="item-desc">
-                      ${it.description ? `<span>${it.description}</span> ` : ""}
-                      ${settings.showHsn && it.hsn ? `<span>[HSN:${it.hsn}]</span>` : ""}
-                      ${it.discount ? `<span>Disc:${it.discount}%</span>` : ""}
-                      ${it.taxPercent ? `<span>GST:${it.taxPercent}%</span>` : ""}
+                      ${it.description ? `<span>${escapeHtml(it.description)}</span> ` : ""}
+                      ${settings.showHsn && it.hsn ? `<span>[HSN:${escapeHtml(it.hsn)}]</span>` : ""}
+                      ${it.discount ? `<span>Disc:${escapeHtml(it.discount)}%</span>` : ""}
+                      ${it.taxPercent ? `<span>GST:${escapeHtml(it.taxPercent)}%</span>` : ""}
                     </td>
                   </tr>`
             : ""
@@ -455,7 +459,7 @@ export async function buildThermalReceiptHtml(
       ? data.taxBreakdown
         .map(
           (tb) => `<div class="flex-row" style="font-size: 0.9em;">
-                  <span>${tb.label}:</span>
+                  <span>${escapeHtml(tb.label)}:</span>
                   <span>₹ ${Number(tb.amount).toFixed(2)}</span>
                 </div>`,
         )
@@ -509,7 +513,7 @@ export async function buildThermalReceiptHtml(
       <!-- Payment tender details -->
       <div class="flex-row">
         <span>Payment Mode:</span>
-        <span><b>${data.paymentMode || "Cash"}</b></span>
+        <span><b>${escapeHtml(data.paymentMode || "Cash")}</b></span>
       </div>
       ${data.receivedAmount !== undefined
       ? `<div class="flex-row">
@@ -556,10 +560,10 @@ export async function buildThermalReceiptHtml(
     </div>
 
     <!-- Scannable UPI QR Code -->
-    ${qrDataUrl
+    ${safeQrDataUrl
       ? `<div class="divider-line"></div>
            <div class="qr-container">
-             <img src="${qrDataUrl}" alt="UPI QR" />
+             <img src="${safeQrDataUrl}" alt="UPI QR" />
              <div style="font-size: 0.85em; font-weight: 800; margin-top: 1px;">SCAN TO PAY VIA UPI</div>
              <div style="font-size: 0.8em;">GPay / PhonePe / Paytm / BHIM</div>
            </div>`
@@ -571,11 +575,11 @@ export async function buildThermalReceiptHtml(
       ? `<div class="divider-line"></div>
            <div style="font-size: 0.85em;">
              ${settings.showNotes && data.notes
-        ? `<div><b>Note:</b> ${data.notes}</div>`
+        ? `<div><b>Note:</b> ${escapeHtml(data.notes)}</div>`
         : ""
       }
              ${settings.showTerms && data.terms
-        ? `<div style="margin-top: 2px;"><b>Terms:</b> ${data.terms}</div>`
+        ? `<div style="margin-top: 2px;"><b>Terms:</b> ${escapeHtml(data.terms)}</div>`
         : ""
       }
            </div>`
@@ -585,7 +589,7 @@ export async function buildThermalReceiptHtml(
     <!-- Footer -->
     <div class="divider-double"></div>
     <div class="text-center" style="font-size: 0.85em; margin-top: 3px;">
-      <p class="font-bold">${settings.customFooter || "Thank you for your business!"
+      <p class="font-bold">${escapeHtml(settings.customFooter || "Thank you for your business!")
     }</p>
       <p style="font-size: 0.8em; margin-top: 2px;">Powered by myownbillbook POS</p>
     </div>

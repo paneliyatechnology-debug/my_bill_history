@@ -93,7 +93,7 @@ function Gstr3bBody() {
         `"3.1(c)","Nil-rated / Exempt Supplies",${t31c.taxableValue || 0},0,0,0,0`,
         `"3.1(d)","Inward Reverse Charge",${t31d.taxableValue || 0},${t31d.igst || 0},${t31d.cgst || 0},${t31d.sgst || 0},${t31d.cess || 0}`,
         `"3.1(e)","Non-GST Supplies",${t31e.taxableValue || 0},0,0,0,0`,
-        `"4(A)(5)","All Other ITC",0,${itcAvail.igst || 0},${itcAvail.cgst || 0},${itcAvail.sgst || 0},0`,
+        `"4(A)(5)","All Other ITC",0,${itcAvail.igst || 0},${itcAvail.cgst || 0},${itcAvail.sgst || 0},${itcAvail.cess || 0}`,
         `"4(B)(2)","ITC Reversed",0,${itcRev.igst || 0},${itcRev.cgst || 0},${itcRev.sgst || 0},0`,
         `"4(C)","Net ITC Available",0,${itcNet.igst || 0},${itcNet.cgst || 0},${itcNet.sgst || 0},0`,
         `"6.1","Cash Tax Payable",0,${cashPay.igst || 0},${cashPay.cgst || 0},${cashPay.sgst || 0},0`,
@@ -517,7 +517,7 @@ function Gstr3bBody() {
               <tbody className="divide-y divide-slate-100 font-normal">
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-4 font-medium text-slate-800">Integrated Tax (IGST)</td>
-                  <td className="py-3 px-3 text-right font-medium tabular-nums">{formatInr(t31a.igst)}</td>
+                  <td className="py-3 px-3 text-right font-medium tabular-nums">{formatInr(parseNum(t31a.igst) + parseNum(t31b.igst) + parseNum(t31d.igst))}</td>
                   <td className="py-3 px-3 text-right tabular-nums">{formatInr(itcUse.igstPaidWithIgst || 0)}</td>
                   <td className="py-3 px-3 text-right text-slate-400">—</td>
                   <td className="py-3 px-3 text-right text-slate-400">—</td>
@@ -528,7 +528,7 @@ function Gstr3bBody() {
 
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-4 font-medium text-slate-800">Central Tax (CGST)</td>
-                  <td className="py-3 px-3 text-right font-medium tabular-nums">{formatInr(t31a.cgst)}</td>
+                  <td className="py-3 px-3 text-right font-medium tabular-nums">{formatInr(parseNum(t31a.cgst) + parseNum(t31b.cgst) + parseNum(t31d.cgst))}</td>
                   <td className="py-3 px-3 text-right tabular-nums">{formatInr(itcUse.cgstPaidWithIgst || 0)}</td>
                   <td className="py-3 px-3 text-right tabular-nums">{formatInr(itcUse.cgstPaidWithCgst || 0)}</td>
                   <td className="py-3 px-3 text-right text-slate-400">—</td>
@@ -539,7 +539,7 @@ function Gstr3bBody() {
 
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-4 font-medium text-slate-800">State / UT Tax (SGST)</td>
-                  <td className="py-3 px-3 text-right font-medium tabular-nums">{formatInr(t31a.sgst)}</td>
+                  <td className="py-3 px-3 text-right font-medium tabular-nums">{formatInr(parseNum(t31a.sgst) + parseNum(t31b.sgst) + parseNum(t31d.sgst))}</td>
                   <td className="py-3 px-3 text-right tabular-nums">{formatInr(itcUse.sgstPaidWithIgst || 0)}</td>
                   <td className="py-3 px-3 text-right text-slate-400">—</td>
                   <td className="py-3 px-3 text-right tabular-nums">{formatInr(itcUse.sgstPaidWithSgst || 0)}</td>
@@ -550,7 +550,7 @@ function Gstr3bBody() {
 
                 <tr className="bg-rose-50/40 font-bold">
                   <td className="py-3 px-4 text-slate-900">Total Cash Liability (Challan PMT-06)</td>
-                  <td className="py-3 px-3 text-right tabular-nums">{formatInr(t31a.totalTax)}</td>
+                  <td className="py-3 px-3 text-right tabular-nums">{formatInr(parseNum(t31a.totalTax) + parseNum(t31b.totalTax) + parseNum(t31d.totalTax))}</td>
                   <td colSpan={3} className="py-3 px-3 text-center text-slate-400 text-[11px]">
                     Discharged from electronic cash ledger
                   </td>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import JsBarcode from "jsbarcode";
+import { escapeHtml } from "@/lib/html-utils";
 
 interface ItemBarcodeModalProps {
   isOpen: boolean;
@@ -61,7 +62,7 @@ export function ItemBarcodeModal({
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Barcode Sticker - ${itemName || barcode}</title>
+          <title>Barcode Sticker - ${escapeHtml(itemName || barcode)}</title>
           <style>
             @page {
               size: 50mm 35mm;
@@ -110,9 +111,9 @@ export function ItemBarcodeModal({
         </head>
         <body>
           <div class="sticker">
-            <div class="company">${companyName}</div>
+            <div class="company">${escapeHtml(companyName)}</div>
             ${printContent.querySelector("svg")?.outerHTML || ""}
-            <div class="name">${itemName || "Product"}</div>
+            <div class="name">${escapeHtml(itemName || "Product")}</div>
             ${
               salesPrice !== undefined && salesPrice !== null
                 ? `<div class="price">SP: ₹${Number(salesPrice).toFixed(2)}</div>`

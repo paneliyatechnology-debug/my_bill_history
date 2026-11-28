@@ -32,7 +32,7 @@ export const importApi = {
         ? localStorage.getItem("billing_auth_token") || localStorage.getItem("billing_access_token")
         : null;
 
-    let tenantHeaders: Record<string, string> = {};
+    const tenantHeaders: Record<string, string> = {};
     if (typeof window !== "undefined") {
       try {
         const raw = localStorage.getItem("billing_tenant_context");
@@ -160,7 +160,7 @@ export const importApi = {
         ? localStorage.getItem("billing_auth_token") || localStorage.getItem("billing_access_token")
         : null;
 
-    let tenantHeaders: Record<string, string> = {};
+    const tenantHeaders: Record<string, string> = {};
     if (typeof window !== "undefined") {
       try {
         const raw = localStorage.getItem("billing_tenant_context");

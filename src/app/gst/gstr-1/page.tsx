@@ -152,7 +152,17 @@ function Gstr1Body() {
       }
       case "B2CS": {
         return salesInvoices
-          .filter((inv) => inv.invoiceType === "B2CS" || !inv.gstin)
+          .filter(
+            (inv) =>
+              inv.invoiceType === "B2CS" ||
+              (!inv.gstin &&
+                inv.invoiceType !== "B2CL" &&
+                inv.invoiceType !== "EXP" &&
+                !inv.isExport &&
+                inv.supplyCategory !== "NIL_RATED" &&
+                inv.supplyCategory !== "EXEMPT" &&
+                inv.supplyCategory !== "NON_GST")
+          )
           .filter(
             (r) =>
               !q ||
@@ -187,13 +197,34 @@ function Gstr1Body() {
           .filter((r) => !q || (r.invoiceNumber || "").toLowerCase().includes(q));
       }
       case "Nil Rated": {
-        return salesInvoices.filter((inv) => inv.taxRate === 0 && inv.supplyCategory === "NIL_RATED");
+        return salesInvoices
+          .filter((inv) => inv.taxRate === 0 && inv.supplyCategory === "NIL_RATED")
+          .filter(
+            (r) =>
+              !q ||
+              (r.invoiceNumber || "").toLowerCase().includes(q) ||
+              (r.customerName || "").toLowerCase().includes(q)
+          );
       }
       case "Exempt": {
-        return salesInvoices.filter((inv) => inv.supplyCategory === "EXEMPT");
+        return salesInvoices
+          .filter((inv) => inv.supplyCategory === "EXEMPT")
+          .filter(
+            (r) =>
+              !q ||
+              (r.invoiceNumber || "").toLowerCase().includes(q) ||
+              (r.customerName || "").toLowerCase().includes(q)
+          );
       }
       case "Non-GST": {
-        return salesInvoices.filter((inv) => inv.supplyCategory === "NON_GST");
+        return salesInvoices
+          .filter((inv) => inv.supplyCategory === "NON_GST")
+          .filter(
+            (r) =>
+              !q ||
+              (r.invoiceNumber || "").toLowerCase().includes(q) ||
+              (r.customerName || "").toLowerCase().includes(q)
+          );
       }
       case "HSN Summary": {
         const hsnData = data?.hsn?.data || [];

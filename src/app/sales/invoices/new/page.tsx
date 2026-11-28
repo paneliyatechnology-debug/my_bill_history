@@ -790,11 +790,18 @@ export default function NewInvoicePage() {
     const amt = Number(c.amount) || 0;
     totalAdditionalCharges += amt;
     if (c.taxRate > 0) {
-      additionalChargesTax += (amt * c.taxRate) / 100;
+      const chargeTax = (amt * c.taxRate) / 100;
+      additionalChargesTax += chargeTax;
+      if (isInterState) {
+        totalIgst += chargeTax;
+      } else {
+        totalCgst += chargeTax / 2;
+        totalSgst += chargeTax / 2;
+      }
     }
   });
 
-  const totalTax = totalCgst + totalSgst + totalIgst + additionalChargesTax;
+  const totalTax = totalCgst + totalSgst + totalIgst;
   const itemsSubtotal = totalTaxable + totalTax;
 
   // Calculate Overall Discount
@@ -1123,9 +1130,9 @@ export default function NewInvoicePage() {
             const resolvedItem = await resolveOrCreateItem(desc, hsn, unitPrice, taxRate, it.unit);
 
             let chosenId = resolvedItem?.id;
-            let chosenHsn = resolvedItem?.hsnCode || hsn;
-            let chosenRate = unitPrice > 0 ? unitPrice : (resolvedItem?.retailPrice || 100);
-            let chosenTax = resolvedItem?.taxRate !== undefined ? resolvedItem.taxRate : taxRate;
+            const chosenHsn = resolvedItem?.hsnCode || hsn;
+            const chosenRate = unitPrice > 0 ? unitPrice : (resolvedItem?.retailPrice || 100);
+            const chosenTax = resolvedItem?.taxRate !== undefined ? resolvedItem.taxRate : taxRate;
 
             if (!chosenId) {
               const fallbackItem: ItemOption = {
@@ -1330,6 +1337,7 @@ export default function NewInvoicePage() {
   };
 
   const handleSubmit = async (isDraft: boolean, isSaveAndNew: boolean = false) => {
+    if (isSubmitting) return;
     setError(null);
 
     // 1. Validate Customer / Party Selection
@@ -1397,6 +1405,17 @@ export default function NewInvoicePage() {
         ? (paymentMode as any)
         : "UNPAID_CREDIT";
 
+      const serializedAdditionalCharges = [
+        ...(freightVal > 0 ? [{ name: "Freight", amount: freightVal, taxRate: freightTaxRate }] : []),
+        ...additionalCharges
+          .filter((c) => Number(c.amount) > 0)
+          .map((c) => ({
+            name: c.name?.trim() || "Additional Charge",
+            amount: Number(c.amount),
+            taxRate: Number(c.taxRate) || 0,
+          })),
+      ];
+
       const invoicePayload: any = {
         category,
         partyId,
@@ -1408,7 +1427,10 @@ export default function NewInvoicePage() {
         warehouseId: warehouseId || undefined,
         notes: notes.trim() || undefined,
         termsAndConditions: termsAndConditions.trim() || undefined,
-        additionalCharges: totalAdditionalCharges > 0 ? [{ name: "Freight", amount: totalAdditionalCharges, taxRate: freightTaxRate }] : [],
+        isTaxInclusive,
+        additionalCharges: serializedAdditionalCharges,
+        discountType: "AFTER_TAX",
+        discountAmount: discValue > 0 ? discValue : undefined,
         overallDiscount: discValue,
         items: rows.map((r) => ({
           itemId: r.itemId || items[0]?.id,
@@ -1417,6 +1439,7 @@ export default function NewInvoicePage() {
           unitPrice: Number(r.unitPrice) || 0,
           discountPercent: Number(r.discountPercent) || 0,
           taxRate: r.taxRate,
+          isTaxInclusive,
         })),
         receivedAmount: isFullyPaid ? roundedGrandTotal : 0,
         poNumber: quickSettings.enablePoDetails ? poNumber || undefined : undefined,
@@ -1441,9 +1464,12 @@ export default function NewInvoicePage() {
         freightTaxRate: freightVal > 0 ? freightTaxRate : undefined,
       };
 
+      const submitIdempotencyKey = `sales-inv-${invoiceNumber || Date.now()}-${rows.length}-${roundedGrandTotal}`;
       const res: any = await apiClient.post(
         `/sales/invoices${isDraft ? "?isDraft=true" : ""}`,
-        invoicePayload
+        invoicePayload,
+        undefined,
+        submitIdempotencyKey,
       );
 
       // If partial payment was recorded, post it against the created invoice

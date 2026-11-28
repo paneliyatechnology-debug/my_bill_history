@@ -542,7 +542,7 @@ function CreatePaymentInForm() {
           totalAllocated += take;
           return {
             ...inv,
-            settle: take > 0 ? take.toString() : inv.balanceAmount.toString(),
+            settle: take > 0 ? take.toString() : "",
           };
         }),
       );
@@ -617,25 +617,29 @@ function CreatePaymentInForm() {
   // Save payment
   async function savePayment() {
     setError(null);
+    if (isSaving) return;
+    setError(null);
     if (!partyId) {
       setError(lang === "gu" ? "પાર્ટી પસંદ કરો." : "Please select a party.");
       return;
     }
     const rec = Number(amountReceived) || 0;
-    if (rec <= 0) {
-      setError(lang === "gu" ? "મળેલી રકમ દાખલ કરો." : "Please enter the amount received.");
+    const topDisc = Number(paymentInDiscount) || 0;
+    if (rec < 0 || topDisc < 0 || (rec === 0 && topDisc === 0)) {
+      setError(lang === "gu" ? "મળેલી રકમ દાખલ કરો." : "Please enter a valid non-negative amount received.");
       return;
     }
 
     // Validate allocations
     for (const inv of invoices) {
       const settle = Number(inv.settle) || 0;
-      if (settle < 0) {
-        setError("Settlement amount cannot be negative.");
+      const disc = Number(inv.discount) || 0;
+      if (settle < 0 || disc < 0) {
+        setError("Settlement and discount amounts cannot be negative.");
         return;
       }
-      if (settle - inv.balanceAmount > 0.009) {
-        setError(`Settlement for invoice #${inv.invoiceNumber} exceeds the pending balance.`);
+      if (settle + disc - inv.balanceAmount > 0.009) {
+        setError(`Settlement + discount for invoice #${inv.invoiceNumber} exceeds the pending balance.`);
         return;
       }
     }
@@ -685,16 +689,23 @@ function CreatePaymentInForm() {
 
     setIsSaving(true);
     try {
-      await apiClient.post("/sales/payment-in", {
-        partyId,
-        voucherDate,
-        depositToAccountId: depositToAccountId || undefined,
-        receivedAmount: rec,
-        paymentMode,
-        paymentReference,
-        narration: notes || undefined,
-        allocations,
-      });
+      const idempotencyKey = `pay-in-${partyId}-${voucherDate}-${rec}-${allocations.length}-${Date.now()}`;
+      await apiClient.post(
+        "/sales/payment-in",
+        {
+          partyId,
+          voucherDate,
+          depositToAccountId: depositToAccountId || undefined,
+          receivedAmount: rec,
+          cashDiscount: topDisc > 0 ? topDisc : undefined,
+          paymentMode,
+          paymentReference,
+          narration: notes || undefined,
+          allocations,
+        },
+        undefined,
+        idempotencyKey,
+      );
       router.push("/sales/payment-in");
     } catch (err: any) {
       setError(err.message || "Failed to record payment in.");

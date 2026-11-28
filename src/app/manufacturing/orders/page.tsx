@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDate } from "@/lib/date-utils";
+import { formatDate, formatDateForInput, getTodayDate } from "@/lib/date-utils";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../../context/auth-context";
@@ -95,7 +95,7 @@ export default function ProductionOrdersPage() {
     bomId: "",
     orderNumber: "",
     targetQuantity: 100,
-    startDate: new Date().toISOString().split("T")[0],
+    startDate: getTodayDate(),
   });
 
   const [startForm, setStartForm] = useState({
@@ -109,7 +109,7 @@ export default function ProductionOrdersPage() {
     actualLaborCost: 0,
     actualOverheadCost: 0,
     batchNumber: "",
-    mfgDate: new Date().toISOString().split("T")[0],
+    mfgDate: getTodayDate(),
     expiryDate: "",
   });
 
@@ -148,7 +148,7 @@ export default function ProductionOrdersPage() {
       bomId: boms[0]?.id || "",
       orderNumber: `MFG-${Date.now().toString().slice(-6)}`,
       targetQuantity: boms[0]?.batchYieldQty || 1,
-      startDate: new Date().toISOString().split("T")[0],
+      startDate: getTodayDate(),
     });
     setActionError(null);
     setIsCreateModalOpen(true);
@@ -156,6 +156,7 @@ export default function ProductionOrdersPage() {
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!createForm.bomId) {
       setActionError(lang === "gu" ? "BOM રેસિપી પસંદ કરો." : "Please select a BOM.");
       return;
@@ -168,12 +169,17 @@ export default function ProductionOrdersPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await apiClient.post("/manufacturing/orders", {
-        bomId: createForm.bomId,
-        orderNumber: createForm.orderNumber || undefined,
-        targetQuantity: Number(createForm.targetQuantity),
-        startDate: createForm.startDate || undefined,
-      });
+      await apiClient.post(
+        "/manufacturing/orders",
+        {
+          bomId: createForm.bomId,
+          orderNumber: createForm.orderNumber || undefined,
+          targetQuantity: Number(createForm.targetQuantity),
+          startDate: createForm.startDate || undefined,
+        },
+        undefined,
+        `mfg-create-${createForm.bomId}-${createForm.orderNumber || Date.now()}`,
+      );
       setIsCreateModalOpen(false);
       await fetchData();
     } catch (err: any) {
@@ -194,7 +200,7 @@ export default function ProductionOrdersPage() {
 
   const handleStartSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedOrder) return;
+    if (isSubmitting || !selectedOrder) return;
     if (!startForm.sourceWarehouseId) {
       setActionError(lang === "gu" ? "કાચા માલનું ગોડાઉન પસંદ કરો." : "Please select source warehouse.");
       return;
@@ -202,9 +208,12 @@ export default function ProductionOrdersPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await apiClient.post(`/manufacturing/orders/${selectedOrder.id}/start`, {
-        sourceWarehouseId: startForm.sourceWarehouseId,
-      });
+      await apiClient.post(
+        `/manufacturing/orders/${selectedOrder.id}/start`,
+        { sourceWarehouseId: startForm.sourceWarehouseId },
+        undefined,
+        `mfg-start-${selectedOrder.id}`,
+      );
       setIsStartModalOpen(false);
       setSelectedOrder(null);
       await fetchData();
@@ -217,8 +226,10 @@ export default function ProductionOrdersPage() {
 
   const handleOpenComplete = (order: ProductionOrder) => {
     setSelectedOrder(order);
-    const dateStr = new Date().toISOString().split("T")[0];
-    const expiryStr = new Date(Date.now() + 180 * 24 * 3600 * 1000).toISOString().split("T")[0];
+    const dateStr = getTodayDate();
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 180);
+    const expiryStr = formatDateForInput(expiryDate);
     setCompleteForm({
       targetWarehouseId: warehouses[0]?.id || "",
       actualProducedQty: Number(order.targetQuantity),
@@ -235,7 +246,7 @@ export default function ProductionOrdersPage() {
 
   const handleCompleteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedOrder) return;
+    if (isSubmitting || !selectedOrder) return;
     if (completeForm.actualProducedQty <= 0) {
       setActionError(lang === "gu" ? "ઉત્પાદન જથ્થો ૦ થી વધુ હોવો જોઈએ." : "Produced quantity must be > 0.");
       return;
@@ -247,16 +258,21 @@ export default function ProductionOrdersPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await apiClient.post(`/manufacturing/orders/${selectedOrder.id}/complete`, {
-        targetWarehouseId: completeForm.targetWarehouseId,
-        actualProducedQty: Number(completeForm.actualProducedQty),
-        scrapQuantity: Number(completeForm.scrapQuantity || 0),
-        actualLaborCost: Number(completeForm.actualLaborCost || 0),
-        actualOverheadCost: Number(completeForm.actualOverheadCost || 0),
-        batchNumber: completeForm.batchNumber || undefined,
-        mfgDate: completeForm.mfgDate || undefined,
-        expiryDate: completeForm.expiryDate || undefined,
-      });
+      await apiClient.post(
+        `/manufacturing/orders/${selectedOrder.id}/complete`,
+        {
+          targetWarehouseId: completeForm.targetWarehouseId,
+          actualProducedQty: Number(completeForm.actualProducedQty),
+          scrapQuantity: Number(completeForm.scrapQuantity || 0),
+          actualLaborCost: Number(completeForm.actualLaborCost || 0),
+          actualOverheadCost: Number(completeForm.actualOverheadCost || 0),
+          batchNumber: completeForm.batchNumber || undefined,
+          mfgDate: completeForm.mfgDate || undefined,
+          expiryDate: completeForm.expiryDate || undefined,
+        },
+        undefined,
+        `mfg-complete-${selectedOrder.id}`,
+      );
       setIsCompleteModalOpen(false);
       setSelectedOrder(null);
       await fetchData();

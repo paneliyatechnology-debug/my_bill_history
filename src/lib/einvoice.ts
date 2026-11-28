@@ -215,8 +215,11 @@ export function validateStatutoryInvoiceData(invoice: any, company?: any): EInvo
     });
   }
 
-  // 3. Tax scenario (Intra vs Inter)
-  const isIntraState = supplierGstin && buyerGstin && supplierGstin.slice(0, 2) === buyerGstin.slice(0, 2);
+  // 3. Tax scenario (Intra vs Inter) — determined by Supplier State vs Place of Supply (fallback to Buyer GSTIN)
+  const supStateFromGstin = supplierGstin ? supplierGstin.slice(0, 2) : supplierStateCode;
+  const posCode = invoice.placeOfSupply ? String(invoice.placeOfSupply).trim().slice(0, 2) : "";
+  const recipientStateCode = posCode || (buyerGstin ? buyerGstin.slice(0, 2) : "");
+  const isIntraState = Boolean(supStateFromGstin && recipientStateCode && supStateFromGstin === recipientStateCode);
   const cgst = Number(invoice.cgstAmount || 0);
   const sgst = Number(invoice.sgstAmount || 0);
   const igst = Number(invoice.igstAmount || 0);

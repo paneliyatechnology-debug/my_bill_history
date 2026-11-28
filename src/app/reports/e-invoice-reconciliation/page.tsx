@@ -43,7 +43,7 @@ export default function EInvoiceReconciliationPage() {
     setActionMessage(null);
     try {
       const res = await einvoiceApi.reconcile(documentId);
-      if (res.outcome === "RECOVERED" || res.outcome === "SUCCEEDED") {
+      if (res.outcome === "RECOVERED" || res.outcome === "SUCCEEDED" || res.outcome === "RECONCILED") {
         setActionMessage({
           type: "success",
           text: res.message || "IRN registration successfully recovered and saved from IRP!",

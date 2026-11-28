@@ -171,6 +171,11 @@ const STANDARD_ACTIONS = [
   { key: "print", label: "Print" },
   { key: "export", label: "Export" },
   { key: "approve", label: "Approve" },
+  { key: "reconcile", label: "Reconcile" },
+  { key: "cancel", label: "Cancel" },
+  { key: "adjust", label: "Adjust" },
+  { key: "transfer", label: "Transfer" },
+  { key: "file", label: "File" },
 ];
 
 export default function RolesManagementView() {
@@ -180,6 +185,7 @@ export default function RolesManagementView() {
   const [roles, setRoles] = useState<CustomRole[]>([]);
   const [users, setUsers] = useState<StaffUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Status banner alerts
   const [actionSuccessMessage, setActionSuccessMessage] = useState("");
@@ -512,8 +518,9 @@ export default function RolesManagementView() {
 
   const handleDuplicateRoleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!duplicateSourceRole || !duplicateRoleName.trim()) return;
+    if (isSubmitting || !duplicateSourceRole || !duplicateRoleName.trim()) return;
 
+    setIsSubmitting(true);
     try {
       await apiClient.post(`/api/v1/roles/${duplicateSourceRole.id}/duplicate`, {
         name: duplicateRoleName.trim(),
@@ -525,16 +532,20 @@ export default function RolesManagementView() {
       await fetchData();
     } catch (err: any) {
       showError(err?.message || "Failed to duplicate role.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleCreateRoleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!newRoleForm.name.trim()) {
       showError("Please enter a role name.");
       return;
     }
 
+    setIsSubmitting(true);
     try {
       await apiClient.post("/api/v1/roles", {
         name: newRoleForm.name.trim(),
@@ -556,13 +567,16 @@ export default function RolesManagementView() {
       await fetchData();
     } catch (err: any) {
       showError(err?.message || "Failed to create role.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleEditRoleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingRoleItem) return;
+    if (isSubmitting || !editingRoleItem) return;
 
+    setIsSubmitting(true);
     try {
       await apiClient.put(`/api/v1/roles/${editingRoleItem.id}`, {
         name: editRoleForm.name.trim() || editingRoleItem.name,
@@ -576,6 +590,8 @@ export default function RolesManagementView() {
       await fetchData();
     } catch (err: any) {
       showError(err?.message || "Failed to update role.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

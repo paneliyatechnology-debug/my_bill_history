@@ -794,8 +794,8 @@ export default function CreatePurchaseReturnPage() {
         if (num > target.originalQuantity) {
           finalVal = target.originalQuantity;
           showToast(`Return quantity cannot exceed billed quantity (${target.originalQuantity})`);
-        } else if (num < 1) {
-          finalVal = 1;
+        } else if (num < 0) {
+          finalVal = 0;
         }
       }
       (target as any)[field] = finalVal;
@@ -964,6 +964,7 @@ export default function CreatePurchaseReturnPage() {
 
   // Submit Handler
   const handleSubmit = async (saveAndNew = false) => {
+    if (isSubmitting) return;
     setErrorMessage(null);
 
     if (!selectedParty) {
@@ -1026,7 +1027,12 @@ export default function CreatePurchaseReturnPage() {
       if (editId) {
         res = await apiClient.put(`/purchases/debit-notes/${editId}`, payload);
       } else {
-        res = await apiClient.post("/purchases/debit-notes", payload);
+        res = await apiClient.post(
+          "/purchases/debit-notes",
+          payload,
+          undefined,
+          `debit-note-${selectedParty.id}-${returnDate}-${Date.now()}`,
+        );
       }
       const newId = res?.id || res?.purchaseReturn?.id;
 

@@ -19,7 +19,7 @@ export function sanitizeCellValue(val: any): any {
   }
   if (typeof val === "string") {
     const trimmed = val.trim();
-    if (/^[=+\-@\t\r]/.test(trimmed)) {
+    if (/^[=+\-@\t\r]/.test(val) || /^[=+\-@\t\r]/.test(trimmed)) {
       return `'${val}`;
     }
     return val;
@@ -237,7 +237,7 @@ export function extractCellValue(
     return rawForExcel ? "" : "-";
   }
 
-  if (col.type === "number" || col.type === "currency") {
+  if (col.type === "currency") {
     const cleanVal = typeof val === "string" ? val.replace(/[₹,\s]/g, "") : val;
     const num = Number(cleanVal);
     if (!isNaN(num)) {
@@ -247,6 +247,19 @@ export function extractCellValue(
       return num.toLocaleString("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
+      });
+    }
+  }
+
+  if (col.type === "number") {
+    const cleanVal = typeof val === "string" ? val.replace(/[₹,\s]/g, "") : val;
+    const num = Number(cleanVal);
+    if (!isNaN(num)) {
+      if (rawForExcel) {
+        return num;
+      }
+      return num.toLocaleString("en-IN", {
+        maximumFractionDigits: 4,
       });
     }
   }
@@ -282,23 +295,31 @@ export function generateCsvString(
   const cleanCols = filterExportColumns(columns, data);
   const lines: string[] = [];
 
+  const escapeCsvField = (v: any, isNumericCol = false) => {
+    const s =
+      isNumericCol && typeof v === "string" && /^-?[\d,]+(\.\d+)?$/.test(v.trim())
+        ? v
+        : String(sanitizeCellValue(v));
+    return `"${s.replace(/"/g, '""')}"`;
+  };
+
   // 1. Metadata Headers if provided
   if (metadata?.companyName) {
-    lines.push(`"${sanitizeCellValue(metadata.companyName)}"`);
+    lines.push(escapeCsvField(metadata.companyName));
   }
   if (metadata?.title) {
-    lines.push(`"${sanitizeCellValue(metadata.title)}"`);
+    lines.push(escapeCsvField(metadata.title));
   }
   if (metadata?.dateRange?.startDate || metadata?.dateRange?.endDate) {
     const start = metadata.dateRange.startDate || "All Time";
     const end = metadata.dateRange.endDate || "Present";
-    lines.push(`"Period: ${start} to ${end}"`);
+    lines.push(escapeCsvField(`Period: ${start} to ${end}`));
   }
   if (metadata?.filterDescription) {
-    lines.push(`"Filter: ${sanitizeCellValue(metadata.filterDescription)}"`);
+    lines.push(escapeCsvField(`Filter: ${metadata.filterDescription}`));
   }
   if (metadata?.generatedAt) {
-    lines.push(`"Generated At: ${metadata.generatedAt}"`);
+    lines.push(escapeCsvField(`Generated At: ${metadata.generatedAt}`));
   }
 
   if (lines.length > 0) {
@@ -307,10 +328,7 @@ export function generateCsvString(
 
   // 2. Table Column Headers
   const headerRow = cleanCols
-    .map((c) => {
-      const clean = sanitizeCellValue(c.header).replace(/"/g, '""');
-      return `"${clean}"`;
-    })
+    .map((c) => escapeCsvField(c.header))
     .join(",");
   lines.push(headerRow);
 
@@ -318,9 +336,8 @@ export function generateCsvString(
   for (const row of data) {
     const rowCells = cleanCols.map((col) => {
       const rawVal = extractCellValue(row, col, false);
-      const sanitized = sanitizeCellValue(rawVal);
-      const strVal = String(sanitized).replace(/"/g, '""');
-      return `"${strVal}"`;
+      const isNum = col.type === "number" || col.type === "currency";
+      return escapeCsvField(rawVal, isNum);
     });
     lines.push(rowCells.join(","));
   }
@@ -331,8 +348,8 @@ export function generateCsvString(
       if (idx === 0) return '"Total"';
       const totVal = metadata.totals?.[col.header] ?? metadata.totals?.[col.key || ""];
       if (totVal !== undefined) {
-        const strVal = String(sanitizeCellValue(totVal)).replace(/"/g, '""');
-        return `"${strVal}"`;
+        const isNum = col.type === "number" || col.type === "currency";
+        return escapeCsvField(totVal, isNum);
       }
       return '""';
     });
@@ -371,21 +388,21 @@ export function generateExcelWorkbook(
 
   // 1. Company and Report Header
   if (metadata.companyName) {
-    rows.push([metadata.companyName]);
+    rows.push([sanitizeCellValue(metadata.companyName)]);
   }
   if (metadata.companyGstin) {
-    rows.push([`GSTIN: ${metadata.companyGstin}`]);
+    rows.push([sanitizeCellValue(`GSTIN: ${metadata.companyGstin}`)]);
   }
   if (metadata.title) {
-    rows.push([metadata.title]);
+    rows.push([sanitizeCellValue(metadata.title)]);
   }
   if (metadata.dateRange?.startDate || metadata.dateRange?.endDate) {
     const start = metadata.dateRange.startDate || "Beginning";
     const end = metadata.dateRange.endDate || "Present";
-    rows.push([`Period: ${start} to ${end}`]);
+    rows.push([sanitizeCellValue(`Period: ${start} to ${end}`)]);
   }
   if (metadata.filterDescription) {
-    rows.push([`Filter: ${metadata.filterDescription}`]);
+    rows.push([sanitizeCellValue(`Filter: ${metadata.filterDescription}`)]);
   }
   rows.push([`Generated On: ${metadata.generatedAt || new Date().toLocaleString("en-IN")}`]);
   rows.push([]); // Empty row separator
@@ -412,8 +429,9 @@ export function generateExcelWorkbook(
       if (idx === 0) return "Total";
       const tot = metadata.totals?.[col.header] ?? metadata.totals?.[col.key || ""];
       if (tot !== undefined) {
-        const num = Number(tot);
-        return !isNaN(num) ? num : sanitizeCellValue(tot);
+        const cleanTot = typeof tot === "string" ? tot.replace(/[₹,\s]/g, "") : tot;
+        const num = Number(cleanTot);
+        return cleanTot !== "" && !isNaN(num) ? num : sanitizeCellValue(tot);
       }
       return "";
     });
@@ -473,9 +491,9 @@ export async function exportMultiSheetExcel(
   for (const sheet of options.sheets) {
     const cleanCols = filterExportColumns(sheet.columns, sheet.data);
     const rows: any[][] = [];
-    if (options.companyName) rows.push([options.companyName]);
-    if (options.title) rows.push([options.title]);
-    rows.push([`Section: ${sheet.sheetName}`]);
+    if (options.companyName) rows.push([sanitizeCellValue(options.companyName)]);
+    if (options.title) rows.push([sanitizeCellValue(options.title)]);
+    rows.push([sanitizeCellValue(`Section: ${sheet.sheetName}`)]);
     rows.push([]);
 
     rows.push(cleanCols.map((c) => sanitizeCellValue(c.header)));
@@ -493,8 +511,9 @@ export async function exportMultiSheetExcel(
         if (idx === 0) return "Total";
         const tot = sheet.totals?.[col.header] ?? sheet.totals?.[col.key || ""];
         if (tot !== undefined) {
-          const num = Number(tot);
-          return !isNaN(num) ? num : sanitizeCellValue(tot);
+          const cleanTot = typeof tot === "string" ? tot.replace(/[₹,\s]/g, "") : tot;
+          const num = Number(cleanTot);
+          return cleanTot !== "" && !isNaN(num) ? num : sanitizeCellValue(tot);
         }
         return "";
       });

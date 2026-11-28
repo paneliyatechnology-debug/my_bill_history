@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
+import { apiClient } from "@/lib/api-client";
 import {
   QuickSettingsModal,
   DEFAULT_PURCHASE_QUICK_SETTINGS,
@@ -168,38 +169,71 @@ export default function PurchaseOrdersListPage() {
     ? `billing_purchase_orders_${currentCompany.id}`
     : null;
 
-  // Load organization-scoped purchase orders from localStorage
+  // Load purchase orders from backend API (with safe one-time migration of legacy localStorage orders)
   useEffect(() => {
-    if (!poStorageKey || !currentCompany?.id) {
+    if (!currentCompany?.id) {
       setOrders([]);
       return;
     }
-    try {
-      const scoped = localStorage.getItem(poStorageKey);
-      if (scoped) {
-        const parsed = JSON.parse(scoped);
-        if (Array.isArray(parsed)) {
-          setOrders(parsed.filter((o: any) => !o.companyId || o.companyId === currentCompany.id));
-          return;
+    let cancelled = false;
+    (async () => {
+      try {
+        if (poStorageKey && !localStorage.getItem(`${poStorageKey}_migrated`)) {
+          const scopedRaw = localStorage.getItem(poStorageKey);
+          const legacyRaw = !scopedRaw ? localStorage.getItem("billing_purchase_orders") : null;
+          const rawList = scopedRaw ? JSON.parse(scopedRaw) : legacyRaw ? JSON.parse(legacyRaw) : [];
+          const ownOrders = Array.isArray(rawList)
+            ? rawList.filter((o: any) => (!o.companyId || o.companyId === currentCompany.id) && o.party?.id)
+            : [];
+          if (ownOrders.length > 0) {
+            await apiClient.post("/purchases/orders/migrate-local", {
+              orders: ownOrders.map((o: any) => ({
+                orderNumber: String(o.orderNumber || ""),
+                orderDate: o.orderDate,
+                validTill: o.validTill,
+                partyId: o.party.id,
+                status: o.status || "OPEN",
+                placeOfSupply: o.placeOfSupply,
+                taxableAmount: o.taxableAmount || 0,
+                cgstAmount: o.cgstAmount || 0,
+                sgstAmount: o.sgstAmount || 0,
+                igstAmount: o.igstAmount || 0,
+                freightAmount: o.freightAmount || 0,
+                overallDiscount: o.overallDiscount || 0,
+                additionalCharges: o.additionalCharges || [],
+                grandTotal: o.grandTotal || 0,
+                notes: o.notes,
+                termsAndConditions: o.terms,
+                items: (o.items || []).map((it: any) => ({
+                  itemId: it.itemId || undefined,
+                  name: it.name || "Item",
+                  hsnCode: it.hsnCode,
+                  unit: it.unit,
+                  quantity: it.quantity || 1,
+                  rate: it.rate || 0,
+                  discountPercent: it.discountPercent || 0,
+                  taxRate: it.taxRate || 0,
+                  taxableAmount: it.taxableAmount || 0,
+                  totalAmount: it.totalAmount || 0,
+                })),
+              })),
+            });
+          }
+          localStorage.setItem(`${poStorageKey}_migrated`, "1");
         }
-      }
 
-      // Migrate only orders explicitly belonging to this organization from legacy key
-      const legacyRaw = localStorage.getItem("billing_purchase_orders");
-      if (legacyRaw) {
-        const legacyParsed = JSON.parse(legacyRaw);
-        if (Array.isArray(legacyParsed)) {
-          const ownOrders = legacyParsed.filter((o: any) => o.companyId === currentCompany.id);
-          localStorage.setItem(poStorageKey, JSON.stringify(ownOrders));
-          setOrders(ownOrders);
-          return;
+        const res: any = await apiClient.get("/purchases/orders", { limit: 200 });
+        if (!cancelled) {
+          const list = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+          setOrders(list);
         }
+      } catch {
+        if (!cancelled) setOrders([]);
       }
-
-      setOrders([]);
-    } catch {
-      setOrders([]);
-    }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [poStorageKey, currentCompany?.id]);
 
   // Filter & Sort Logic
@@ -209,6 +243,30 @@ export default function PurchaseOrdersListPage() {
         // Status filter
         if (statusFilter === "OPEN" && o.status !== "OPEN") return false;
         if (statusFilter === "CLOSED" && o.status !== "CLOSED") return false;
+
+        // Date filter
+        if (dateFilter !== "ALL" && o.orderDate) {
+          const d = new Date(o.orderDate);
+          if (!isNaN(d.getTime())) {
+            const now = new Date();
+            const fmtLocal = (dt: Date) =>
+              `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+            const orderStr = fmtLocal(d);
+            const todayStr = fmtLocal(now);
+            if (dateFilter === "TODAY" && orderStr !== todayStr) return false;
+            if (dateFilter === "THIS_MONTH" && (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear())) return false;
+            if (dateFilter === "THIS_WEEK") {
+              const weekAgo = new Date(now);
+              weekAgo.setDate(now.getDate() - 7);
+              if (d < weekAgo) return false;
+            }
+            if (dateFilter === "LAST_30_DAYS") {
+              const past = new Date(now);
+              past.setDate(now.getDate() - 30);
+              if (d < past) return false;
+            }
+          }
+        }
 
         // Search
         if (searchTerm.trim()) {
@@ -255,34 +313,63 @@ export default function PurchaseOrdersListPage() {
   }, [filteredOrders, currentPage, pageSize]);
 
   // Actions
-  const handleDeleteOrder = (id: string) => {
+  const handleDeleteOrder = async (id: string) => {
     if (!confirm("Are you sure you want to delete this purchase order?")) return;
-    const updated = orders.filter((o) => o.id !== id);
-    setOrders(updated);
-    if (poStorageKey) {
-      localStorage.setItem(poStorageKey, JSON.stringify(updated));
-    }
-    setActiveMenuId(null);
-    if (selectedOrderForView?.id === id) {
-      setSelectedOrderForView(null);
+    try {
+      await apiClient.delete(`/purchases/orders/${id}`);
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+      setActiveMenuId(null);
+      if (selectedOrderForView?.id === id) {
+        setSelectedOrderForView(null);
+      }
+    } catch (err: any) {
+      alert(err?.message || "Failed to delete purchase order.");
     }
   };
 
-  const handleDuplicateOrder = (order: PurchaseOrderRecord) => {
-    const duplicated: PurchaseOrderRecord = {
-      ...order,
-      id: `po-${Date.now()}`,
-      orderNumber: String(orders.length + 1),
-      orderDate: new Date().toISOString().split("T")[0],
-      status: "OPEN",
-      createdAt: new Date().toISOString(),
-    };
-    const updated = [duplicated, ...orders];
-    setOrders(updated);
-    if (poStorageKey) {
-      localStorage.setItem(poStorageKey, JSON.stringify(updated));
+  const handleDuplicateOrder = async (order: PurchaseOrderRecord) => {
+    try {
+      const newOrderNo = `PO-${Date.now().toString().slice(-6)}`;
+      const created: any = await apiClient.post(
+        "/purchases/orders",
+        {
+          orderNumber: newOrderNo,
+          orderDate: new Date().toISOString().split("T")[0],
+          validTill: order.validTill,
+          partyId: order.party?.id,
+          placeOfSupply: order.placeOfSupply,
+          taxableAmount: order.taxableAmount || 0,
+          cgstAmount: order.cgstAmount || 0,
+          sgstAmount: order.sgstAmount || 0,
+          igstAmount: order.igstAmount || 0,
+          overallDiscount: order.overallDiscount || 0,
+          additionalCharges: order.additionalCharges || [],
+          grandTotal: order.grandTotal || 0,
+          notes: order.notes,
+          termsAndConditions: order.terms,
+          items: (order.items || []).map((it: any) => ({
+            itemId: it.itemId || undefined,
+            name: it.name || "Item",
+            hsnCode: it.hsnCode,
+            unit: it.unit,
+            quantity: it.quantity || 1,
+            rate: it.rate || 0,
+            discountPercent: it.discountPercent || 0,
+            taxRate: it.taxRate || 0,
+            taxableAmount: it.taxableAmount || 0,
+            totalAmount: it.totalAmount || 0,
+          })),
+        },
+        undefined,
+        `po-dup-${order.id}-${Date.now()}`,
+      );
+      if (created?.id) {
+        setOrders((prev) => [created, ...prev]);
+      }
+      setActiveMenuId(null);
+    } catch (err: any) {
+      alert(err?.message || "Failed to duplicate purchase order.");
     }
-    setActiveMenuId(null);
   };
 
   const handleConvertToBill = (order: PurchaseOrderRecord) => {

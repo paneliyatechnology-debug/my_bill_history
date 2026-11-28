@@ -725,16 +725,22 @@ function NewPurchaseInvoiceContent() {
       }
     });
 
-    // Overall bill discount
+    // Overall bill discount (distributed proportionally BEFORE tax so UI matches backend item effectiveRate)
+    let overallDiscVal = 0;
     if (showOverallDiscount && Number(overallDiscountAmount) > 0) {
-      let overallDiscVal = 0;
       if (overallDiscountType === "₹") {
-        overallDiscVal = Number(overallDiscountAmount);
+        overallDiscVal = Math.min(totalTaxable, Number(overallDiscountAmount));
       } else {
         overallDiscVal = (totalTaxable * Number(overallDiscountAmount)) / 100;
       }
-      totalTaxable = Math.max(0, totalTaxable - overallDiscVal);
-      totalDiscount += overallDiscVal;
+      if (totalTaxable > 0 && overallDiscVal > 0) {
+        const ratio = Math.max(0, (totalTaxable - overallDiscVal) / totalTaxable);
+        totalTaxable = Math.max(0, totalTaxable - overallDiscVal);
+        totalIgst = totalIgst * ratio;
+        totalCgst = totalCgst * ratio;
+        totalSgst = totalSgst * ratio;
+        totalDiscount += overallDiscVal;
+      }
     }
 
     // Additional freight charges calculation (uses principal/highest item GST rate, Tally style)
@@ -1647,6 +1653,7 @@ function NewPurchaseInvoiceContent() {
 
   // Submit and Save Purchase Invoice
   const handleSubmit = async (andNew: boolean) => {
+    if (isSubmitting) return;
     setError(null);
     setSuccessBanner(null);
 
@@ -1675,7 +1682,7 @@ function NewPurchaseInvoiceContent() {
     setIsSubmitting(true);
 
     // 1. Auto-resolve or auto-create items in catalog for any rows that don't have itemId
-    let currentRows = [...rows];
+    const currentRows = [...rows];
     let rowsUpdated = false;
     for (let i = 0; i < currentRows.length; i++) {
       const r = currentRows[i];
@@ -1766,30 +1773,51 @@ function NewPurchaseInvoiceContent() {
           ...(mrnNumber.trim() ? { mrnNumber: mrnNumber.trim() } : {}),
           ...(tdsSection ? { tdsSection, tdsRate, tdsAmount } : {}),
         },
-        items: validRows.map((r) => {
-          const qty = Number(r.quantity);
-          const rate = Number(r.unitPrice);
-          const disc = Number(r.discountValue) || 0;
-          let discVal = 0;
-          if (r.discountType === "₹") {
-            discVal = disc;
-          } else {
-            discVal = (qty * rate * disc) / 100;
-          }
-          const taxable = Math.max(0, qty * rate - discVal);
-          const effectiveRate = qty > 0 ? taxable / qty : rate;
+        items: (() => {
+          const preOverallItems = validRows.map((r) => {
+            const qty = Number(r.quantity);
+            const rate = Number(r.unitPrice);
+            const disc = quickSettings.showDiscountColumn ? Number(r.discountValue) || 0 : 0;
+            let discVal = 0;
+            if (r.discountType === "₹") {
+              discVal = disc;
+            } else {
+              discVal = (qty * rate * disc) / 100;
+            }
+            const taxRate = quickSettings.showTaxColumn ? Number(r.taxRate) || 0 : 0;
+            let taxable = Math.max(0, qty * rate - discVal);
+            if (quickSettings.isTaxInclusive && taxRate > 0) {
+              taxable = taxable / (1 + taxRate / 100);
+            }
+            return { r, qty, rate, taxRate, taxable };
+          });
 
-          return {
-            itemId: r.itemId,
-            hsnCode: r.hsnCode || "1001",
-            quantity: qty,
-            unitPrice: effectiveRate,
-            taxRate: Number(r.taxRate) || 0,
-          };
-        }),
+          const totalPreTaxable = preOverallItems.reduce((s, it) => s + it.taxable, 0);
+          let overallDiscToApply = 0;
+          if (showOverallDiscount && Number(overallDiscountAmount) > 0 && totalPreTaxable > 0) {
+            overallDiscToApply =
+              overallDiscountType === "₹"
+                ? Math.min(totalPreTaxable, Number(overallDiscountAmount))
+                : (totalPreTaxable * Number(overallDiscountAmount)) / 100;
+          }
+          const discRatio = totalPreTaxable > 0 ? Math.max(0, (totalPreTaxable - overallDiscToApply) / totalPreTaxable) : 1;
+
+          return preOverallItems.map(({ r, qty, rate, taxRate, taxable }) => {
+            const adjustedTaxable = taxable * discRatio;
+            const effectiveRate = qty > 0 ? adjustedTaxable / qty : rate;
+            return {
+              itemId: r.itemId,
+              hsnCode: r.hsnCode || "1001",
+              quantity: qty,
+              unitPrice: Number(effectiveRate.toFixed(4)),
+              taxRate,
+            };
+          });
+        })(),
       };
 
-      const res: any = await apiClient.post("/purchases/invoices", payload);
+      const idempotencyKey = `purchase-inv-${partyId}-${vendorInvoiceNumber.trim()}-${validRows.length}-${Date.now()}`;
+      const res: any = await apiClient.post("/purchases/invoices", payload, undefined, idempotencyKey);
       const savedInvoiceId = res?.id || res?.purchaseInvoice?.id;
       const backendPaid = Number(res?.paidAmount || res?.purchaseInvoice?.paidAmount || 0);
 

@@ -340,7 +340,7 @@ export default function UnitsPage() {
 
   // Filtered and Sorted list
   const filteredUnits = useMemo(() => {
-    let list = units.filter((u) => {
+    const list = units.filter((u) => {
       const q = searchQuery.trim().toLowerCase();
       const matchesSearch =
         !q ||
@@ -361,8 +361,8 @@ export default function UnitsPage() {
     });
 
     list.sort((a, b) => {
-      let valA: any = a[sortField];
-      let valB: any = b[sortField];
+      const valA: any = a[sortField];
+      const valB: any = b[sortField];
       if (typeof valA === "string") {
         return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
       }

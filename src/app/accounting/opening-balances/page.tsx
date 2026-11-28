@@ -74,12 +74,17 @@ export default function OpeningBalancesPage() {
     return {
       totalDr,
       totalCr,
-      diff: Math.abs(totalDr - totalCr),
+      diff: Math.round(Math.abs(totalDr - totalCr) * 100) / 100,
       diffSide: totalDr > totalCr ? "DR" : totalCr > totalDr ? "CR" : "BALANCED",
     };
   }, [ledgers]);
 
   const handleSave = async () => {
+    if (isSaving) return;
+    if (totals.diff > 0.009) {
+      setError(`Opening balances are imbalanced by ₹${totals.diff.toFixed(2)} (${totals.diffSide}). Total Dr must equal Total Cr.`);
+      return;
+    }
     setIsSaving(true);
     setError(null);
     try {

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
 import { formatInr } from "@/components/design-system/tokens";
-import { formatDate } from "@/lib/date-utils";
+import { formatDate, getTodayDate } from "@/lib/date-utils";
 import { CustomSelect } from "@/components/ui/dropdown-system";
 import { ArrowRightLeft, Plus, Trash2, CheckCircle2, X } from "lucide-react";
 
@@ -31,7 +31,7 @@ export default function StockJournalPage() {
   const [toast, setToast] = useState<string | null>(null);
 
   const [journalNumber, setJournalNumber] = useState(`SJ-${new Date().getFullYear()}-${String(Math.floor(100 + Math.random() * 900))}`);
-  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(() => getTodayDate());
   const [sources, setSources] = useState<JournalLine[]>([{ itemId: "", quantity: 1, rate: 0 }]);
   const [destinations, setDestinations] = useState<JournalLine[]>([{ itemId: "", quantity: 1, rate: 0 }]);
 
@@ -74,6 +74,7 @@ export default function StockJournalPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     const validSources = sources.filter((s) => s.itemId && s.quantity > 0);
     const validDests = destinations.filter((d) => d.itemId && d.quantity > 0);
     if (validSources.length === 0 && validDests.length === 0) {
@@ -83,12 +84,17 @@ export default function StockJournalPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await apiClient.post("/inventory/stock/stock-journal", {
-        journalNumber,
-        date,
-        sources: validSources,
-        destinations: validDests,
-      });
+      await apiClient.post(
+        "/inventory/stock/stock-journal",
+        {
+          journalNumber,
+          date,
+          sources: validSources,
+          destinations: validDests,
+        },
+        undefined,
+        `stock-journal-${journalNumber}-${date}-${Date.now()}`,
+      );
       setToast(`Stock Journal ${journalNumber} posted successfully.`);
       setJournalNumber(`SJ-${new Date().getFullYear()}-${String(Math.floor(100 + Math.random() * 900))}`);
       setSources([{ itemId: "", quantity: 1, rate: 0 }]);

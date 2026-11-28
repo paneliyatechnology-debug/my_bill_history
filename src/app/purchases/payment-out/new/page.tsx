@@ -239,7 +239,7 @@ function CreatePaymentOutForm() {
           setPaidFromAccountId(cashAcc ? cashAcc.id : cashBank[0].id);
         }
 
-        let nextSeq = nextNumRes?.nextNumber || "1";
+        const nextSeq = nextNumRes?.nextNumber || "1";
         const savedSettings = localStorage.getItem("payment_out_quick_settings");
         if (savedSettings) {
           try {
@@ -600,6 +600,7 @@ function CreatePaymentOutForm() {
   // Submit Handler
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (isSubmitting) return;
     setErrorMessage(null);
 
     if (!partyId) {
@@ -609,8 +610,27 @@ function CreatePaymentOutForm() {
 
     const paidNum = parseFloat(amountPaid) || 0;
     const discNum = parseFloat(paymentOutDiscount) || 0;
-    if (paidNum <= 0 && discNum <= 0) {
-      setErrorMessage("Please enter an amount paid or discount greater than 0.");
+    if (paidNum < 0 || discNum < 0 || (paidNum === 0 && discNum === 0)) {
+      setErrorMessage("Please enter a valid non-negative amount paid or discount greater than 0.");
+      return;
+    }
+
+    let totalBillSettled = 0;
+    for (const b of bills) {
+      const s = parseFloat(b.settle) || 0;
+      const d = parseFloat(b.discount) || 0;
+      if (s < 0 || d < 0) {
+        setErrorMessage("Bill settlement and discount amounts cannot be negative.");
+        return;
+      }
+      if (s + d - b.balanceAmount > 0.009) {
+        setErrorMessage(`Settlement + discount for bill ${b.vendorInvoiceNumber} exceeds pending balance.`);
+        return;
+      }
+      totalBillSettled += s;
+    }
+    if (totalBillSettled - paidNum > 0.009) {
+      setErrorMessage("Total settled amount across bills cannot exceed amount paid.");
       return;
     }
 
@@ -655,18 +675,24 @@ function CreatePaymentOutForm() {
 
     setIsSubmitting(true);
     try {
-      const res = await apiClient.post<any>("/purchases/payment-out", {
-        partyId,
-        voucherDate,
-        amount: paidNum,
-        discount: discNum,
-        paidFromAccountId: paidFromAccountId || undefined,
-        paymentMode,
-        paymentNumber: paymentNumber.trim() || undefined,
-        referenceNo: computedReference,
-        narration: notes.trim() || undefined,
-        allocations: allocationsPayload.length > 0 ? allocationsPayload : undefined,
-      });
+      const idempotencyKey = `pay-out-${partyId}-${voucherDate}-${paidNum}-${allocationsPayload.length}-${Date.now()}`;
+      const res = await apiClient.post<any>(
+        "/purchases/payment-out",
+        {
+          partyId,
+          voucherDate,
+          amount: paidNum,
+          discount: discNum,
+          paidFromAccountId: paidFromAccountId || undefined,
+          paymentMode,
+          paymentNumber: paymentNumber.trim() || undefined,
+          referenceNo: computedReference,
+          narration: notes.trim() || undefined,
+          allocations: allocationsPayload.length > 0 ? allocationsPayload : undefined,
+        },
+        undefined,
+        idempotencyKey,
+      );
 
       // Advance sequence in localStorage for next payment out
       try {
@@ -1132,7 +1158,8 @@ function CreatePaymentOutForm() {
                           </td>
                         </tr>
                       ) : (
-                        displayedBills.map((bill, idx) => {
+                        displayedBills.map((bill) => {
+                          const realIdx = bills.findIndex((x) => x.id === bill.id);
                           return (
                             <tr
                               key={bill.id}
@@ -1142,7 +1169,7 @@ function CreatePaymentOutForm() {
                                 <input
                                   type="checkbox"
                                   checked={bill.isSelected}
-                                  onChange={() => toggleBillSelect(idx)}
+                                  onChange={() => realIdx !== -1 && toggleBillSelect(realIdx)}
                                   className="rounded border-slate-300 text-indigo-600 focus:ring-[#1677E8]"
                                 />
                               </td>
@@ -1165,8 +1192,9 @@ function CreatePaymentOutForm() {
                                 <input
                                   type="number"
                                   step="any"
+                                  min="0"
                                   value={bill.discount === "0" ? "" : bill.discount}
-                                  onChange={(e) => handleBillDiscountChange(idx, e.target.value)}
+                                  onChange={(e) => realIdx !== -1 && handleBillDiscountChange(realIdx, e.target.value)}
                                   placeholder="0.00"
                                   className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                                 />
@@ -1175,8 +1203,9 @@ function CreatePaymentOutForm() {
                                 <input
                                   type="number"
                                   step="any"
+                                  min="0"
                                   value={bill.settle === "0" ? "" : bill.settle}
-                                  onChange={(e) => handleBillSettleChange(idx, e.target.value)}
+                                  onChange={(e) => realIdx !== -1 && handleBillSettleChange(realIdx, e.target.value)}
                                   placeholder="0.00"
                                   className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                                 />

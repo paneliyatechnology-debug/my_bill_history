@@ -164,7 +164,7 @@ export default function SharedLedgerPage() {
           type: p.type || "CUSTOMER",
           balance: Number(p.balance || p.closingBalance || 0),
           status: "CONNECTED",
-          token: p.id,
+          token: "",
         }));
       }
 
@@ -484,7 +484,7 @@ export default function SharedLedgerPage() {
       doc.text(`Date Range: ${dateFilter} (${startDate || "All"} to ${endDate || "Now"})`, 340, 85);
       doc.setTextColor(22, 163, 74);
       doc.text(
-        `Closing Balance: ₹ ${selectedParty.balance.toLocaleString("en-IN")}`,
+        `Closing Balance: ₹ ${Number(selectedParty.balance || 0).toLocaleString("en-IN")}`,
         340,
         105
       );
@@ -782,9 +782,17 @@ export default function SharedLedgerPage() {
                 {/* Balance */}
                 <div>
                   <div className="text-[11px] font-medium text-slate-500">Balance</div>
-                  <div className="mt-1 flex items-center gap-1 text-sm font-bold text-emerald-600">
-                    <span className="text-xs">↓</span>
-                    <span>₹ {Math.round(selectedParty.balance).toLocaleString("en-IN")}</span>
+                  <div
+                    className={`mt-1 flex items-center gap-1 text-sm font-bold ${
+                      Number(selectedParty.balance || 0) >= 0
+                        ? "text-emerald-600"
+                        : "text-rose-600"
+                    }`}
+                  >
+                    <span className="text-xs">
+                      {Number(selectedParty.balance || 0) >= 0 ? "↓" : "↑"}
+                    </span>
+                    <span>₹ {Math.round(Math.abs(Number(selectedParty.balance || 0))).toLocaleString("en-IN")}</span>
                   </div>
                 </div>
 

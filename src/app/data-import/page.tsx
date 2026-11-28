@@ -44,8 +44,11 @@ export default function DataImportCenterPage() {
     return jobs.slice(start, start + jobsPageSize);
   }, [jobs, jobsPage, jobsPageSize]);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   const loadData = async () => {
     setIsLoading(true);
+    setLoadError(null);
     try {
       const [mods, recentJobs] = await Promise.all([
         importApi.getModules(),
@@ -53,8 +56,8 @@ export default function DataImportCenterPage() {
       ]);
       setModules(mods);
       setJobs(recentJobs);
-    } catch {
-      // ignore
+    } catch (err: any) {
+      setLoadError(err?.message || "Failed to load data import modules.");
     } finally {
       setIsLoading(false);
     }

@@ -15,7 +15,7 @@ import { ExportFormat } from "../../lib/export/export-types";
 import { exportReportData } from "./lib/report-export-adapter";
 import { DataTablePagination } from "../../components/ui/data-table-pagination";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
-import { formatDate } from "@/lib/date-utils";
+import { formatDate, formatDateForInput, getTodayDate } from "@/lib/date-utils";
 import { ReportPrintHeader, ReportPrintFooter } from "@/components/ui/report-print-header";
 import { CustomDatePicker } from "@/components/ui/custom-datepicker";
 import {
@@ -215,9 +215,7 @@ export default function ReportsPage({
     const year = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
     return `${year}-04-01`;
   });
-  const [endDate, setEndDate] = useState(() => {
-    return new Date().toISOString().split("T")[0];
-  });
+  const [endDate, setEndDate] = useState(() => getTodayDate());
 
   // Reset pagination whenever report filters or tab changes
   useEffect(() => {
@@ -312,7 +310,7 @@ export default function ReportsPage({
     } else if (preset === "Yesterday") {
       const yest = new Date(now);
       yest.setDate(now.getDate() - 1);
-      const yStr = yest.toISOString().split("T")[0];
+      const yStr = formatDateForInput(yest);
       setStartDate(yStr);
       setEndDate(yStr);
     } else if (preset === "This Week") {
@@ -320,7 +318,7 @@ export default function ReportsPage({
       const day = d.getDay();
       const diff = d.getDate() - day + (day === 0 ? -6 : 1);
       const monday = new Date(d.setDate(diff));
-      setStartDate(monday.toISOString().split("T")[0]);
+      setStartDate(formatDateForInput(monday));
       setEndDate(todayStr);
     } else if (preset === "This Month") {
       setStartDate(`${yyyy}-${mm}-01`);
@@ -328,14 +326,12 @@ export default function ReportsPage({
     } else if (preset === "Last Month") {
       const first = new Date(yyyy, now.getMonth() - 1, 1);
       const last = new Date(yyyy, now.getMonth(), 0);
-      const local = (date: Date) =>
-        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-      setStartDate(local(first));
-      setEndDate(local(last));
+      setStartDate(formatDateForInput(first));
+      setEndDate(formatDateForInput(last));
     } else if (preset === "Last 30 Days") {
       const past = new Date(now);
       past.setDate(now.getDate() - 30);
-      setStartDate(past.toISOString().split("T")[0]);
+      setStartDate(formatDateForInput(past));
       setEndDate(todayStr);
     } else if (preset === "This Quarter") {
       const qMonth = Math.floor(now.getMonth() / 3) * 3 + 1;
@@ -417,8 +413,8 @@ export default function ReportsPage({
   const isDateRangeInvalid = startDate > endDate;
 
   const handleResetDates = () => {
-    setStartDate(currentFY?.startDate ? currentFY.startDate.split("T")[0] : "2026-04-01");
-    setEndDate(new Date().toISOString().split("T")[0]);
+    setStartDate(currentFY?.startDate ? formatDateForInput(currentFY.startDate) : "2026-04-01");
+    setEndDate(getTodayDate());
     setReportPage(1);
   };
 

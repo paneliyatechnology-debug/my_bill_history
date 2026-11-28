@@ -123,7 +123,7 @@ export default function FinanceLedgersPage() {
       const isCash = l.isCashLedger || gName.includes("cash") || l.name.toLowerCase().includes("cash") || l.name.includes("રોકડ");
       const isBank = l.isBankLedger || gName.includes("bank") || l.name.toLowerCase().includes("bank") || l.name.includes("બેંક");
 
-      const bal = Number(l.currentBalance || l.openingBalance || 0);
+      const bal = Number(l.currentBalance ?? l.openingBalance ?? 0);
 
       if (isCash) cashTotal += bal;
       if (isBank) bankTotal += bal;

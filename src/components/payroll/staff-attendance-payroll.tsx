@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useAuth } from "../../context/auth-context";
 import { apiClient, extractList } from "../../lib/api-client";
 import { WEEKDAY_NAMES_SHORT, MONTH_NAMES_SHORT } from "@/lib/date-utils";
+import { escapeHtml } from "@/lib/html-utils";
 import { Calendar, History, X, AlertTriangle } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
@@ -585,13 +586,20 @@ export default function StaffAttendancePayrollView() {
         cashAccounts.find((a) => a.id === selectedAccountId) ||
         bankAccounts.find((a) => a.id === selectedAccountId);
 
-      const newPayment: PaymentTransaction = {
+      const prevBal = paymentStaff.currentBalance ?? 0;
+      const actualDeducted =
+        paymentType === "SALARY" || paymentType === "BONUS" || paymentType === "DEDUCTION"
+          ? Math.max(0, Math.min(prevBal, amt))
+          : amt;
+
+      const newPayment: PaymentTransaction & { deductedAmount?: number } = {
         id: staffPayment?.id || `pay_${Date.now()}`,
         staffId: paymentStaff.id,
         staffName: paymentStaff.name,
         date: selectedDate,
         type: paymentType,
         amount: amt,
+        deductedAmount: actualDeducted,
         paymentMode,
         note: paymentNote ? paymentNote.trim() : undefined,
         paidFromAccountId: staffPayment?.paidFromAccountId || (paymentType === "DEDUCTION" ? undefined : selectedAccountId),
@@ -672,9 +680,12 @@ export default function StaffAttendancePayrollView() {
     setCancellingPaymentId(p.id);
     try {
       if (p.voucherId || p.id.length > 20) {
-        await apiClient.post(`/vouchers/staff-payment/${p.id}/cancel`, {
-          reason: "Cancelled by user from Staff Payroll view",
-        });
+        await apiClient.post(
+          `/vouchers/staff-payment/${p.id}/cancel`,
+          { reason: "Cancelled by user from Staff Payroll view" },
+          undefined,
+          `staff-payment-cancel-${p.id}`,
+        );
       }
 
       // Mark payment cancelled in state & local storage
@@ -683,12 +694,13 @@ export default function StaffAttendancePayrollView() {
       );
       savePayments(updatedPayments);
 
-      // Restore staff balance
+      // Restore staff balance (only the amount actually deducted)
+      const restoreAmt = (p as any).deductedAmount !== undefined ? Number((p as any).deductedAmount) : p.amount;
       const updatedStaff = staffList.map((s) => {
         if (s.id === p.staffId) {
           let restored = s.currentBalance;
           if (p.type === "SALARY" || p.type === "BONUS" || p.type === "ADVANCE" || p.type === "DEDUCTION") {
-            restored = restored + p.amount;
+            restored = restored + restoreAmt;
           }
           return {
             ...s,
@@ -704,7 +716,7 @@ export default function StaffAttendancePayrollView() {
           prev
             ? {
                 ...prev,
-                currentBalance: Math.round((prev.currentBalance + p.amount) * 100) / 100,
+                currentBalance: Math.round((prev.currentBalance + restoreAmt) * 100) / 100,
               }
             : null
         );
@@ -2111,7 +2123,7 @@ export default function StaffAttendancePayrollView() {
                       printWindow.document.write(`
                         <html>
                           <head>
-                            <title>Salary Slip - ${detailStaff.name}</title>
+                            <title>Salary Slip - ${escapeHtml(detailStaff.name)}</title>
                             <style>
                               body { font-family: sans-serif; padding: 40px; color: #333; }
                               .header { border-bottom: 2px solid #4c3cce; padding-bottom: 15px; margin-bottom: 25px; }
@@ -2125,26 +2137,26 @@ export default function StaffAttendancePayrollView() {
                           </head>
                           <body>
                             <div class="header">
-                              <h1>${currentCompany?.legalName || "MyOwnBillBook Company"}</h1>
+                              <h1>${escapeHtml(currentCompany?.legalName || "MyOwnBillBook Company")}</h1>
                               <p>Staff Attendance & Salary Voucher</p>
                             </div>
                             <div class="info">
                               <div>
-                                <strong>Employee Name:</strong> ${detailStaff.name}<br>
-                                <strong>Mobile:</strong> ${detailStaff.mobile}<br>
-                                <strong>Payout Cycle:</strong> ${detailStaff.salaryCycle}
+                                <strong>Employee Name:</strong> ${escapeHtml(detailStaff.name)}<br>
+                                <strong>Mobile:</strong> ${escapeHtml(detailStaff.mobile)}<br>
+                                <strong>Payout Cycle:</strong> ${escapeHtml(detailStaff.salaryCycle)}
                               </div>
                               <div>
-                                <strong>Date:</strong> ${selectedDate}<br>
-                                <strong>Designation:</strong> ${detailStaff.designation || "Staff"}<br>
-                                <strong>Location:</strong> ${detailStaff.location || "Office"}
+                                <strong>Date:</strong> ${escapeHtml(selectedDate)}<br>
+                                <strong>Designation:</strong> ${escapeHtml(detailStaff.designation || "Staff")}<br>
+                                <strong>Location:</strong> ${escapeHtml(detailStaff.location || "Office")}
                               </div>
                             </div>
                             <table>
                               <tr><th>Description</th><th>Amount (INR)</th></tr>
-                              <tr><td>Monthly Basic Salary</td><td>₹ ${detailStaff.salary}</td></tr>
-                              <tr><td>Opening / Prior Balance</td><td>₹ ${detailStaff.openingBalance}</td></tr>
-                              <tr class="total"><td>Net Balance Payable</td><td>₹ ${detailStaff.currentBalance}</td></tr>
+                              <tr><td>Monthly Basic Salary</td><td>₹ ${escapeHtml(detailStaff.salary)}</td></tr>
+                              <tr><td>Opening / Prior Balance</td><td>₹ ${escapeHtml(detailStaff.openingBalance)}</td></tr>
+                              <tr class="total"><td>Net Balance Payable</td><td>₹ ${escapeHtml(detailStaff.currentBalance)}</td></tr>
                             </table>
                             <div style="margin-top: 60px; display: flex; justify-content: space-between;">
                               <div>Employee Signature: __________________</div>

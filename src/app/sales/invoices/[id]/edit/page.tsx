@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../../lib/api-client";
-import { getPartyItemPrice } from "../../../../../lib/party-item-pricing";
+import { getPartyItemPrice, getPartyItemDiscount } from "../../../../../lib/party-item-pricing";
 import { Pencil, Save, AlertTriangle, Check, X } from "lucide-react";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import { CleanNumberInput } from "@/components/ui/clean-number-input";
@@ -74,6 +74,8 @@ export default function EditInvoicePage() {
 
   // Additional Shipping & Freight Fields
   const [freightAmount, setFreightAmount] = useState<number | "">("");
+  const [overallDiscount, setOverallDiscount] = useState<number | "">("");
+  const [loadedTcsMeta, setLoadedTcsMeta] = useState<{ tcsSection?: string; tcsRate?: number; tcsAmount?: number } | null>(null);
   const [transportMode, setTransportMode] = useState("Road");
   const [vehicleNo, setVehicleNo] = useState("");
   const [ewayBillNo, setEwayBillNo] = useState("");
@@ -116,6 +118,12 @@ export default function EditInvoicePage() {
         setPaymentMode(invRes.paymentMode || "UNPAID_CREDIT");
         setPlaceOfSupply(invRes.placeOfSupply || currentCompany?.stateCode || "24");
         setNotes(invRes.notes || "");
+        setIsTaxInclusive(
+          Boolean(
+            invRes.isTaxInclusive ??
+              (Array.isArray(invRes.items) && invRes.items[0]?.isTaxInclusive),
+          ),
+        );
         setExistingPaidAmount(Number(invRes.paidAmount || 0));
 
         const shipAddr: any = invRes.shippingAddress || {};
@@ -131,6 +139,17 @@ export default function EditInvoicePage() {
             : 0)
         );
         setFreightAmount(loadedFreight > 0 ? loadedFreight : "");
+        const loadedDisc = Number(invRes.discountAmount ?? invRes.billDiscount ?? invRes.overallDiscount ?? 0);
+        setOverallDiscount(loadedDisc > 0 ? loadedDisc : "");
+        if (shipAddr.tcsSection) {
+          setLoadedTcsMeta({
+            tcsSection: shipAddr.tcsSection,
+            tcsRate: shipAddr.tcsRate,
+            tcsAmount: shipAddr.tcsAmount,
+          });
+        } else {
+          setLoadedTcsMeta(null);
+        }
         if (shipAddr.vehicleNo || (invRes as any).vehicleNumber) {
           setVehicleNo(shipAddr.vehicleNo || (invRes as any).vehicleNumber || "");
         }
@@ -188,20 +207,27 @@ export default function EditInvoicePage() {
   const handlePartyChange = (pId: string) => {
     setPartyId(pId);
     const selected = parties.find((p) => p.id === pId);
-    if (selected?.stateCode) {
-      setPlaceOfSupply(selected.stateCode);
+    const resolvedState =
+      selected?.stateCode ||
+      (selected?.gstin && selected.gstin.length >= 2 ? selected.gstin.slice(0, 2) : "");
+    if (resolvedState) {
+      setPlaceOfSupply(resolvedState);
     }
 
-    // Automatically recalculate item prices in existing rows only if not manually overridden
+    // Automatically recalculate item prices & party discounts in existing rows only if not manually overridden
     setRows((prevRows) =>
       prevRows.map((r) => {
         if (!r.itemId || r.isManualRate) return r;
         const it = items.find((i) => i.id === r.itemId);
         const partyPrice = getPartyItemPrice(pId, r.itemId, selected?.name, it?.name);
+        const partyDisc = getPartyItemDiscount(pId, r.itemId, selected?.name, it?.name);
+        const nextDisc = partyDisc !== null ? partyDisc : r.discountPercent;
         if (partyPrice !== null) {
-          return { ...r, unitPrice: partyPrice };
+          return { ...r, unitPrice: partyPrice, discountPercent: nextDisc };
         } else if (it && (Number(r.unitPrice) || 0) === 0) {
-          return { ...r, unitPrice: it.retailPrice };
+          return { ...r, unitPrice: it.retailPrice, discountPercent: nextDisc };
+        } else if (partyDisc !== null) {
+          return { ...r, discountPercent: nextDisc };
         }
         return r;
       })
@@ -216,6 +242,9 @@ export default function EditInvoicePage() {
     const partyPrice = partyId
       ? getPartyItemPrice(partyId, item.id, selected?.name, item.name)
       : null;
+    const partyDisc = partyId
+      ? getPartyItemDiscount(partyId, item.id, selected?.name, item.name)
+      : null;
     const effectiveUnitPrice = partyPrice !== null ? partyPrice : item.retailPrice;
 
     const updated = [...rows];
@@ -224,6 +253,7 @@ export default function EditInvoicePage() {
       itemId: item.id,
       hsnCode: item.hsnCode || "1001",
       unitPrice: effectiveUnitPrice,
+      discountPercent: partyDisc !== null ? partyDisc : updated[idx].discountPercent,
       taxRate: item.taxRate,
       isManualRate: false,
     };
@@ -272,8 +302,9 @@ export default function EditInvoicePage() {
   };
 
   // Statutory GST tax calculations
-  const companyState = currentCompany?.stateCode || "24";
-  const isInterState = placeOfSupply !== companyState;
+  const companyState = String(currentCompany?.stateCode || "24").trim().slice(0, 2);
+  const normalizedPos = String(placeOfSupply || companyState).trim().slice(0, 2);
+  const isInterState = normalizedPos !== companyState;
 
   let totalTaxable = 0;
   let totalCgst = 0;
@@ -317,13 +348,15 @@ export default function EditInvoicePage() {
     }
   }
   const totalTax = totalCgst + totalSgst + totalIgst;
-  const rawTotal = totalTaxable + totalTax + freightVal;
+  const overallDiscVal = Number(overallDiscount) || 0;
+  const rawTotal = Math.max(0, totalTaxable + totalTax + freightVal - overallDiscVal);
   const grandTotal = Math.round(rawTotal);
   const roundOff = Number((grandTotal - rawTotal).toFixed(2));
   const pendingBalance = Math.max(0, grandTotal - existingPaidAmount);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!partyId) {
       setError(lang === "gu" ? "કૃપા કરીને ગ્રાહક પસંદ કરો." : "Please select a customer/party.");
       return;
@@ -344,6 +377,9 @@ export default function EditInvoicePage() {
       paymentMode,
       placeOfSupply,
       notes,
+      isTaxInclusive,
+      discountType: "AFTER_TAX",
+      discountAmount: overallDiscVal,
       additionalCharges: freightVal > 0 ? [{ name: "Freight", amount: freightVal, taxRate: freightTaxRate }] : [],
       freightAmount: freightVal > 0 ? freightVal : 0,
       freightTaxRate,
@@ -356,6 +392,16 @@ export default function EditInvoicePage() {
         ...(transportMode ? { transportMode } : {}),
         ...(ewayBillNo ? { ewayBillNo } : {}),
         ...(dispatchDate ? { dispatchDate } : {}),
+        ...(loadedTcsMeta?.tcsSection
+          ? {
+              tcsSection: loadedTcsMeta.tcsSection,
+              tcsRate: loadedTcsMeta.tcsRate,
+              tcsAmount:
+                Math.round(
+                  ((grandTotal * (Number(loadedTcsMeta.tcsRate) || 0.1)) / 100) * 100,
+                ) / 100,
+            }
+          : {}),
       },
       items: rows.map((r) => ({
         itemId: r.itemId,
@@ -814,6 +860,19 @@ export default function EditInvoicePage() {
               <span className="tabular-nums text-slate-900">₹{freightVal.toFixed(2)}</span>
             </div>
           )}
+
+          <div className="flex items-center justify-between gap-2 text-slate-700">
+            <span>{lang === "gu" ? "કુલ ડિસ્કાઉન્ટ (₹):" : "Overall Discount (₹):"}</span>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={overallDiscount}
+              onChange={(e) => setOverallDiscount(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
+              placeholder="0.00"
+              className="w-24 px-2 py-1 text-right bg-white border border-slate-200 rounded text-xs tabular-nums focus:border-primary focus:outline-none"
+            />
+          </div>
 
           {roundOff !== 0 && (
             <div className="flex justify-between text-slate-700">

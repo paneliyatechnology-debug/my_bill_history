@@ -1280,7 +1280,7 @@ export async function exportReportData(params: ReportExportParams): Promise<void
         "Invoice Value": sum.grossTurnover || rows.reduce((s: number, r: any) => s + (Number(r.invoiceValue) || 0), 0),
         "Taxable Value": sum.totalTaxable || rows.reduce((s: number, r: any) => s + (Number(r.taxableValue) || 0), 0),
         CGST: sum.totalCgst || rows.reduce((s: number, r: any) => s + (Number(r.cgst) || 0), 0),
-        SGST: sum.totalSgst || rows.reduce((s: number, r: any) => s + (Number(r.sgst) || 0), 0),
+        sgst: sum.totalSgst || rows.reduce((s: number, r: any) => s + (Number(r.sgst) || 0), 0),
         IGST: sum.totalIgst || rows.reduce((s: number, r: any) => s + (Number(r.igst) || 0), 0),
       },
     };

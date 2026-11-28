@@ -700,8 +700,8 @@ export default function CreateCreditNotePage() {
           const match = selectedInvoice.items.find((i) => i.itemId === line.itemId);
           if (match) sId = match.id;
         }
-        if (!sId && selectedInvoice.items && selectedInvoice.items.length > 0) {
-          sId = selectedInvoice.items[0].id;
+        if (!sId) {
+          throw new Error(`Item "${line.description || line.itemId}" could not be matched to an item on invoice #${selectedInvoice.invoiceNumber}.`);
         }
         return {
           salesItemId: sId,
@@ -709,14 +709,6 @@ export default function CreateCreditNotePage() {
           reason: notes || line.description || "Customer Return",
         };
       });
-
-      if (editId) {
-        try {
-          await apiClient.delete(`/sales-returns/${editId}`);
-        } catch (e) {
-          console.warn("Could not delete prior return:", e);
-        }
-      }
 
       const isAmount = creditNoteType === "AMOUNT_BASED";
       const payload: any = {
@@ -738,7 +730,16 @@ export default function CreateCreditNotePage() {
         payload.items = itemsPayload;
       }
 
-      const res: any = await apiClient.post("/sales-returns", payload);
+      const idempotencyKey = `credit-note-${selectedInvoice.id}-${returnDate}-${Date.now()}`;
+      const res: any = await apiClient.post("/sales-returns", payload, undefined, idempotencyKey);
+
+      if (editId) {
+        try {
+          await apiClient.delete(`/sales-returns/${editId}`);
+        } catch (e) {
+          console.warn("Could not delete prior return after creating replacement:", e);
+        }
+      }
 
       if (isNew) {
         // Reset form

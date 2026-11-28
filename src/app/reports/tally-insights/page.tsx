@@ -56,28 +56,13 @@ export default function TallyInsightsReportsPage() {
   const handleDownloadTallyXml = async () => {
     setIsExportingXml(true);
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("billing_access_token") : "";
       const params = new URLSearchParams();
       if (fromDate) params.set("fromDate", fromDate);
       if (toDate) params.set("toDate", toDate);
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
-      const url = `${apiBase}/reports/tally-xml?${params.toString()}`;
-      const res = await fetch(url, {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...(tenantContext.companyId ? { "x-company-id": tenantContext.companyId } : {}),
-        },
-      });
-      if (!res.ok) throw new Error("Failed to export Tally XML");
-      const blob = await res.blob();
-      const dlUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = dlUrl;
-      a.download = `tally-export-${new Date().toISOString().slice(0, 10)}.xml`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(dlUrl);
+      await apiClient.downloadCsv(
+        `/reports/tally-xml?${params.toString()}`,
+        `tally-export-${fromDate || "all"}-${toDate || "all"}.xml`,
+      );
     } catch (err: any) {
       setError(err.message || "Tally XML export failed.");
     } finally {

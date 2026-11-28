@@ -484,7 +484,7 @@ export default function PosTerminalPage() {
       );
 
       const rawTotal = Math.max(0, sub + tax - billDisc + charges);
-      let rounded = rawTotal;
+      let rounded = Number(rawTotal.toFixed(2));
       let ro = 0;
       if (settings.roundOff) {
         rounded = Math.round(rawTotal);
@@ -841,7 +841,7 @@ export default function PosTerminalPage() {
   };
 
   const handleCheckout = async (andPrint = false) => {
-    if (currentScreen.items.length === 0) return;
+    if (isCheckingOut || currentScreen.items.length === 0) return;
     setIsCheckingOut(true);
     setError(null);
 
@@ -852,7 +852,7 @@ export default function PosTerminalPage() {
     const effectiveCustomerPhone = currentScreen.selectedParty?.mobile || currentScreen.customerMobile || undefined;
 
     const tenderedAmount =
-      typeof currentScreen.receivedAmount === "number" && currentScreen.receivedAmount > 0
+      typeof currentScreen.receivedAmount === "number" && currentScreen.receivedAmount >= 0
         ? currentScreen.receivedAmount
         : grandTotal;
 
@@ -903,7 +903,7 @@ export default function PosTerminalPage() {
       isSuccess = true;
     } else {
       try {
-        const res: any = await apiClient.post("/sales/pos-checkout", payload);
+        const res: any = await apiClient.post("/sales/pos-checkout", payload, undefined, clientOfflineUuid);
         generatedInvoiceNumber = res?.invoiceNumber || offlineBillNumber;
         isSuccess = true;
       } catch (err: any) {

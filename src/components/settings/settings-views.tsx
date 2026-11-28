@@ -871,7 +871,7 @@ function FinancialYearSettingsView() {
 // 1. ACCOUNT SETTINGS VIEW (Exact MyBillBook Layout from Screenshot)
 // =========================================================================
 function AccountSettingsView() {
-  const { user, currentCompany, entitlements, lang, patchUser, refreshTenantMetadata } = useAuth();
+  const { user, currentCompany, entitlements, isMetadataLoading, lang, patchUser, refreshTenantMetadata } = useAuth();
   const u = user as any;
   const c = currentCompany as any;
 
@@ -896,12 +896,26 @@ function AccountSettingsView() {
   const [billingHistory, setBillingHistory] = useState<any[]>([]);
   const [billingLoading, setBillingLoading] = useState(true);
 
-  // Accurate subscription expiry calculation
-  const planName = entitlements?.name || "Wholesale Pro";
-  const subEndDate = entitlements?.subscriptionEnds ? new Date(entitlements.subscriptionEnds) : null;
-  const isExpired = entitlements?.isExpired ?? (subEndDate ? subEndDate.getTime() < Date.now() : false);
-  const daysRemaining = entitlements?.daysRemaining ?? (subEndDate ? Math.ceil((subEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0);
-  const planEndsOn = formatReadableDate(entitlements?.subscriptionEnds || "2026-10-27T00:00:00.000Z");
+  // Accurate subscription expiry calculation (no fabricated fallback dates or NaN/negative days)
+  const [renderNow] = useState(() => Date.now());
+  const planName = entitlements?.name || (isMetadataLoading ? "Loading plan..." : "Current Plan");
+  const rawSubEnds = entitlements?.subscriptionEnds;
+  const parsedSubEndDate = rawSubEnds ? new Date(rawSubEnds) : null;
+  const subEndDate =
+    parsedSubEndDate && !isNaN(parsedSubEndDate.getTime()) ? parsedSubEndDate : null;
+  const hasEndDate = Boolean(subEndDate);
+  const isExpired = Boolean(
+    entitlements?.isExpired ?? (subEndDate ? subEndDate.getTime() < renderNow : false),
+  );
+  const isUnlimitedPlan = Boolean(entitlements && !hasEndDate && !isExpired);
+  const rawDaysRemaining =
+    entitlements?.daysRemaining !== undefined && entitlements?.daysRemaining !== null
+      ? Number(entitlements.daysRemaining)
+      : subEndDate
+      ? Math.ceil((subEndDate.getTime() - renderNow) / (1000 * 60 * 60 * 24))
+      : 0;
+  const daysRemaining = Number.isFinite(rawDaysRemaining) ? Math.max(0, rawDaysRemaining) : 0;
+  const planEndsOn = subEndDate ? formatReadableDate(rawSubEnds) : null;
 
   // Load organization-wise billing history from backend API
   const loadBillingHistory = useCallback(async () => {
@@ -1504,7 +1518,14 @@ function AccountSettingsView() {
           <h2 className="text-sm font-semibold text-[#0F172A]">
             {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન" : "Subscription Plan"}
           </h2>
-          {isExpired ? (
+          {!entitlements ? (
+            <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+              {isMetadataLoading
+                ? lang === "gu" ? "લોડ થઈ રહ્યું છે" : "Loading"
+                : lang === "gu" ? "અનુપલબ્ધ" : "Unavailable"}
+            </span>
+          ) : isExpired ? (
             <span className="text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
               {lang === "gu" ? "સમાપ્ત થયેલ" : "Expired"}
@@ -1544,10 +1565,34 @@ function AccountSettingsView() {
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-3.5">
             <div className="text-left md:text-right">
-              {!isExpired && daysRemaining <= 7 ? (
+              {!entitlements ? (
+                <>
+                  <span className="text-[11px] block text-slate-500">
+                    {lang === "gu" ? "પ્લાન સ્થિતિ" : "Plan Status"}
+                  </span>
+                  <span className="text-sm font-semibold text-slate-700">
+                    {isMetadataLoading
+                      ? lang === "gu" ? "ચકાસાઈ રહ્યું છે..." : "Checking..."
+                      : lang === "gu" ? "માહિતી ઉપલબ્ધ નથી" : "Unavailable"}
+                  </span>
+                </>
+              ) : isUnlimitedPlan ? (
+                <>
+                  <span className="text-[11px] block text-slate-500">
+                    {lang === "gu" ? "માન્યતા" : "Validity"}
+                  </span>
+                  <span className="text-sm font-bold text-slate-900">
+                    {lang === "gu" ? "અમર્યાદિત" : "Unlimited"}
+                  </span>
+                </>
+              ) : !isExpired && hasEndDate && daysRemaining <= 7 ? (
                 <>
                   <span className="text-xs font-semibold text-amber-700 block tabular-nums">
-                    {lang === "gu"
+                    {daysRemaining === 0
+                      ? lang === "gu"
+                        ? "આજે સમાપ્ત થાય છે"
+                        : "Expires today"
+                      : lang === "gu"
                       ? `બાકી ${daysRemaining} દિવસ`
                       : `${daysRemaining} ${daysRemaining === 1 ? "day" : "days"} remaining`}
                   </span>
@@ -1563,7 +1608,7 @@ function AccountSettingsView() {
                       : lang === "gu" ? "માન્યતા તારીખ" : "Valid until"}
                   </span>
                   <span className={`text-sm font-bold tabular-nums ${isExpired ? "text-rose-700" : "text-slate-900"}`}>
-                    {planEndsOn}
+                    {planEndsOn || "-"}
                   </span>
                 </>
               )}
@@ -2784,6 +2829,7 @@ function PrintSettingsView() {
   };
 
   // Sample data constructed dynamically from real company profile
+  const currentCompanyLogoUrl = (currentCompany as { logoUrl?: string } | null)?.logoUrl;
   const sampleReceiptData: ThermalReceiptData = useMemo(() => {
     return {
       companyName: displayName,
@@ -2862,7 +2908,7 @@ function PrintSettingsView() {
       notes: "Sample Note",
       terms: "1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to local jurisdiction",
     };
-  }, [displayName, displayAddress, displayPhone, displayGstin, displayUpi, user?.fullName, settings.logoUrl, (currentCompany as any)?.logoUrl]);
+  }, [displayName, displayAddress, displayPhone, displayGstin, displayUpi, user?.fullName, settings.logoUrl, currentCompanyLogoUrl]);
 
   // Handle Save to Backend & LocalStorage
   const handleSave = async () => {

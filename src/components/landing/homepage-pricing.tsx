@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 
 export interface HomepagePricingProps {
   lang?: "en" | "gu";
@@ -12,62 +13,45 @@ export interface HomepagePricingProps {
 export function HomepagePricing({ lang = "en", onOpenDemo }: HomepagePricingProps) {
   const gu = lang === "gu";
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [plans, setPlans] = useState<
+    Array<{
+      id: string;
+      name: string;
+      subtitle: string;
+      monthlyPrice: number;
+      yearlyPrice: number;
+      popular: boolean;
+      features: string[];
+      ctaText: string;
+    }>
+  >([]);
 
-  const plans = [
-    {
-      id: "starter",
-      name: gu ? "સ્ટાર્ટર પ્લાન (Starter)" : "Starter Plan",
-      subtitle: gu ? "નાની દુકાનો અને કાઉન્ટર માટે" : "For single retail counters & small shops",
-      monthlyPrice: 499,
-      yearlyPrice: 399,
-      popular: false,
-      features: [
-        gu ? "૧ કંપની અથવા દુકાન" : "1 Business Company Profile",
-        gu ? "વર્ષે ૩,૦૦૦ ઇન્વૉઇસ સુધી" : "Up to 3,000 Invoices per year",
-        gu ? "સ્ટાન્ડર્ડ GST અને નોન-GST બિલિંગ" : "Standard B2B & B2C GST Invoicing",
-        gu ? "A4 અને ૫૮mm/૮૦mm થર્મલ પ્રિન્ટ" : "A4 Laser & 58/80mm Thermal Print",
-        gu ? "લાઇવ વેચાણ ચાર્ટ અને રિપોર્ટ્સ" : "Basic Sales & Cash Reports",
-        gu ? "ઇમેઇલ અને ચેટ હેલ્પડેસ્ક" : "Standard Chat & Email Support",
-      ],
-      ctaText: gu ? "સ્ટાર્ટર પ્લાન શરૂ કરો" : "Start Free Trial",
-    },
-    {
-      id: "professional",
-      name: gu ? "પ્રોફેશનલ પ્લાન (Professional)" : "Professional Plan",
-      subtitle: gu ? "હોલસેલર્સ અને વધતા વેપાર માટે" : "For growing wholesalers, traders & multi-counter shops",
-      monthlyPrice: 999,
-      yearlyPrice: 799,
-      popular: true,
-      features: [
-        gu ? "૩ કંપનીઓ અથવા બ્રાન્ચ સુધી" : "Up to 3 Business Companies",
-        gu ? "અનલિમિટેડ ઇન્વૉઇસ અને e-Way Bills" : "Unlimited Invoices & E-Way Bills",
-        gu ? "ખરીદી બિલ AI કેમેરા સ્કેનર (OCR)" : "Purchase Bill AI Camera Scanner (OCR)",
-        gu ? "બહુ-ગોડાઉન સ્ટોક સિન્ક & ટ્રાન્સફર" : "Multi-Godown Stock Sync & Transfer Slips",
-        gu ? "WhatsApp ઓટોમેટિક રિમાઇન્ડર્સ" : "Automated WhatsApp Reminders & Statements",
-        gu ? "GSTR-1, 3B અને 2B તૈયાર ફાઈલો" : "GSTR-1, 3B & 2B Return Preparation",
-        gu ? "પ્રાથમિક ફોન અને રિમોટ સપોર્ટ" : "Priority Phone & Remote Support",
-      ],
-      ctaText: gu ? "સૌથી લોકપ્રિય — શરૂ કરો" : "Get Started Free",
-    },
-    {
-      id: "enterprise",
-      name: gu ? "એન્ટરપ્રાઇઝ પ્લાન (Enterprise)" : "Enterprise Plan",
-      subtitle: gu ? "મોટા ડિસ્ટ્રિબ્યુટર્સ અને ફેક્ટરીઓ માટે" : "For large distributors, factories & multiple branches",
-      monthlyPrice: 1999,
-      yearlyPrice: 1599,
-      popular: false,
-      features: [
-        gu ? "અનલિમિટેડ કંપનીઓ અને ગોડાઉન" : "Unlimited Companies, Warehouses & Branches",
-        gu ? "અનલિમિટેડ સ્ટાફ યુઝર્સ અને રોલ એક્સેસ" : "Unlimited Staff Logins with Role Permissions",
-        gu ? "સરકારી e-Invoice સીધો API ઇન્ટિગ્રેશન" : "Direct Government E-Invoicing API Integration",
-        gu ? "મલ્ટી-બ્રાન્ચ ERP ડેટા સિન્ક" : "Real-time Multi-Branch Cloud Data Sync",
-        gu ? "ડેડિકેટેડ CA મેનેજર સપોર્ટ" : "Dedicated CA Relationship Support Manager",
-        gu ? "કસ્ટમ પ્રિન્ટ થીમ્સ અને બિલ ફોર્મેટ" : "Custom Branded Print Templates & Ledgers",
-        gu ? "૨૪/૭ પ્રાયોરિટી ઇન્સ્ટન્ટ હેલ્પ" : "24/7 Priority Dedicated Helpline",
-      ],
-      ctaText: gu ? "એન્ટરપ્રાઇઝ શરૂ કરો" : "Contact for Enterprise",
-    },
-  ];
+  useEffect(() => {
+    apiClient
+      .get<any[]>("/subscriptions/plans")
+      .then((res) => {
+        if (Array.isArray(res)) {
+          setPlans(
+            res.map((p) => ({
+              id: p.id || p.tier?.toLowerCase(),
+              name: gu ? p.nameGujarati || p.name : p.name,
+              subtitle: gu ? p.subtitleGujarati || p.subtitle : p.subtitle,
+              monthlyPrice: Number(p.monthlyPrice) || 0,
+              yearlyPrice: Number(p.yearlyPrice) || 0,
+              popular: Boolean(p.isPopular ?? p.popular),
+              features:
+                gu && Array.isArray(p.featuresGujarati) && p.featuresGujarati.length > 0
+                  ? p.featuresGujarati
+                  : Array.isArray(p.features)
+                  ? p.features
+                  : [],
+              ctaText: p.ctaText || (gu ? "પ્લાન શરૂ કરો" : "Get Started"),
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, [gu]);
 
   return (
     <section id="pricing" className="py-14 sm:py-20 bg-white border-b border-[#E5EAF1]">

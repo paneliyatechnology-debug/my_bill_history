@@ -84,8 +84,8 @@ export default function ExpenseDetailsPage() {
 
     let partyName = "-";
     let notes = "-";
-    let placeOfSupply = getStateDisplayName(currentCompany?.stateCode) || "—";
-    let itemsParsed: Array<{
+    const placeOfSupply = getStateDisplayName(currentCompany?.stateCode) || "—";
+    const itemsParsed: Array<{
       name: string;
       hsn: string;
       qty: number;

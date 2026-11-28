@@ -432,6 +432,7 @@ export default function CreateDeliveryChallanPage() {
 
   // Submit Handler
   const handleSubmit = async (isSaveAndNew = false) => {
+    if (isSubmitting) return;
     if (!selectedWarehouseId && warehouses.length > 0) {
       setSelectedWarehouseId(warehouses[0].id);
     }
@@ -440,13 +441,16 @@ export default function CreateDeliveryChallanPage() {
       return;
     }
 
+    const parsedChallanDate = challanDate ? new Date(challanDate) : new Date();
+    const isoChallanDate = isNaN(parsedChallanDate.getTime()) ? new Date().toISOString() : parsedChallanDate.toISOString();
+
     setIsSubmitting(true);
     setError(null);
 
     try {
       await apiClient.post("/sales/challans", {
         challanNumber: challanNumber.trim() || undefined,
-        challanDate: new Date(challanDate).toISOString(),
+        challanDate: isoChallanDate,
         challanType: "JOB_WORK",
         partyId: partyId || undefined,
         warehouseId: selectedWarehouseId || warehouses[0]?.id,

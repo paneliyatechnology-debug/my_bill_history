@@ -184,12 +184,15 @@ export default function BomPage() {
         ? "BOM માં ડુપ્લિકેટ કાચો માલ ઉમેરી શકાય નહીં."
         : "Duplicate raw material components are not allowed.";
     }
-    if (!isEdit && rawIds.includes(formData.finishedItemId)) {
+    if (rawIds.includes(formData.finishedItemId)) {
       return lang === "gu"
         ? "તૈયાર માલ પોતે પોતાના BOM માં કાચા માલ તરીકે ન હોઈ શકે."
         : "Finished item cannot be a raw component in its own BOM.";
     }
     for (const it of formData.items) {
+      if (!it.rawItemId) {
+        return lang === "gu" ? "કૃપા કરીને દરેક હરોળમાં કાચો માલ પસંદ કરો." : "Please select a raw material for every row.";
+      }
       if (it.quantity <= 0) {
         return lang === "gu" ? "તમામ કાચા માલનો જથ્થો ૦ થી વધુ હોવો જોઈએ." : "Component quantity must be > 0.";
       }
@@ -204,6 +207,7 @@ export default function BomPage() {
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     const validationErr = validateForm(false);
     if (validationErr) {
       setFormError(validationErr);
@@ -212,18 +216,23 @@ export default function BomPage() {
     setIsSubmitting(true);
     setFormError(null);
     try {
-      await apiClient.post("/manufacturing/boms", {
-        finishedItemId: formData.finishedItemId,
-        bomName: formData.bomName,
-        batchYieldQty: Number(formData.batchYieldQty),
-        laborCostEst: Number(formData.laborCostEst || 0),
-        overheadCostEst: Number(formData.overheadCostEst || 0),
-        items: formData.items.map((it) => ({
-          rawItemId: it.rawItemId,
-          quantity: Number(it.quantity),
-          wastagePercent: Number(it.wastagePercent || 0),
-        })),
-      });
+      await apiClient.post(
+        "/manufacturing/boms",
+        {
+          finishedItemId: formData.finishedItemId,
+          bomName: formData.bomName,
+          batchYieldQty: Number(formData.batchYieldQty),
+          laborCostEst: Number(formData.laborCostEst || 0),
+          overheadCostEst: Number(formData.overheadCostEst || 0),
+          items: formData.items.map((it) => ({
+            rawItemId: it.rawItemId,
+            quantity: Number(it.quantity),
+            wastagePercent: Number(it.wastagePercent || 0),
+          })),
+        },
+        undefined,
+        `bom-create-${formData.finishedItemId}-${formData.bomName.trim()}-${Date.now()}`,
+      );
       setIsCreateModalOpen(false);
       await fetchData();
     } catch (err: any) {

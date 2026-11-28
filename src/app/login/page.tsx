@@ -69,36 +69,40 @@ function LoginContent() {
     planName?: string;
   } | null>(null);
 
-  const signupPlans = [
-    {
-      id: "starter",
-      tier: "RETAIL_BASIC",
-      name: "Starter Plan",
-      monthlyPrice: 499,
-      yearlyPrice: 399,
-      annualTotal: 4788,
-      desc: "1 Business • Up to 3,000 Invoices/yr",
-    },
-    {
-      id: "professional",
-      tier: "WHOLESALE_PRO",
-      name: "Professional Plan",
-      monthlyPrice: 999,
-      yearlyPrice: 799,
-      annualTotal: 9588,
-      popular: true,
-      desc: "Up to 3 Businesses • AI OCR Scanner • WhatsApp",
-    },
-    {
-      id: "enterprise",
-      tier: "DISTRIBUTION_ENTERPRISE",
-      name: "Enterprise Plan",
-      monthlyPrice: 1999,
-      yearlyPrice: 1599,
-      annualTotal: 19188,
-      desc: "Unlimited Businesses • Govt E-Invoice API",
-    },
-  ];
+  const [signupPlans, setSignupPlans] = useState<
+    Array<{
+      id: string;
+      tier: string;
+      name: string;
+      monthlyPrice: number;
+      yearlyPrice: number;
+      annualTotal: number;
+      popular?: boolean;
+      desc?: string;
+    }>
+  >([]);
+
+  useEffect(() => {
+    apiClient
+      .get<any[]>("/subscriptions/plans")
+      .then((res) => {
+        if (Array.isArray(res)) {
+          setSignupPlans(
+            res.map((p) => ({
+              id: p.id || p.tier?.toLowerCase(),
+              tier: p.tier,
+              name: p.name,
+              monthlyPrice: Number(p.monthlyPrice) || 0,
+              yearlyPrice: Number(p.yearlyPrice) || 0,
+              annualTotal: Number(p.annualTotal) || (Number(p.yearlyPrice) || 0) * 12,
+              popular: Boolean(p.isPopular ?? p.popular),
+              desc: p.subtitle || "",
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -140,11 +144,24 @@ function LoginContent() {
     }
   }, [modeParam, searchParams]);
 
+  const getSafeRedirect = (raw: string | null): string => {
+    if (!raw) return "/";
+    const trimmed = raw.trim();
+    if (
+      !trimmed.startsWith("/") ||
+      trimmed.startsWith("//") ||
+      trimmed.startsWith("/\\") ||
+      trimmed.startsWith("/superadmin")
+    ) {
+      return "/";
+    }
+    return trimmed;
+  };
+
   // If already logged in, redirect accordingly — but never if redirected due to expired session
   useEffect(() => {
     if (!authLoading && isAuthenticated && user && !reasonParam) {
-      const dest = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("/superadmin") ? redirectParam : "/";
-      router.replace(dest);
+      router.replace(getSafeRedirect(redirectParam));
     }
   }, [authLoading, isAuthenticated, user, router, redirectParam, reasonParam]);
 
@@ -168,8 +185,7 @@ function LoginContent() {
           defaultContext: res.defaultContext,
         });
 
-        const dest = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("/superadmin") ? redirectParam : "/";
-        router.push(dest);
+        router.push(getSafeRedirect(redirectParam));
       } else {
         setError(
           "Invalid response from authentication server."
@@ -209,7 +225,11 @@ function LoginContent() {
       return;
     }
 
-    const currentPlan = signupPlans.find((p) => p.tier === selectedTier) || signupPlans[1];
+    const currentPlan = signupPlans.find((p) => p.tier === selectedTier) || signupPlans[0];
+    if (!currentPlan) {
+      setError("Subscription plans are still loading. Please try again.");
+      return;
+    }
     setIsPaying(true);
 
     try {
@@ -345,8 +365,7 @@ function LoginContent() {
           user: res.user,
           defaultContext: res.defaultContext,
         });
-        const dest = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("/superadmin") ? redirectParam : "/";
-        router.push(dest);
+        router.push(getSafeRedirect(redirectParam));
       } else {
         setSuccessMsg(
           "Account created successfully! Launching your workspace...",
@@ -801,7 +820,8 @@ function LoginContent() {
                 {/* Selected Plan Cost Summary */}
                 {(() => {
                   const currentPlan =
-                    signupPlans.find((p) => p.tier === selectedTier) || signupPlans[1];
+                    signupPlans.find((p) => p.tier === selectedTier) || signupPlans[0];
+                  if (!currentPlan) return null;
                   const baseAmt =
                     signupCycle === "yearly"
                       ? currentPlan.annualTotal

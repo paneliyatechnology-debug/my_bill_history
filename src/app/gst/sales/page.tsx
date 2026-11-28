@@ -87,8 +87,10 @@ function Body() {
         fromDate: period.fromDate,
         toDate: period.toDate,
       });
-      const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/v1/reports/sales-register/export?${params.toString()}`;
-      window.open(url, "_blank");
+      await apiClient.downloadCsv(
+        `/reports/sales-register/export?${params.toString()}`,
+        `sales-register-${period.fromDate}-to-${period.toDate}.csv`,
+      );
     } catch (e: any) {
       alert("Failed to export CSV: " + (e.message || "Unknown error"));
     }

@@ -74,127 +74,40 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
     };
   }, []);
 
-  const defaultPlans = [
-    {
-      id: "starter",
-      tier: "RETAIL_BASIC",
-      name: gu ? "સ્ટાર્ટર પ્લાન (Starter)" : "Starter Plan",
-      subtitle: gu ? "નાની દુકાનો અને સિંગલ કાઉન્ટર માટે" : "For single retail counters & independent shops",
-      monthlyPrice: 499,
-      yearlyPrice: 399,
-      annualTotal: 4788,
-      popular: false,
-      badge: null,
-      features: [
-        gu ? "૧ કંપની અથવા દુકાન પ્રોફાઇલ" : "1 Business Company Profile",
-        gu ? "વર્ષે ૩,૦૦૦ ઇન્વૉઇસ સુધી" : "Up to 3,000 Invoices per year",
-        gu ? "સ્ટાન્ડર્ડ B2B અને B2C GST બિલિંગ" : "Standard B2B & B2C GST Invoicing",
-        gu ? "A4 લેસર અને ૫૮mm/૮૦mm થર્મલ પ્રિન્ટ" : "A4 Laser & 58/80mm Thermal Print",
-        gu ? "લાઇવ વેચાણ ચાર્ટ અને રોકડ રિપોર્ટ્સ" : "Basic Sales & Cash Reports",
-        gu ? "સ્ટાન્ડર્ડ ચેટ અને ઇમેઇલ હેલ્પડેસ્ક" : "Standard Chat & Email Support",
-      ],
-      ctaText: gu ? "સ્ટાર્ટર શરૂ કરો" : "Start Free Trial",
-    },
-    {
-      id: "professional",
-      tier: "WHOLESALE_PRO",
-      name: gu ? "પ્રોફેશનલ પ્લાન (Professional)" : "Professional Plan",
-      subtitle: gu ? "હોલસેલર્સ અને વધતા વ્યવસાયો માટે" : "For growing wholesalers, traders & multi-counter shops",
-      monthlyPrice: 999,
-      yearlyPrice: 799,
-      annualTotal: 9588,
-      popular: true,
-      badge: gu ? "સૌથી લોકપ્રિય" : "Most Popular",
-      features: [
-        gu ? "૩ કંપનીઓ અથવા બ્રાન્ચ સુધી" : "Up to 3 Business Companies",
-        gu ? "અનલિમિટેડ ઇન્વૉઇસ અને e-Way Bills" : "Unlimited Invoices & E-Way Bills",
-        gu ? "ખરીદી બિલ AI કેમેરા સ્કેનર (OCR)" : "Purchase Bill AI Camera Scanner (OCR)",
-        gu ? "બહુ-ગોડાઉન સ્ટોક સિન્ક & ટ્રાન્સફર" : "Multi-Godown Stock Sync & Transfer Slips",
-        gu ? "WhatsApp ઓટોમેટિક રિમાઇન્ડર્સ" : "Automated WhatsApp Reminders & Statements",
-        gu ? "GSTR-1, 3B અને 2B તૈયાર ફાઈલો" : "GSTR-1, 3B & 2B Return Preparation",
-        gu ? "પ્રાથમિક ફોન અને રિમોટ સપોર્ટ" : "Priority Phone & Remote Support",
-      ],
-      ctaText: gu ? "સૌથી લોકપ્રિય — શરૂ કરો" : "Get Started Free",
-    },
-    {
-      id: "enterprise",
-      tier: "DISTRIBUTION_ENTERPRISE",
-      name: gu ? "એન્ટરપ્રાઇઝ પ્લાન (Enterprise)" : "Enterprise Plan",
-      subtitle: gu ? "મોટા ડિસ્ટ્રિબ્યુટર્સ અને ફેક્ટરીઓ માટે" : "For large distributors, factories & multi-branch enterprises",
-      monthlyPrice: 1999,
-      yearlyPrice: 1599,
-      annualTotal: 19188,
-      popular: false,
-      badge: null,
-      features: [
-        gu ? "અનલિમિટેડ કંપનીઓ અને ગોડાઉન" : "Unlimited Companies, Warehouses & Branches",
-        gu ? "અનલિમિટેડ સ્ટાફ લોગિન & રોલ પરમિશન" : "Unlimited Staff Logins with Role Permissions",
-        gu ? "સરકારી e-Invoice સીધો API ઇન્ટિગ્રેશન" : "Direct Government E-Invoicing API Integration",
-        gu ? "મલ્ટી-બ્રાન્ચ રિયલ-ટાઇમ ક્લાઉડ સિન્ક" : "Real-time Multi-Branch Cloud Data Sync",
-        gu ? "ડેડિકેટેડ એકાઉન્ટિંગ મેનેજર સપોર્ટ" : "Dedicated Relationship Support Manager",
-        gu ? "કસ્ટમ પ્રિન્ટ થીમ્સ અને બિલ ફોર્મેટ્સ" : "Custom Branded Print Templates & Ledgers",
-        gu ? "૨૪/૭ પ્રાથમિક હેલ્પલાઇન સપોર્ટ" : "24/7 Priority Dedicated Helpline",
-      ],
-      ctaText: gu ? "એન્ટરપ્રાઇઝ ડેમો બુક કરો" : "Book Enterprise Demo",
-    },
-    {
-      id: "manufacturing",
-      tier: "MANUFACTURING_SUITE",
-      name: gu ? "મેન્યુફેક્ચરિંગ સ્યુટ (Manufacturing)" : "Manufacturing Suite",
-      subtitle: gu ? "ફેક્ટરીઓ, ઉત્પાદકો અને પ્રોડક્શન યુનિટ્સ માટે" : "For manufacturing factories, BoM batches & production units",
-      monthlyPrice: 2499,
-      yearlyPrice: 1999,
-      annualTotal: 23988,
-      popular: false,
-      badge: gu ? "ઇન્ડસ્ટ્રિયલ સ્પેશિયલ" : "Industrial Suite",
-      features: [
-        gu ? "સંપૂર્ણ મેન્યુફેક્ચરિંગ BoM અને બેચ ઉત્પાદન" : "Complete Manufacturing BoM & Batch Production",
-        gu ? "કાચા માલ વપરાશ અને સ્ક્રેપ ટ્રેકિંગ" : "Raw Material Consumption & Scrap Tracking",
-        gu ? "અનલિમિટેડ કંપનીઓ અને મલ્ટી-ગોડાઉન સિન્ક" : "Unlimited Companies & Multi-Godown Logistics",
-        gu ? "જોબ વર્ક ઓર્ડર્સ અને ચલાન સિસ્ટમ" : "Job Work Orders & Production Challan System",
-        gu ? "૨૪/૭ પ્રાયોરિટી સમર્પિત મેનેજર" : "24/7 Dedicated Relationship Manager Support",
-      ],
-      ctaText: gu ? "મેન્યુફેક્ચરિંગ શરૂ કરો" : "Get Manufacturing",
-    },
-  ];
-
-  // Map dynamic plans or fallback
+  // Map dynamic plans strictly from live backend API
   const plans = useMemo(() => {
-    if (dynamicPlans.length > 0) {
-      return dynamicPlans.map((p) => {
-        const features =
-          gu && Array.isArray(p.featuresGujarati) && p.featuresGujarati.length > 0
-            ? p.featuresGujarati
-            : Array.isArray(p.features)
-            ? p.features
-            : [];
+    return dynamicPlans.map((p) => {
+      const features =
+        gu && Array.isArray(p.featuresGujarati) && p.featuresGujarati.length > 0
+          ? p.featuresGujarati
+          : Array.isArray(p.features)
+          ? p.features
+          : [];
 
-        const isPop = Boolean(p.isPopular ?? p.popular);
+      const isPop = Boolean(p.isPopular ?? p.popular);
 
-        return {
-          id: p.id || p.tier?.toLowerCase(),
-          tier: p.tier,
-          name: gu ? p.nameGujarati || p.name : p.name,
-          subtitle: gu ? p.subtitleGujarati || p.subtitle : p.subtitle,
-          monthlyPrice: Number(p.monthlyPrice) || 0,
-          yearlyPrice: Number(p.yearlyPrice) || 0,
-          annualTotal: Number(p.annualTotal) || (Number(p.yearlyPrice) || 0) * 12,
-          popular: isPop,
-          badge: p.badge || (isPop ? (gu ? "સૌથી લોકપ્રિય" : "Most Popular") : null),
-          features,
-          ctaText:
-            p.ctaText ||
-            (isPop
-              ? gu
-                ? "સૌથી લોકપ્રિય — શરૂ કરો"
-                : "Get Started Free"
-              : gu
-              ? "પ્લાન શરૂ કરો"
-              : "Start Free Trial"),
-        };
-      });
-    }
-    return defaultPlans;
+      return {
+        id: p.id || p.tier?.toLowerCase(),
+        tier: p.tier,
+        name: gu ? p.nameGujarati || p.name : p.name,
+        subtitle: gu ? p.subtitleGujarati || p.subtitle : p.subtitle,
+        monthlyPrice: Number(p.monthlyPrice) || 0,
+        yearlyPrice: Number(p.yearlyPrice) || 0,
+        annualTotal: Number(p.annualTotal) || (Number(p.yearlyPrice) || 0) * 12,
+        popular: isPop,
+        badge: p.badge || (isPop ? (gu ? "સૌથી લોકપ્રિય" : "Most Popular") : null),
+        features,
+        ctaText:
+          p.ctaText ||
+          (isPop
+            ? gu
+              ? "સૌથી લોકપ્રિય — શરૂ કરો"
+              : "Get Started Free"
+            : gu
+            ? "પ્લાન શરૂ કરો"
+            : "Start Free Trial"),
+      };
+    });
   }, [dynamicPlans, gu]);
 
   const handlePlanClick = (plan: (typeof plans)[0]) => {

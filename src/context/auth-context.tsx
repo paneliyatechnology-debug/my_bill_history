@@ -10,6 +10,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+import Link from "next/link";
 import { apiClient } from "../lib/api-client";
 
 export interface UserProfile {
@@ -360,12 +361,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             companyId = "";
           }
           const previous = readWorkspaceCache();
+          const sameCompany = Boolean(companyId && previous?.companyId === companyId);
           writeWorkspaceCache({
             companyId: companyId || previous?.companyId || "",
             organizationId: organizationId || previous?.organizationId,
             companies: nextCompanies,
-            branches: nextBranches || previous?.branches || [],
-            financialYears: nextYears || previous?.financialYears || [],
+            branches: nextBranches || (sameCompany ? previous?.branches : undefined) || [],
+            financialYears: nextYears || (sameCompany ? previous?.financialYears : undefined) || [],
             entitlements: nextEntitlements || previous?.entitlements || null,
             cachedAt: Date.now(),
           });
@@ -677,16 +679,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.location.replace(`/login?reason=${encodeURIComponent(condition)}`);
     };
 
-    const connect = () => {
+    const connect = async () => {
       if (stopped) return;
       try {
         if (es) es.close();
       } catch {
         // ignore
       }
+
+      let ticket = "";
+      try {
+        const ticketRes = await apiClient.post<{ ticket: string }>(
+          "/auth/sse-ticket",
+          {},
+          undefined,
+          undefined,
+          { skipAuthRedirect: true },
+        );
+        ticket = ticketRes?.ticket || "";
+      } catch {
+        if (stopped) return;
+        if (retry < 10) {
+          const delay = Math.min(30000, 1500 * 2 ** retry);
+          retry += 1;
+          retryTimer = window.setTimeout(connect, delay);
+        }
+        return;
+      }
+
+      if (stopped || !ticket) return;
       const baseUrl = apiClient.getBaseUrl();
       const orgId = tenantContext.organizationId || "";
-      const streamUrl = `${baseUrl}/auth/session-stream?token=${encodeURIComponent(token)}&organizationId=${encodeURIComponent(orgId)}`;
+      const streamUrl = `${baseUrl}/auth/session-stream?ticket=${encodeURIComponent(ticket)}&organizationId=${encodeURIComponent(orgId)}`;
       es = new EventSource(streamUrl);
 
       es.onopen = () => {
@@ -760,8 +784,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch {
           // ignore
         }
-        if (stopped) return;
-        const delay = Math.min(15000, 1000 * 2 ** retry);
+        if (stopped || retry >= 10) return;
+        const delay = Math.min(30000, 1500 * 2 ** retry);
         retry += 1;
         retryTimer = window.setTimeout(connect, delay);
       };
@@ -794,10 +818,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(normalizedUser);
     const ctx = data.defaultContext || {};
     setTenantContext(ctx);
+    setCompanies([]);
+    setBranches([]);
+    setFinancialYears([]);
+    setEntitlements(null);
+    setSubscriptionNotice(null);
     setWorkspaceError(null);
+    clearSessionWorkspace();
 
     if (typeof window !== "undefined") {
       try {
+        sessionStorage.removeItem(ME_VALIDATED_AT_KEY);
         localStorage.setItem("billing_auth_token", data.accessToken);
         if (data.refreshToken) {
           localStorage.setItem("billing_refresh_token", data.refreshToken);
@@ -877,6 +908,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       financialYearId: ctxData?.financialYearId || undefined,
     };
 
+    setBranches([]);
+    setFinancialYears([]);
+    clearSessionWorkspace();
     setTenantContext(updated);
     if (typeof window !== "undefined") {
       try {
@@ -912,6 +946,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...tenantContext,
       branchId,
     };
+    setBranches([]);
+    setFinancialYears([]);
+    clearSessionWorkspace();
     setTenantContext(updated);
     if (typeof window !== "undefined") {
       try {
@@ -927,6 +964,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...tenantContext,
       financialYearId,
     };
+    setBranches([]);
+    setFinancialYears([]);
+    clearSessionWorkspace();
     setTenantContext(updated);
     if (typeof window !== "undefined") {
       try {
@@ -985,16 +1025,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return ["accounting", "vouchers"];
     }
     if (m === "items" || m === "inventory") {
-      return ["items", "inventory"];
+      return ["items", "inventory", "items_catalog"];
+    }
+    if (m === "purchases" || m === "purchase_invoices" || m === "purchase_bills") {
+      return ["purchases", "purchase_invoices", "purchase_bills"];
     }
     if (m === "quotations" || m === "quotation" || m === "estimates") {
       return ["quotations", "quotation", "estimates"];
     }
     if (m === "parties" || m === "party") {
-      return ["parties", "party"];
+      return ["parties", "party", "parties_customers", "parties_suppliers"];
     }
     if (m === "settings" || m === "user_management" || m === "users") {
-      return ["settings", "user_management", "users"];
+      return ["settings", "user_management", "users", "settings_company", "settings_users", "settings_roles"];
     }
     return [m];
   };
@@ -1009,13 +1052,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return true;
       }
 
-      // 2. If no granular entitlements are defined yet (e.g. initial load), allow access
+      const rawKey = (moduleKey || "").trim();
+      const normalized = rawKey.toLowerCase();
+      if (!normalized) return false;
+
+      // Core always-available workspace modules (not plan-gated)
+      const CORE_UNRESTRICTED = new Set([
+        "dashboard",
+        "dashboard_overview",
+        "parties",
+        "party",
+        "parties_customers",
+        "parties_suppliers",
+        "expenses",
+        "reports",
+        "settings",
+        "activity_logs",
+        "notifications",
+      ]);
+
+      // 2. If granular entitlements are not loaded yet, allow core modules only (fail-closed for gated modules)
       if (
         !entitlements ||
         !entitlements.granularEntitlements ||
         Object.keys(entitlements.granularEntitlements).length === 0
       ) {
-        return true;
+        return CORE_UNRESTRICTED.has(normalized);
       }
 
       const g = entitlements.granularEntitlements;
@@ -1048,6 +1110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Purchases sub-modules
         purchases: "purchaseInvoices",
         purchase_invoices: "purchaseInvoices",
+        purchase_bills: "purchaseInvoices",
         payment_out: "paymentOut",
         purchase_returns: "purchaseReturns",
         purchase_return: "purchaseReturns",
@@ -1058,6 +1121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Items & Warehouse
         inventory: "itemsInventory",
         items: "itemsInventory",
+        items_catalog: "itemsInventory",
         warehouses: "stockTransfers",
         godown: "stockTransfers",
         godowns: "stockTransfers",
@@ -1091,14 +1155,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         production: "productionOrders",
       };
 
-      const normalized = (moduleKey || "").toLowerCase().trim();
+      // Direct exact camelCase key match first (e.g. "purchaseOrders", "cashBank", "doubleEntryLedgers")
+      if (rawKey in g) {
+        return Boolean(g[rawKey]);
+      }
+
       const entitlementKey = keyMap[normalized] || normalized;
 
       if (entitlementKey in g) {
         return Boolean(g[entitlementKey]);
       }
 
-      return true;
+      // Case-insensitive match against granularEntitlements keys (handles e.g. "purchaseorders" -> "purchaseOrders")
+      const matchedKey = Object.keys(g).find(
+        (k) => k.toLowerCase() === entitlementKey.toLowerCase(),
+      );
+      if (matchedKey) {
+        return Boolean(g[matchedKey]);
+      }
+
+      if (CORE_UNRESTRICTED.has(normalized)) {
+        return true;
+      }
+
+      return false;
     },
     [entitlements, user],
   );
@@ -1117,7 +1197,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         r === "SUPER_ADMIN" ||
         r === "ORG_ADMIN" ||
         r === "COMPANY_ADMIN" ||
-        r === "PARTNER" ||
         r === "ADMIN"
       ) {
         return true;
@@ -1157,7 +1236,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         r === "SUPER_ADMIN" ||
         r === "ORG_ADMIN" ||
         r === "COMPANY_ADMIN" ||
-        r === "PARTNER" ||
         r === "ADMIN"
       ) {
         return true;
@@ -1303,12 +1381,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               )}
             </div>
             <div className="mt-5 flex gap-2">
-              <a
+              <Link
                 href="/settings/pricing"
                 className="flex-1 h-10 rounded-xl bg-[#C24E1D] text-white text-[13px] font-medium inline-flex items-center justify-center"
               >
                 View plans
-              </a>
+              </Link>
               <button
                 type="button"
                 onClick={dismissSubscriptionNotice}

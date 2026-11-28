@@ -239,39 +239,54 @@ export default function CreatePurchaseOrderPage() {
       .catch(() => { });
   }, []);
 
-  // Load for edit if editId provided
+  // Load for edit if editId provided (from backend API)
   useEffect(() => {
-    if (!editId) return;
-    try {
-      const poKey = currentCompany?.id
-        ? `billing_purchase_orders_${currentCompany.id}`
-        : "billing_purchase_orders";
-      const stored = localStorage.getItem(poKey) || localStorage.getItem("billing_purchase_orders");
-      if (stored) {
-        const list = JSON.parse(stored);
-        const match = list.find(
-          (o: any) =>
-            (o.id === editId || o.orderNumber === editId) &&
-            (!o.companyId || !currentCompany?.id || o.companyId === currentCompany.id),
-        );
-        if (match) {
-          if (match.orderNumber) setOrderNumber(match.orderNumber);
-          if (match.placeOfSupply) setPlaceOfSupply(match.placeOfSupply);
-          if (match.orderDate) setOrderDate(match.orderDate);
-          if (match.validTill) setValidTill(match.validTill);
-          if (match.party) setSelectedParty(match.party);
-          if (match.items && Array.isArray(match.items)) setItems(match.items);
-          if (match.notes) {
-            setNotes(match.notes);
-            setShowNotesInput(true);
-          }
-          if (match.terms) setTerms(match.terms);
-          if (match.signatureUrl) setSignatureUrl(match.signatureUrl);
-          if (match.advancePaid) setAdvancePaid(match.advancePaid);
+    if (!editId || !currentCompany?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const match: any = await apiClient.get(`/purchases/orders/${editId}`);
+        if (cancelled || !match) return;
+        if (match.orderNumber) setOrderNumber(match.orderNumber);
+        if (match.placeOfSupply) setPlaceOfSupply(match.placeOfSupply);
+        if (match.orderDate) setOrderDate(String(match.orderDate).split("T")[0]);
+        if (match.validTill) setValidTill(String(match.validTill).split("T")[0]);
+        if (match.party) setSelectedParty(match.party);
+        if (match.items && Array.isArray(match.items)) {
+          setItems(
+            match.items.map((it: any) => ({
+              id: it.id || `line-${Date.now()}-${Math.random()}`,
+              itemId: it.itemId || undefined,
+              name: it.name || "",
+              hsn: it.hsn || it.hsnCode || "",
+              quantity: Number(it.quantity) || 1,
+              unit: it.unit || "PCS",
+              unitPrice: Number(it.unitPrice ?? it.rate ?? 0),
+              discount: Number(it.discount ?? it.discountPercent ?? 0),
+              discountType: it.discountType || "%",
+              taxRate: Number(it.taxRate ?? 0),
+              taxableAmount: Number(it.taxableAmount ?? 0),
+              taxAmount: Number(it.taxAmount ?? 0),
+              totalAmount: Number(it.totalAmount ?? 0),
+            })),
+          );
         }
+        if (match.notes) {
+          setNotes(match.notes);
+          setShowNotesInput(true);
+        }
+        if (match.termsAndConditions || match.terms) {
+          setTerms(match.termsAndConditions || match.terms);
+        }
+        if (match.overallDiscount) setOverallDiscount(Number(match.overallDiscount) || "");
+      } catch {
+        // Ignore if not found
       }
-    } catch { }
-  }, [editId]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editId, currentCompany?.id]);
 
   // Click outside to dismiss autocomplete dropdowns
   useEffect(() => {
@@ -474,8 +489,9 @@ export default function CreatePurchaseOrderPage() {
     };
   }, [items, additionalCharges, freightAmount, overallDiscount, autoRoundOff, manualRoundOff, advancePaid, selectedParty, currentCompany, placeOfSupply]);
 
-  // Save Order
-  const handleSaveOrder = (andNew = false) => {
+  // Save Order to Backend API
+  const handleSaveOrder = async (andNew = false) => {
+    if (isSaving) return;
     if (!selectedParty) {
       showToast(lang === "gu" ? "કૃપા કરીને સપ્લાયર / વેપારી પસંદ કરો" : "Please select a supplier / vendor");
       return;
@@ -489,52 +505,50 @@ export default function CreatePurchaseOrderPage() {
 
     setIsSaving(true);
 
-    const newOrder = {
-      id: editId || `po-${Date.now()}`,
-      orderNumber,
+    const payload = {
+      orderNumber: orderNumber.trim() || undefined,
       orderDate,
-      validTill,
+      validTill: validTill || undefined,
+      partyId: selectedParty.id,
       placeOfSupply,
-      party: selectedParty,
-      shippingAddress: customShippingAddress || (selectedParty as any).shippingAddress || selectedParty.billingAddress,
-      items: validItems,
+      taxableAmount: calculations.totalTaxable,
+      cgstAmount: calculations.cgst,
+      sgstAmount: calculations.sgst,
+      igstAmount: calculations.igst,
+      freightAmount: Number(freightAmount) || 0,
+      overallDiscount: Number(overallDiscount) || 0,
       additionalCharges: [
         ...additionalCharges,
         ...(Number(freightAmount) > 0 ? [{ name: "Freight", amount: Number(freightAmount) }] : []),
       ],
-      overallDiscount: Number(overallDiscount) || 0,
-      autoRoundOff,
-      manualRoundOff,
-      roundOffDelta: calculations.roundOffDelta,
-      taxableAmount: calculations.totalTaxable,
-      taxAmount: calculations.totalTax,
-      cgstAmount: calculations.cgst,
-      sgstAmount: calculations.sgst,
-      igstAmount: calculations.igst,
       grandTotal: calculations.finalGrandTotal,
-      advancePaid: Number(advancePaid) || 0,
-      balanceAmount: calculations.balance,
-      notes,
-      terms,
-      signatureUrl,
-      status: "OPEN",
-      createdAt: new Date().toISOString(),
-      companyId: currentCompany?.id,
+      notes: notes.trim() || undefined,
+      termsAndConditions: terms.trim() || undefined,
+      items: validItems.map((it) => ({
+        itemId: it.itemId || undefined,
+        name: it.name,
+        hsnCode: it.hsn || undefined,
+        unit: it.unit || undefined,
+        quantity: Number(it.quantity) || 1,
+        rate: Number(it.unitPrice) || 0,
+        discountPercent: it.discountType === "%" ? Number(it.discount) || 0 : 0,
+        taxRate: Number(it.taxRate) || 0,
+        taxableAmount: Number(it.taxableAmount) || 0,
+        totalAmount: Number(it.totalAmount) || 0,
+      })),
     };
 
     try {
-      const poKey = currentCompany?.id
-        ? `billing_purchase_orders_${currentCompany.id}`
-        : "billing_purchase_orders";
-      const stored = localStorage.getItem(poKey);
-      const list = stored ? JSON.parse(stored) : [];
-      let updatedList = [];
       if (editId) {
-        updatedList = list.map((item: any) => (item.id === editId ? newOrder : item));
+        await apiClient.put(`/purchases/orders/${editId}`, payload);
       } else {
-        updatedList = [newOrder, ...list];
+        await apiClient.post(
+          "/purchases/orders",
+          payload,
+          undefined,
+          `po-create-${selectedParty.id}-${orderNumber.trim() || Date.now()}`,
+        );
       }
-      localStorage.setItem(poKey, JSON.stringify(updatedList));
 
       setShowConfetti(true);
       showToast(lang === "gu" ? "ખરીદી ઓર્ડર સફળતાપૂર્વક સાચવવામાં આવ્યો!" : "Purchase Order saved successfully!");
@@ -544,7 +558,7 @@ export default function CreatePurchaseOrderPage() {
           setIsSaving(false);
           setShowConfetti(false);
           setSelectedParty(null);
-          setOrderNumber(String(updatedList.length + 1));
+          setOrderNumber(`PO-${Date.now().toString().slice(-6)}`);
           setItems([
             {
               id: `line-${Date.now()}`,

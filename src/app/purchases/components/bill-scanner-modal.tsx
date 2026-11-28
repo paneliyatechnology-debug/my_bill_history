@@ -755,7 +755,7 @@ export function BillScannerModal({
           itemType: isService ? "SERVICE" : "PRODUCT",
           hsnCode: item.hsnCode || (isService ? "9983" : "0000"),
           unitSymbol: item.unit || (isService ? "NOS" : "PCS"),
-          taxRate: Number(item.taxRate) || 18,
+          taxRate: item.taxRate !== undefined && item.taxRate !== null && String(item.taxRate).trim() !== "" ? Number(item.taxRate) : 18,
           purchasePrice: Number(item.unitPrice) || 0,
           retailPrice: Number(item.unitPrice) || 0,
         };
@@ -1128,7 +1128,7 @@ export function BillScannerModal({
     const discount = Number(current.discountAmount) || 0;
     const taxRate = Number(current.taxRate) || 0;
 
-    let taxable = Math.max(0, qty * rate - discount);
+    const taxable = Math.max(0, qty * rate - discount);
     const taxAmount = (taxable * taxRate) / 100;
     const total = taxable + taxAmount;
 
@@ -1175,6 +1175,24 @@ export function BillScannerModal({
   const handleRemoveLine = (index: number) => {
     if (lineItems.length > 1) {
       setLineItems(lineItems.filter((_, i) => i !== index));
+      setIsNewProductFlags((prev) => {
+        const next: Record<number, boolean> = {};
+        Object.entries(prev).forEach(([k, v]) => {
+          const i = Number(k);
+          if (i < index) next[i] = v;
+          else if (i > index) next[i - 1] = v;
+        });
+        return next;
+      });
+      setNewProductDetails((prev) => {
+        const next: Record<number, any> = {};
+        Object.entries(prev).forEach(([k, v]) => {
+          const i = Number(k);
+          if (i < index) next[i] = v;
+          else if (i > index) next[i - 1] = v;
+        });
+        return next;
+      });
     }
   };
 
@@ -1403,18 +1421,19 @@ export function BillScannerModal({
           itemType: resolvedType,
           newProductDetails: isNew
             ? {
-                name: newDetails?.name?.trim() || descName,
+                name: descName || newDetails?.name?.trim(),
                 itemType: resolvedType,
-                hsnCode: newDetails?.hsnCode?.trim() || line.hsnCode || (resolvedType === "SERVICE" ? "9983" : "0000"),
-                unitSymbol: newDetails?.unitSymbol?.trim() || line.unit || (resolvedType === "SERVICE" ? "NOS" : "PCS"),
-                taxRate: Number(newDetails?.taxRate ?? line.taxRate ?? 18),
-                purchasePrice: Number(newDetails?.purchasePrice ?? line.unitPrice ?? 0),
+                hsnCode: line.hsnCode?.trim() || newDetails?.hsnCode?.trim() || (resolvedType === "SERVICE" ? "9983" : "0000"),
+                unitSymbol: line.unit?.trim() || newDetails?.unitSymbol?.trim() || (resolvedType === "SERVICE" ? "NOS" : "PCS"),
+                taxRate: Number(line.taxRate ?? newDetails?.taxRate ?? 18),
+                purchasePrice: Number(line.unitPrice ?? newDetails?.purchasePrice ?? 0),
                 retailPrice: Number(newDetails?.retailPrice ?? line.unitPrice ?? 0),
               }
             : undefined,
           hsnCode: line.hsnCode || undefined,
           quantity: Math.max(0.0001, Number(line.quantity) || 1),
           unitPrice: Math.max(0, Number(line.unitPrice) || 0),
+          discountAmount: Math.max(0, Number(line.discountAmount) || 0),
           taxRate: Number(line.taxRate) || 0,
         };
       });
@@ -1422,26 +1441,32 @@ export function BillScannerModal({
       const isNewSupplier = !selectedPartyId || selectedPartyId === "__NEW_SUPPLIER__";
       const supplierName = scanRecord?.extractedData?.supplier?.name?.trim() || `Supplier ${vendorInvoiceNumber.trim()}`;
 
-      const res: any = await apiClient.post(`/purchases/scans/${scanRecord.id}/confirm`, {
-        partyId: isNewSupplier ? undefined : selectedPartyId,
-        createNewSupplier: isNewSupplier,
-        newSupplierDetails: isNewSupplier
-          ? {
-              name: supplierName,
-              gstin: scanRecord?.extractedData?.supplier?.gstin || null,
-              phone: scanRecord?.extractedData?.supplier?.phone || null,
-              email: scanRecord?.extractedData?.supplier?.email || null,
-              address: scanRecord?.extractedData?.supplier?.address || null,
-            }
-          : undefined,
-        currency,
-        exchangeRate: currency !== "INR" ? exchangeRate : 1,
-        vendorInvoiceNumber: vendorInvoiceNumber.trim(),
-        invoiceDate: invoiceDate || undefined,
-        placeOfSupply: placeOfSupply || "24",
-        warehouseId: selectedWarehouseId || undefined,
-        items: itemsPayload,
-      });
+      const res: any = await apiClient.post(
+        `/purchases/scans/${scanRecord.id}/confirm`,
+        {
+          partyId: isNewSupplier ? undefined : selectedPartyId,
+          createNewSupplier: isNewSupplier,
+          newSupplierDetails: isNewSupplier
+            ? {
+                name: supplierName,
+                gstin: scanRecord?.extractedData?.supplier?.gstin || null,
+                phone: scanRecord?.extractedData?.supplier?.phone || null,
+                email: scanRecord?.extractedData?.supplier?.email || null,
+                address: scanRecord?.extractedData?.supplier?.address || null,
+              }
+            : undefined,
+          currency,
+          exchangeRate: currency !== "INR" ? exchangeRate : 1,
+          vendorInvoiceNumber: vendorInvoiceNumber.trim(),
+          invoiceDate: invoiceDate || undefined,
+          dueDate: dueDate || undefined,
+          placeOfSupply: placeOfSupply || "24",
+          warehouseId: selectedWarehouseId || undefined,
+          items: itemsPayload,
+        },
+        undefined,
+        `scan-confirm-${scanRecord.id}-${vendorInvoiceNumber.trim()}`,
+      );
 
       onSuccess(res.invoice);
       onClose();

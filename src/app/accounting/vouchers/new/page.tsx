@@ -578,20 +578,25 @@ function NewVoucherForm() {
 
     setIsSubmitting(true);
     try {
-      await apiClient.post("/accounting/vouchers", {
-        voucherType,
-        voucherNumber: voucherNumber.trim(),
-        voucherDate,
-        narration: narration.trim() || undefined,
-        referenceNo: referenceNo.trim() || undefined,
-        lines: lines.map((l, i) => ({
-          accountId: l.accountId,
-          debitAmount: toCents(l.debitAmount) / 100,
-          creditAmount: toCents(l.creditAmount) / 100,
-          lineNarration: l.lineNarration.trim() || undefined,
-          sequenceOrder: i + 1,
-        })),
-      });
+      await apiClient.post(
+        "/accounting/vouchers",
+        {
+          voucherType,
+          voucherNumber: voucherNumber.trim(),
+          voucherDate,
+          narration: narration.trim() || undefined,
+          referenceNo: referenceNo.trim() || undefined,
+          lines: lines.map((l, i) => ({
+            accountId: l.accountId,
+            debitAmount: toCents(l.debitAmount) / 100,
+            creditAmount: toCents(l.creditAmount) / 100,
+            lineNarration: l.lineNarration.trim() || undefined,
+            sequenceOrder: i + 1,
+          })),
+        },
+        undefined,
+        `voucher-${voucherType}-${voucherNumber.trim()}-${voucherDate}-${Date.now()}`,
+      );
 
       router.push("/accounting/vouchers");
     } catch (err: any) {

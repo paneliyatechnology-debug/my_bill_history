@@ -9,7 +9,7 @@ import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 import { CustomSelect } from "../../../components/ui/custom-select";
 import { ShieldAlert } from "lucide-react";
-import { formatDate } from "@/lib/date-utils";
+import { formatDate, getTodayDate } from "@/lib/date-utils";
 
 interface JournalLine {
   id: string;
@@ -85,10 +85,15 @@ export default function VouchersPage() {
     setReversalError(null);
 
     try {
-      await apiClient.post(`/accounting/vouchers/${reversalTarget.id}/reverse`, {
-        reason: reversalReason,
-        reversalDate: new Date().toISOString().split("T")[0],
-      });
+      await apiClient.post(
+        `/accounting/vouchers/${reversalTarget.id}/reverse`,
+        {
+          reason: reversalReason,
+          reversalDate: getTodayDate(),
+        },
+        undefined,
+        `voucher-reverse-${reversalTarget.id}`,
+      );
 
       setReversalTarget(null);
       setReversalReason("");

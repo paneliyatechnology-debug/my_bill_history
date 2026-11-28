@@ -457,20 +457,28 @@ export default function CreateProformaInvoicePage() {
 
   // Submit Handler
   const handleSubmit = async (isSaveAndNew = false) => {
+    if (isSubmitting) return;
     if (rows.length === 0 || !rows.some((r) => Number(r.quantity) > 0)) {
       setError("Please add at least one item with valid quantity.");
       return;
     }
 
+    const parsedInvDate = invoiceDate ? new Date(invoiceDate) : new Date();
+    const isoInvDate = isNaN(parsedInvDate.getTime()) ? new Date().toISOString() : parsedInvDate.toISOString();
+
     setIsSubmitting(true);
     setError(null);
 
     try {
-      await apiClient.post("/sales/invoices?isDraft=true", {
-        category: "PROFORMA_INVOICE",
-        invoiceNumber: invoiceNumber.trim() || undefined,
-        invoiceDate: new Date(invoiceDate).toISOString(),
-        dueDate: dueDate ? new Date(dueDate.includes("T") ? dueDate : `${dueDate}T00:00:00.000Z`).toISOString() : undefined,
+      await apiClient.post(
+        "/sales/invoices?isDraft=true",
+        {
+          category: "PROFORMA_INVOICE",
+          invoiceNumber: invoiceNumber.trim() || undefined,
+          invoiceDate: isoInvDate,
+          dueDate: dueDate && !isNaN(new Date(dueDate.includes("T") ? dueDate : `${dueDate}T00:00:00.000Z`).getTime())
+            ? new Date(dueDate.includes("T") ? dueDate : `${dueDate}T00:00:00.000Z`).toISOString()
+            : undefined,
         partyId: partyId || undefined,
         placeOfSupply: placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState) || "24",
         warehouseId: selectedWarehouseId || warehouses[0]?.id,
@@ -488,6 +496,8 @@ export default function CreateProformaInvoicePage() {
           ...(ewayBillNo ? { ewayBillNo } : {}),
           ...(dispatchDate ? { dispatchDate } : {}),
         },
+        discountType: "AFTER_TAX",
+        discountAmount: overallDisc > 0 ? overallDisc : undefined,
         overallDiscount: overallDisc,
         receivedAmount: amountReceived,
         items: rows.map((r) => ({
@@ -499,7 +509,10 @@ export default function CreateProformaInvoicePage() {
           discountPercent: Number(r.discountPercent) || 0,
           taxRate: r.taxRate,
         })),
-      });
+      },
+      undefined,
+      `proforma-create-${partyId || "draft"}-${invoiceNumber.trim() || Date.now()}`,
+      );
 
       if (isSaveAndNew) {
         setInvoiceNumber((prev) => String(Number(prev || 0) + 1));

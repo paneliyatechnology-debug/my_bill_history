@@ -1040,7 +1040,10 @@ export function ImportWizardModal({
                 <button
                   type="button"
                   onClick={handleExecuteImport}
-                  disabled={previewResult.validRows === 0 && previewResult.summary.updateRecords === 0}
+                  disabled={
+                    (previewResult.validRows === 0 && previewResult.summary.updateRecords === 0) ||
+                    (errorPolicy === ImportErrorPolicy.ABORT_ON_ERROR && previewResult.invalidRows > 0)
+                  }
                   className="h-10 px-7 bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md transition-all cursor-pointer flex items-center gap-2 active:scale-95"
                 >
                   <Check className="w-4 h-4" />
@@ -1086,13 +1089,29 @@ export function ImportWizardModal({
           {/* ══════════════════════════════════════════════════════════ */}
           {step === "REPORT" && executionResult && (
             <div className="space-y-6 text-center py-4">
-              <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl font-bold shadow-2xs">
-                <Check className="w-7 h-7 text-emerald-600" />
+              <div
+                className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto text-2xl font-bold shadow-2xs ${
+                  executionResult.status === "FAILED"
+                    ? "bg-rose-100 text-rose-600"
+                    : "bg-emerald-100 text-emerald-600"
+                }`}
+              >
+                {executionResult.status === "FAILED" ? (
+                  <AlertCircle className="w-7 h-7 text-rose-600" />
+                ) : (
+                  <Check className="w-7 h-7 text-emerald-600" />
+                )}
               </div>
 
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-1">
-                  {isGu ? "ડેટા આયાત સફળતાપૂર્વક પૂર્ણ થઈ!" : "Data Import Completed Successfully!"}
+                  {executionResult.status === "FAILED"
+                    ? isGu
+                      ? "ડેટા આયાત નિષ્ફળ ગઈ!"
+                      : "Data Import Failed"
+                    : isGu
+                    ? "ડેટા આયાત સફળતાપૂર્વક પૂર્ણ થઈ!"
+                    : "Data Import Completed Successfully!"}
                 </h3>
                 <p className="text-xs text-slate-500">
                   Job ID: <span className="tabular-nums font-bold text-slate-700">{executionResult.id.slice(0, 12)}</span>

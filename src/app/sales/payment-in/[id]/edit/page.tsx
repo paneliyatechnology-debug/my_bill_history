@@ -646,7 +646,8 @@ export default function EditPaymentInPage() {
                       </td>
                     </tr>
                   ) : (
-                    displayedInvoices.map((inv, idx) => {
+                    displayedInvoices.map((inv) => {
+                      const realIdx = invoices.findIndex((x) => x.id === inv.id);
                       return (
                         <tr
                           key={inv.id}
@@ -656,7 +657,7 @@ export default function EditPaymentInPage() {
                             <input
                               type="checkbox"
                               checked={inv.isSelected}
-                              onChange={() => toggleInvoiceSelect(idx)}
+                              onChange={() => realIdx !== -1 && toggleInvoiceSelect(realIdx)}
                               className="rounded border-slate-300 text-teal-600 focus:ring-[#1677E8]"
                             />
                           </td>
@@ -679,8 +680,9 @@ export default function EditPaymentInPage() {
                             <input
                               type="number"
                               step="any"
+                              min="0"
                               value={inv.discount}
-                              onChange={(e) => handleInvoiceDiscountChange(idx, e.target.value)}
+                              onChange={(e) => realIdx !== -1 && handleInvoiceDiscountChange(realIdx, e.target.value)}
                               placeholder="Apply Discount"
                               className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                             />
@@ -689,8 +691,9 @@ export default function EditPaymentInPage() {
                             <input
                               type="number"
                               step="any"
+                              min="0"
                               value={inv.settle}
-                              onChange={(e) => handleInvoiceSettleChange(idx, e.target.value)}
+                              onChange={(e) => realIdx !== -1 && handleInvoiceSettleChange(realIdx, e.target.value)}
                               placeholder="0.00"
                               className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                             />

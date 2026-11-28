@@ -391,17 +391,21 @@ function CreateExpenseForm() {
     );
   }, [ledgers]);
 
-  // Auto-switch payment account when paymentMode changes
+  // Auto-switch payment account when paymentMode changes (preserve existing valid selection on edit)
   useEffect(() => {
     if (paymentMode === "Cash" && cashAccounts.length > 0) {
-      setPaidFromAccountId(cashAccounts[0].id);
+      if (!cashAccounts.some((a) => a.id === paidFromAccountId)) {
+        setPaidFromAccountId(cashAccounts[0].id);
+      }
     } else if (
       (paymentMode === "Bank Transfer" || paymentMode === "UPI" || paymentMode === "Cheque") &&
       bankAccounts.length > 0
     ) {
-      setPaidFromAccountId(bankAccounts[0].id);
+      if (!bankAccounts.some((a) => a.id === paidFromAccountId)) {
+        setPaidFromAccountId(bankAccounts[0].id);
+      }
     }
-  }, [paymentMode, cashAccounts, bankAccounts]);
+  }, [paymentMode, cashAccounts, bankAccounts, paidFromAccountId]);
 
   // Calculate item amounts
   const calculateItem = (item: ExpenseItem, withGst: boolean): ExpenseItem => {
@@ -671,37 +675,7 @@ function CreateExpenseForm() {
         : undefined;
 
       if (editingVoucherId) {
-        try {
-          await apiClient.put(`/vouchers/expense/${editingVoucherId}`, {
-            expenseAccountId: finalExpenseAccountId,
-            paidFromAccountId: paidFromAccountId || undefined,
-            amount: totals.finalAmount,
-            voucherDate: voucherDate,
-            voucherNumber: finalVoucherNumber,
-            referenceNo: originalInvoiceNumber || undefined,
-            narration: fullNarration,
-          });
-        } catch {
-          // Fallback if PUT fails: reverse previous voucher and post new
-          await apiClient
-            .post(`/vouchers/${editingVoucherId}/reverse`, {
-              reason: "Updated expense voucher by user",
-              reversalDate: voucherDate,
-            })
-            .catch(() => {});
-          await apiClient.post("/vouchers/expense", {
-            expenseAccountId: finalExpenseAccountId,
-            paidFromAccountId: paidFromAccountId || undefined,
-            amount: totals.finalAmount,
-            voucherDate: voucherDate,
-            voucherNumber: finalVoucherNumber,
-            referenceNo: originalInvoiceNumber || undefined,
-            narration: fullNarration,
-          });
-        }
-      } else {
-        // 3. Post to /vouchers/expense
-        await apiClient.post("/vouchers/expense", {
+        await apiClient.put(`/vouchers/expense/${editingVoucherId}`, {
           expenseAccountId: finalExpenseAccountId,
           paidFromAccountId: paidFromAccountId || undefined,
           amount: totals.finalAmount,
@@ -710,6 +684,22 @@ function CreateExpenseForm() {
           referenceNo: originalInvoiceNumber || undefined,
           narration: fullNarration,
         });
+      } else {
+        // 3. Post to /vouchers/expense
+        await apiClient.post(
+          "/vouchers/expense",
+          {
+            expenseAccountId: finalExpenseAccountId,
+            paidFromAccountId: paidFromAccountId || undefined,
+            amount: totals.finalAmount,
+            voucherDate: voucherDate,
+            voucherNumber: finalVoucherNumber,
+            referenceNo: originalInvoiceNumber || undefined,
+            narration: fullNarration,
+          },
+          undefined,
+          `expense-${finalExpenseAccountId}-${voucherDate}-${totals.finalAmount}-${Date.now()}`,
+        );
       }
 
       // Navigate back to expenses listing

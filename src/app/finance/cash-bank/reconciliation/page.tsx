@@ -23,13 +23,13 @@ export default function BankReconciliationPage() {
       const res: any = await apiClient.get("/bank-accounts");
       const list = extractList<any>(res).filter((a) => a.isBankLedger);
       setBankAccounts(list);
-      if (list.length > 0 && !selectedBankId) {
-        setSelectedBankId(list[0].id);
+      if (list.length > 0) {
+        setSelectedBankId((prev) => prev || list[0].id);
       }
     } catch (err: any) {
       setError(err.message || "Failed to load bank accounts.");
     }
-  }, [selectedBankId]);
+  }, []);
 
   const loadReconciliation = useCallback(async () => {
     if (!selectedBankId) {
@@ -60,10 +60,12 @@ export default function BankReconciliationPage() {
 
   const handleToggleClear = async (entry: any, cleared: boolean, clearanceDate?: string) => {
     try {
+      const todayLocal = new Date();
+      const localDateStr = `${todayLocal.getFullYear()}-${String(todayLocal.getMonth() + 1).padStart(2, "0")}-${String(todayLocal.getDate()).padStart(2, "0")}`;
       await apiClient.post(`/bank-accounts/${selectedBankId}/reconciliation`, {
         entryId: entry.id,
         cleared,
-        clearanceDate: clearanceDate || new Date().toISOString().split("T")[0],
+        clearanceDate: cleared ? (clearanceDate || localDateStr) : null,
       });
       setToast(cleared ? `Marked ${entry.voucherNumber} as reconciled.` : `Unmarked ${entry.voucherNumber}.`);
       loadReconciliation();

@@ -56,6 +56,11 @@ export default function StockMovementsPage() {
         "PURCHASE_RECEIPT",
         "SALES_RETURN",
         "SALES_CANCELLATION",
+        "TRANSFER_IN",
+        "PRODUCTION_RECEIPT",
+        "STOCK_JOURNAL_IN",
+        "PURCHASE_CANCELLATION",
+        "ADJUSTMENT_IN",
       ].includes(type)
     ) {
       return "success";
@@ -164,7 +169,7 @@ export default function StockMovementsPage() {
             ? "વસ્તુ, વ્યવહાર પ્રકાર કે ગોડાઉનથી શોધો..."
             : "Search movements by item, type or warehouse..."
         }
-        searchKeys={["transactionType"]}
+        searchKeys={["transactionType", "item.name", "warehouse.name"]}
         defaultPageSize={10}
         isLoading={isLoading}
         onRowClick={(m) => {

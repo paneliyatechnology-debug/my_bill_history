@@ -361,12 +361,32 @@ export default function EditPaymentOutPage() {
   // Submit Handler
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (isSubmitting) return;
     setErrorMessage(null);
 
     const paidNum = parseFloat(amountPaid) || 0;
     const discNum = parseFloat(paymentOutDiscount) || 0;
-    if (paidNum <= 0 && discNum <= 0) {
-      setErrorMessage("Please enter an amount paid or discount greater than 0.");
+    if (paidNum < 0 || discNum < 0 || (paidNum === 0 && discNum === 0)) {
+      setErrorMessage("Please enter a valid non-negative amount paid or discount greater than 0.");
+      return;
+    }
+
+    let totalBillSettled = 0;
+    for (const b of bills) {
+      const s = parseFloat(b.settle) || 0;
+      const d = parseFloat(b.discount) || 0;
+      if (s < 0 || d < 0) {
+        setErrorMessage("Bill settlement and discount amounts cannot be negative.");
+        return;
+      }
+      if (s + d - b.balanceAmount > 0.009) {
+        setErrorMessage(`Settlement + discount for bill ${b.vendorInvoiceNumber} exceeds pending balance.`);
+        return;
+      }
+      totalBillSettled += s;
+    }
+    if (totalBillSettled - paidNum > 0.009) {
+      setErrorMessage("Total settled amount across bills cannot exceed amount paid.");
       return;
     }
 
@@ -647,7 +667,8 @@ export default function EditPaymentOutPage() {
                       </td>
                     </tr>
                   ) : (
-                    displayedBills.map((bill, idx) => {
+                    displayedBills.map((bill) => {
+                      const realIdx = bills.findIndex((x) => x.id === bill.id);
                       return (
                         <tr
                           key={bill.id}
@@ -657,7 +678,7 @@ export default function EditPaymentOutPage() {
                             <input
                               type="checkbox"
                               checked={bill.isSelected}
-                              onChange={() => toggleBillSelect(idx)}
+                              onChange={() => realIdx !== -1 && toggleBillSelect(realIdx)}
                               className="rounded border-slate-300 text-indigo-600 focus:ring-[#1677E8]"
                             />
                           </td>
@@ -680,8 +701,9 @@ export default function EditPaymentOutPage() {
                             <input
                               type="number"
                               step="any"
+                              min="0"
                               value={bill.discount}
-                              onChange={(e) => handleBillDiscountChange(idx, e.target.value)}
+                              onChange={(e) => realIdx !== -1 && handleBillDiscountChange(realIdx, e.target.value)}
                               placeholder="Apply Discount"
                               className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                             />
@@ -690,8 +712,9 @@ export default function EditPaymentOutPage() {
                             <input
                               type="number"
                               step="any"
+                              min="0"
                               value={bill.settle}
-                              onChange={(e) => handleBillSettleChange(idx, e.target.value)}
+                              onChange={(e) => realIdx !== -1 && handleBillSettleChange(realIdx, e.target.value)}
                               placeholder="0.00"
                               className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                             />

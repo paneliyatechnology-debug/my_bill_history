@@ -168,6 +168,11 @@ export function handleUnauthorized(redirectTarget?: string) {
     localStorage.removeItem("billing_refresh_token");
     localStorage.removeItem("billing_user_profile");
     localStorage.removeItem("billing_tenant_context");
+    localStorage.removeItem("billing_workspace_cache");
+    localStorage.removeItem("billing_support_session");
+    sessionStorage.removeItem("billing_workspace_cache");
+    sessionStorage.removeItem("billing_me_validated_at");
+    sessionStorage.removeItem("billing_subscription_dismissed");
   } catch {
     // Ignore storage errors
   }
@@ -347,10 +352,13 @@ async function request<T>(
           ...headers,
           Authorization: `Bearer ${refreshedAccessToken}`,
         };
+        const retryController = new AbortController();
+        const retryTimeoutId = setTimeout(() => retryController.abort(), timeoutMs);
         try {
           const retryRes = await fetch(url, {
             ...options,
             headers: retryHeaders,
+            signal: options.signal ?? retryController.signal,
           });
           if (retryRes.ok) {
             const contentType = retryRes.headers.get("content-type");
@@ -362,6 +370,8 @@ async function request<T>(
           response = retryRes;
         } catch {
           // If retry network fails, keep original 401 response to proceed
+        } finally {
+          clearTimeout(retryTimeoutId);
         }
       }
     }
@@ -586,15 +596,18 @@ export const apiClient = {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    let cleanDownloadPath = fullPath.startsWith("/") ? fullPath : `/${fullPath}`;
+    if (cleanDownloadPath.startsWith("/api/v1/")) {
+      cleanDownloadPath = cleanDownloadPath.slice(7);
+    }
+    const downloadUrl = `${resolveApiBase()}${cleanDownloadPath}`;
+
     let res: Response;
     try {
-      res = await fetch(
-        `${resolveApiBase()}${fullPath.startsWith("/") ? fullPath : `/${fullPath}`}`,
-        {
-          headers,
-          signal: controller.signal,
-        },
-      );
+      res = await fetch(downloadUrl, {
+        headers,
+        signal: controller.signal,
+      });
     } catch (err: any) {
       clearTimeout(timeoutId);
       if (err?.name === "AbortError") {
@@ -603,6 +616,26 @@ export const apiClient = {
       throw new Error(`Failed to download report: ${err?.message || "Connection failed"}`);
     } finally {
       clearTimeout(timeoutId);
+    }
+
+    if (res.status === 401 && typeof window !== "undefined" && Boolean(getStoredRefreshToken())) {
+      const refreshedAccessToken = await refreshSessionToken();
+      if (refreshedAccessToken) {
+        const retryController = new AbortController();
+        const retryTimeout = setTimeout(() => retryController.abort(), timeoutMs);
+        try {
+          res = await fetch(downloadUrl, {
+            headers: { ...headers, Authorization: `Bearer ${refreshedAccessToken}` },
+            signal: retryController.signal,
+          });
+        } finally {
+          clearTimeout(retryTimeout);
+        }
+      }
+    }
+
+    if (res.status === 401 && typeof window !== "undefined" && !options?.skipAuthRedirect) {
+      handleUnauthorized();
     }
 
     if (!res.ok) {

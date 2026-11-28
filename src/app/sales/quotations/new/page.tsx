@@ -574,6 +574,7 @@ export default function NewQuotationPage() {
 
   // Save Quotation Handler
   const handleSave = async (convertImmediately = false, saveAndNew = false) => {
+    if (isSubmitting) return;
     if (!partyId) {
       setError(lang === "gu" ? "કૃપા કરીને ગ્રાહક પસંદ કરો." : "Please select a customer / party.");
       return;
@@ -621,6 +622,8 @@ export default function NewQuotationPage() {
           ...(dispatchDate ? { dispatchDate } : {}),
         },
         signatureData: signatureData || undefined,
+        discountType: "AFTER_TAX",
+        discountAmount: (Number(overallDiscountAmount) || 0) > 0 ? Number(overallDiscountAmount) : undefined,
         isDraft: true,
         items: validRows.map((r) => ({
           itemId: r.itemId,
@@ -634,7 +637,12 @@ export default function NewQuotationPage() {
         })),
       };
 
-      const res: any = await apiClient.post("/invoices/sales", payload);
+      const res: any = await apiClient.post(
+        "/invoices/sales",
+        payload,
+        undefined,
+        `qtn-create-${partyId}-${quotationNumber.trim() || Date.now()}`,
+      );
       setIsConfettiActive(true);
 
       if (convertImmediately && res?.id) {

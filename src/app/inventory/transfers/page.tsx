@@ -197,6 +197,7 @@ export default function StockTransfersPage() {
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!createForm.fromWarehouseId || !createForm.toWarehouseId) {
       setActionError(lang === "gu" ? "બંને ગોડાઉન પસંદ કરો." : "Please select both warehouses.");
       return;
@@ -214,6 +215,10 @@ export default function StockTransfersPage() {
       return;
     }
     for (const it of createForm.items) {
+      if (!it.itemId) {
+        setActionError(lang === "gu" ? "કૃપા કરીને દરેક હરોળમાં માલસામાન પસંદ કરો." : "Please select an item for every row.");
+        return;
+      }
       if (it.quantity <= 0) {
         setActionError(lang === "gu" ? "જથ્થો ૦ થી વધુ હોવો જોઈએ." : "Quantity must be > 0.");
         return;
@@ -223,17 +228,22 @@ export default function StockTransfersPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await apiClient.post("/inventory/transfers", {
-        transferNumber: createForm.transferNumber || undefined,
-        transferDate: createForm.transferDate,
-        fromWarehouseId: createForm.fromWarehouseId,
-        toWarehouseId: createForm.toWarehouseId,
-        notes: createForm.notes || undefined,
-        items: createForm.items.map((it) => ({
-          itemId: it.itemId,
-          quantity: Number(it.quantity),
-        })),
-      });
+      await apiClient.post(
+        "/inventory/transfers",
+        {
+          transferNumber: createForm.transferNumber || undefined,
+          transferDate: createForm.transferDate,
+          fromWarehouseId: createForm.fromWarehouseId,
+          toWarehouseId: createForm.toWarehouseId,
+          notes: createForm.notes || undefined,
+          items: createForm.items.map((it) => ({
+            itemId: it.itemId,
+            quantity: Number(it.quantity),
+          })),
+        },
+        undefined,
+        `transfer-create-${createForm.fromWarehouseId}-${createForm.toWarehouseId}-${Date.now()}`,
+      );
       setIsCreateModalOpen(false);
       await fetchData();
     } catch (err: any) {
@@ -939,6 +949,11 @@ export default function StockTransfersPage() {
         }
       >
         <form id="cancel-tr-form" onSubmit={handleCancelSubmit} className="space-y-3">
+          {actionError && (
+            <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 font-medium">
+              {actionError}
+            </div>
+          )}
           <p className="text-xs text-slate-600">
             {lang === "gu"
               ? "શું તમે આ ડ્રાફ્ટ સ્ટોક ટ્રાન્સફર રદ કરવા માંગો છો?"
@@ -970,7 +985,11 @@ export default function StockTransfersPage() {
           </button>
         }
       >
-        {reconData ? (
+        {actionError ? (
+          <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+            {actionError}
+          </div>
+        ) : reconData ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
               <div>

@@ -67,7 +67,7 @@ export default function AutomatedBillingPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeTab, searchTerm, page]);
+  }, [activeTab, searchTerm, page, limit]);
 
   useEffect(() => {
     loadData();

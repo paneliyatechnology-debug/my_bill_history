@@ -201,11 +201,10 @@ export function getPartyItemPriceRule(
     return false;
   });
 
-  if (
-    found &&
-    ((found.discountPercent !== undefined && !isNaN(Number(found.discountPercent))) ||
-      (found.price !== undefined && !isNaN(Number(found.price))))
-  ) {
+  const hasValidNum = (v: unknown) =>
+    v !== undefined && v !== null && v !== "" && !isNaN(Number(v));
+
+  if (found && (hasValidNum(found.discountPercent) || hasValidNum(found.price))) {
     return found;
   }
 
@@ -227,7 +226,15 @@ export function getPartyItemPrice(
     fallbackPartyName,
     fallbackItemName
   );
-  if (!rule || rule.price === undefined || isNaN(Number(rule.price))) return null;
+  if (
+    !rule ||
+    rule.price === undefined ||
+    rule.price === null ||
+    String(rule.price).trim() === "" ||
+    isNaN(Number(rule.price))
+  ) {
+    return null;
+  }
   return Number(rule.price);
 }
 
@@ -246,7 +253,13 @@ export function getPartyItemDiscount(
     fallbackPartyName,
     fallbackItemName
   );
-  if (!rule || rule.discountPercent === undefined || isNaN(Number(rule.discountPercent))) {
+  if (
+    !rule ||
+    rule.discountPercent === undefined ||
+    rule.discountPercent === null ||
+    String(rule.discountPercent).trim() === "" ||
+    isNaN(Number(rule.discountPercent))
+  ) {
     return null;
   }
   return Number(rule.discountPercent);

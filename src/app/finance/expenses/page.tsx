@@ -8,7 +8,7 @@ import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { CustomSelect } from "@/components/ui/custom-select";
-import { formatDate, formatDateTime } from "@/lib/date-utils";
+import { formatDate, formatDateTime, formatDateForInput, getTodayDate } from "@/lib/date-utils";
 import {
   Check,
   X,
@@ -342,14 +342,14 @@ export default function ExpensesPage() {
         if (v.voucherDate) {
           const vDate = new Date(v.voucherDate);
           if (dateRangeFilter === "TODAY") {
-            const todayStr = now.toISOString().split("T")[0];
-            const vStr = vDate.toISOString().split("T")[0];
+            const todayStr = getTodayDate();
+            const vStr = formatDateForInput(v.voucherDate);
             if (todayStr !== vStr) return false;
           } else if (dateRangeFilter === "YESTERDAY") {
             const yesterday = new Date(now);
             yesterday.setDate(yesterday.getDate() - 1);
-            const yStr = yesterday.toISOString().split("T")[0];
-            const vStr = vDate.toISOString().split("T")[0];
+            const yStr = formatDateForInput(yesterday);
+            const vStr = formatDateForInput(v.voucherDate);
             if (yStr !== vStr) return false;
           } else if (dateRangeFilter === "THIS_WEEK") {
             const startOfWeek = new Date(now);
@@ -410,10 +410,11 @@ export default function ExpensesPage() {
     const categoryTotals: Record<string, number> = {};
 
     filteredVouchers.forEach((v) => {
+      if (v.isCancelled) return;
       const d = getVoucherDetails(v);
       const amt = Number(d.amount) || 0;
       total += amt;
-      if (!v.isCancelled) activeCount++;
+      activeCount++;
       const cat = d.categoryName || "Other";
       categoryTotals[cat] = (categoryTotals[cat] || 0) + amt;
     });
@@ -521,10 +522,9 @@ export default function ExpensesPage() {
       doc.text(`Filter: ${dateRangeFilter.replace(/_/g, " ")} | Category: ${categoryFilter}`, 140, 23);
 
       // Summary Metric Cards
-      const totalAmount = filteredVouchers.reduce(
-        (sum, v) => sum + Number(getVoucherDetails(v).amount),
-        0
-      );
+      const totalAmount = filteredVouchers
+        .filter((v) => !v.isCancelled)
+        .reduce((sum, v) => sum + Number(getVoucherDetails(v).amount), 0);
       const activeCount = filteredVouchers.filter((v) => !v.isCancelled).length;
 
       doc.setFillColor(248, 250, 252);
@@ -673,10 +673,15 @@ export default function ExpensesPage() {
     setReversalError(null);
 
     try {
-      await apiClient.post(`/vouchers/${reversalTarget.id}/reverse`, {
-        reason: reversalReason || "Cancelled by user",
-        reversalDate: new Date().toISOString().split("T")[0],
-      });
+      await apiClient.post(
+        `/vouchers/${reversalTarget.id}/reverse`,
+        {
+          reason: reversalReason || "Cancelled by user",
+          reversalDate: getTodayDate(),
+        },
+        undefined,
+        `expense-reverse-${reversalTarget.id}`,
+      );
 
       setReversalTarget(null);
       setReversalReason("");

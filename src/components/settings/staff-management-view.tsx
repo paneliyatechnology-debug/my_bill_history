@@ -85,6 +85,7 @@ export default function StaffManagementView() {
 
   // Modals
   const [showStaffModal, setShowStaffModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingStaffItem, setEditingStaffItem] = useState<StaffUser | null>(null);
   const [staffForm, setStaffForm] = useState({
     fullName: "",
@@ -212,18 +213,20 @@ export default function StaffManagementView() {
       dataScope: staff.dataScope || "ALL_ORGANIZATION",
       maxInvoiceAmount: staff.maxInvoiceAmount ? String(staff.maxInvoiceAmount) : "",
       maxDiscountPercent: staff.maxDiscountPercent ? String(staff.maxDiscountPercent) : "",
-      canOverridePrice: staff.canOverridePrice ?? true,
+      canOverridePrice: staff.canOverridePrice ?? false,
     });
     setShowStaffModal(true);
   };
 
   const handleStaffFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!staffForm.fullName.trim() || !staffForm.phone.trim()) {
       showError("Please enter full name and mobile number.");
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const payload: any = {
         fullName: staffForm.fullName.trim(),
@@ -255,6 +258,8 @@ export default function StaffManagementView() {
       await fetchData();
     } catch (err: any) {
       showError(err?.message || "Failed to save staff account.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

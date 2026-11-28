@@ -618,24 +618,24 @@ export default function CashAndBankPage() {
     try {
       let fromDate: string | undefined = undefined;
       const today = new Date();
-      const toDate = today.toISOString().split("T")[0];
+      const fmtLocal = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const toDate = fmtLocal(today);
 
       if (dateFilter === "TODAY") {
         fromDate = toDate;
       } else if (dateFilter === "THIS_WEEK") {
-        const d = new Date();
+        const d = new Date(today);
         d.setDate(d.getDate() - 7);
-        fromDate = d.toISOString().split("T")[0];
+        fromDate = fmtLocal(d);
       } else if (dateFilter === "LAST_30_DAYS") {
-        const d = new Date();
+        const d = new Date(today);
         d.setDate(d.getDate() - 30);
-        fromDate = d.toISOString().split("T")[0];
+        fromDate = fmtLocal(d);
       } else if (dateFilter === "THIS_MONTH") {
-        fromDate = new Date(today.getFullYear(), today.getMonth(), 1)
-          .toISOString()
-          .split("T")[0];
+        fromDate = fmtLocal(new Date(today.getFullYear(), today.getMonth(), 1));
       } else if (dateFilter === "THIS_YEAR") {
-        fromDate = new Date(today.getFullYear(), 0, 1).toISOString().split("T")[0];
+        fromDate = fmtLocal(new Date(today.getFullYear(), 0, 1));
       }
 
       if (selectedAccountId === "unlinked") {
@@ -743,28 +743,16 @@ export default function CashAndBankPage() {
       });
       const vList = extractList<any>(vRes);
 
-      let runningBal = Number(
-        selectedAccount?.currentBalance || selectedAccount?.openingBalance || 0
-      );
+      let runningBal = Number(selectedAccount?.openingBalance || 0);
       const filtered: TransactionItem[] = [];
 
       for (const v of vList) {
         const matchingLine = (v.journalEntries || []).find(
           (j: any) => j.accountId === accId
         );
-        if (
-          matchingLine ||
-          v.voucherType === "PAYMENT" ||
-          v.voucherType === "RECEIPT"
-        ) {
-          const debit = Number(
-            matchingLine?.debitAmount ||
-              (v.voucherType === "RECEIPT" || v.voucherType === "SALES" ? v.totalAmount : 0)
-          );
-          const credit = Number(
-            matchingLine?.creditAmount ||
-              (v.voucherType === "PAYMENT" || v.voucherType === "PURCHASE" ? v.totalAmount : 0)
-          );
+        if (matchingLine) {
+          const debit = Number(matchingLine.debitAmount || 0);
+          const credit = Number(matchingLine.creditAmount || 0);
           runningBal += debit - credit;
 
           let typeStr = v.voucherType || "Voucher";
@@ -2639,7 +2627,7 @@ export default function CashAndBankPage() {
                   bankBranch: updateBankForm.branchName.trim(),
                 });
                 await apiClient
-                  .patch(`/ledgers/${selectedAccount.id}`, {
+                  .patch(`/accounting/ledgers/${selectedAccount.id}`, {
                     name: updateBankForm.bankName.trim(),
                     code: updateBankForm.accountNumber.trim() || undefined,
                   })

@@ -855,7 +855,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, [isMobileMenuOpen]);
 
-  // If unauthenticated and finished loading, automatically redirect to login page (except for public pages like intro, features, landing)
+  // If unauthenticated and finished loading, automatically redirect to login page (except for public pages like intro, features, landing, portal)
   useEffect(() => {
     if (
       !isLoading &&
@@ -865,7 +865,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       pathname !== "/intro" &&
       pathname !== "/features" &&
       pathname !== "/Myownbillbook" &&
-      pathname !== "/copy-code"
+      pathname !== "/copy-code" &&
+      pathname !== "/rojmek" &&
+      pathname.toLowerCase() !== "/rojmek" &&
+      !pathname.startsWith("/portal/")
     ) {
       const redirectParam = pathname
         ? `?redirect=${encodeURIComponent(pathname)}`
@@ -906,10 +909,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
 
         // Direct top-level navigation item
-        if (section.id === "activity_logs") {
-          return section;
-        }
-
         const secPlanKey = section.planKey || section.id || section.module || section.href || "";
         if (secPlanKey && !isModuleEntitled(secPlanKey)) {
           return null;
@@ -934,21 +933,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       r === "SUPER_ADMIN" ||
       r === "ORG_ADMIN" ||
       r === "COMPANY_ADMIN" ||
-      r === "PARTNER" ||
       r === "ADMIN"
-    ) {
-      return false;
-    }
-
-    if (
-      pathname === "/activity-logs" ||
-      pathname.startsWith("/activity-logs/")
     ) {
       return false;
     }
 
     const ROUTE_RULES: Array<{ prefix: string; module: string; action?: string }> = [
       { prefix: "/sales/quotations", module: "quotations", action: "view" },
+      { prefix: "/sales/orders", module: "sales_invoices", action: "view" },
       { prefix: "/sales/proforma", module: "proforma_invoices", action: "view" },
       { prefix: "/sales/delivery-challan", module: "delivery_challans", action: "view" },
       { prefix: "/sales/returns", module: "sales_returns", action: "view" },
@@ -966,10 +958,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       { prefix: "/finance/cash-bank", module: "cash_bank", action: "view" },
       { prefix: "/gst", module: "gst_tax", action: "view" },
       { prefix: "/reports", module: "reports", action: "view" },
-      { prefix: "/settings/user-management", module: "settings", action: "edit_users" },
+      { prefix: "/settings/user-management", module: "settings", action: "edit" },
+      { prefix: "/app/settings/user-management", module: "settings", action: "edit" },
       { prefix: "/settings", module: "settings", action: "view" },
+      { prefix: "/app/settings", module: "settings", action: "view" },
       { prefix: "/masters/items", module: "items", action: "view" },
+      { prefix: "/masters/warehouses", module: "items", action: "view" },
+      { prefix: "/masters/categories", module: "items", action: "view" },
+      { prefix: "/masters/units", module: "items", action: "view" },
+      { prefix: "/masters/hsn", module: "items", action: "view" },
       { prefix: "/masters/parties", module: "parties", action: "view" },
+      { prefix: "/app/home/shared-ledger", module: "parties", action: "view" },
+      { prefix: "/app/data-import", module: "settings", action: "view" },
+      { prefix: "/data-import", module: "settings", action: "view" },
     ];
 
     for (const rule of ROUTE_RULES) {
@@ -1133,8 +1134,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname === "/rojmek" ||
     pathname === "/Myownbillbook" ||
     pathname.toLowerCase() === "/rojmek" ||
-        pathname === "/pos" ||
-    pathname === "/sales/pos" ||
+    pathname.startsWith("/portal/") ||
+    (!isLoading && isAuthenticated && (pathname === "/pos" || pathname === "/sales/pos")) ||
     (!isAuthenticated && pathname === "/")
   ) {
     return <>{children}</>;

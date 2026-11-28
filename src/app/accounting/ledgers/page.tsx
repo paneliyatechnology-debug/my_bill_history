@@ -85,18 +85,29 @@ export default function LedgersPage() {
 
   const handleCreateLedger = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setFormError(null);
+    const openingBal = Number(formData.openingBalance) || 0;
+    if (openingBal < 0) {
+      setFormError("Opening balance cannot be negative. Use Debit/Credit type to indicate direction.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
-      await apiClient.post("/accounting/ledgers", {
-        code: formData.code,
-        name: formData.name,
-        nameGujarati: formData.nameGujarati || undefined,
-        groupId: formData.groupId || (groups[0]?.id as string),
-        openingBalance: Number(formData.openingBalance) || 0,
-        openingBalanceType: formData.openingBalanceType,
-      });
+      await apiClient.post(
+        "/accounting/ledgers",
+        {
+          code: formData.code,
+          name: formData.name,
+          nameGujarati: formData.nameGujarati || undefined,
+          groupId: formData.groupId || (groups[0]?.id as string),
+          openingBalance: openingBal,
+          openingBalanceType: formData.openingBalanceType,
+        },
+        undefined,
+        `ledger-create-${formData.code}-${Date.now()}`,
+      );
 
       setIsModalOpen(false);
       await fetchData();
