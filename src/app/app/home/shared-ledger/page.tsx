@@ -7,6 +7,7 @@ import { apiClient } from "@/lib/api-client";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import QRCode from "qrcode";
 import { Sparkles, X, Zap, Clock, BookOpen, Lock, Check, FileText, BarChart3 } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import { CustomDatePicker } from "@/components/ui/custom-datepicker";
@@ -93,9 +94,34 @@ export default function SharedLedgerPage() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showViewOnlyModal, setShowViewOnlyModal] = useState(false);
   const [showConvertToPurchaseModal, setShowConvertToPurchaseModal] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [qrTargetUrl, setQrTargetUrl] = useState<string>("");
   const [selectedInvoiceToConvert, setSelectedInvoiceToConvert] = useState<TransactionItem | null>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
+
+  const resolveAbsoluteUrl = useCallback((pathOrUrl?: string) => {
+    const baseOrigin =
+      (process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")) ||
+      (typeof window !== "undefined" ? window.location.origin : "https://myownbillbook.com");
+    if (!pathOrUrl) return `${baseOrigin}/app/home/shared-ledger`;
+    if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+    return `${baseOrigin}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
+  }, []);
+
+  useEffect(() => {
+    if (!showConvertToPurchaseModal || typeof window === "undefined") return;
+    const rawTarget =
+      selectedParty?.portalUrl ||
+      (selectedParty?.token
+        ? `/portal/shared-ledger/${selectedParty.token}`
+        : "/app/home/shared-ledger");
+    const targetUrl = resolveAbsoluteUrl(rawTarget);
+    setQrTargetUrl(targetUrl);
+    QRCode.toDataURL(targetUrl, { width: 180, margin: 1 })
+      .then((url) => setQrDataUrl(url))
+      .catch(() => setQrDataUrl(""));
+  }, [showConvertToPurchaseModal, selectedParty, resolveAbsoluteUrl]);
 
   // Settings
   const [settings, setSettings] = useState<SharedLedgerSettings>({
@@ -1284,21 +1310,63 @@ export default function SharedLedgerPage() {
               {/* Left Column: Phone mockup with QR Code */}
               <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/50 p-6 text-center">
                 <div className="rounded-2xl border-2 border-slate-800 bg-white p-4 shadow-md">
-                  {/* QR Image Mock */}
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                      "https://mybillbook.in/app/home/shared-ledger"
-                    )}`}
-                    alt="Scan QR to open SharedLedger in app"
-                    className="h-44 w-44"
-                  />
+                  {qrDataUrl ? (
+                    <img
+                      src={qrDataUrl}
+                      alt="Scan QR to open SharedLedger"
+                      className="h-44 w-44"
+                    />
+                  ) : (
+                    <div className="h-44 w-44 flex items-center justify-center text-xs text-slate-400">
+                      Generating QR...
+                    </div>
+                  )}
                 </div>
                 <h5 className="mt-4 text-xs font-bold text-slate-800">
                   Scan this code with your phone camera
                 </h5>
                 <p className="mt-1 text-[11px] text-slate-500">
-                  Opens SharedLedger in your myBillBook app (or helps you install it)
+                  Opens {selectedParty ? `${selectedParty.name}'s SharedLedger` : "SharedLedger list"} directly
                 </p>
+                {qrTargetUrl && (
+                  <a
+                    href={qrTargetUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1.5 text-[10px] text-indigo-600 hover:underline break-all max-w-full"
+                  >
+                    {qrTargetUrl}
+                  </a>
+                )}
+
+                {parties.length > 0 && (
+                  <div className="mt-4 w-full rounded-xl bg-white p-3 border border-slate-200/80 text-left space-y-1.5 max-h-36 overflow-y-auto">
+                    <h6 className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                      All Shared Ledgers ({parties.length})
+                    </h6>
+                    {parties.map((p) => {
+                      const partyPortalUrl = resolveAbsoluteUrl(
+                        p.portalUrl || (p.token ? `/portal/shared-ledger/${p.token}` : "/app/home/shared-ledger"),
+                      );
+                      return (
+                        <div
+                          key={p.id}
+                          className="flex items-center justify-between gap-2 text-[11px] py-1 border-b border-slate-100 last:border-b-0"
+                        >
+                          <span className="font-medium text-slate-800 truncate">{p.name}</span>
+                          <a
+                            href={partyPortalUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-indigo-600 hover:underline font-semibold shrink-0"
+                          >
+                            Open →
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* How it works steps */}
                 <div className="mt-5 w-full rounded-xl bg-white p-3.5 border border-slate-200/80 text-left space-y-2">

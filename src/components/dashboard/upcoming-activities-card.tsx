@@ -1,8 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
+import { apiClient, extractList } from "../../lib/api-client";
+import { formatDate } from "../../lib/date-utils";
 
 interface UpcomingActivitiesCardProps {
   lowStockCount?: number;
@@ -20,6 +22,14 @@ export function UpcomingActivitiesCard({
   isLoading = false,
 }: UpcomingActivitiesCardProps) {
   const { lang } = useAuth();
+  const [upcomingAppts, setUpcomingAppts] = useState<any[]>([]);
+
+  useEffect(() => {
+    apiClient
+      .get("/appointments", { upcoming: "true" })
+      .then((res) => setUpcomingAppts(extractList(res)))
+      .catch(() => {});
+  }, []);
 
   const formatInr = (val: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -169,6 +179,33 @@ export function UpcomingActivitiesCard({
             </div>
             <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#EFF6FF] text-[#2563EB] font-bold text-[11px] sm:text-xs shrink-0 tabular-nums">
               {pendingOrdersCount} Orders
+            </span>
+          </Link>
+
+          {/* Item 4: Scheduled Appointments & Follow-ups */}
+          <Link
+            href="/masters/parties"
+            className="p-2 sm:p-2.5 bg-slate-50/70 hover:bg-slate-50 border border-[#F1F5F9] rounded-xl flex items-center justify-between gap-2.5 sm:gap-3 transition-colors group"
+          >
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+              <div className="w-7 h-7 rounded-lg bg-[#F3E8FF] text-[#9333EA] flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#0F172A] transition-colors">
+                  {lang === "gu" ? "શેડ્યૂલ કરેલ ફોલો-અપ્સ" : "Scheduled Follow-ups"}
+                </div>
+                <div className="text-[11px] text-[#6B7280] truncate">
+                  {upcomingAppts.length > 0
+                    ? `${upcomingAppts[0]?.party?.name || "Party"} • ${formatDate(upcomingAppts[0]?.date)}${upcomingAppts[0]?.time ? ` (${upcomingAppts[0].time})` : ""}`
+                    : (lang === "gu" ? "કોઈ આગામી ફોલો-અપ નથી" : "No upcoming follow-ups")}
+                </div>
+              </div>
+            </div>
+            <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#F3E8FF] text-[#9333EA] font-bold text-[11px] sm:text-xs shrink-0 tabular-nums">
+              {upcomingAppts.length} Scheduled
             </span>
           </Link>
         </div>

@@ -119,10 +119,13 @@ export default function PartiesPage() {
 
   // Appointments Modal state
   const [isAddAppointmentModalOpen, setIsAddAppointmentModalOpen] = useState(false);
+  const [editingApptId, setEditingApptId] = useState<string | null>(null);
   const [apptTitle, setApptTitle] = useState("");
   const [apptDescription, setApptDescription] = useState("");
   const [apptDate, setApptDate] = useState("");
   const [apptTime, setApptTime] = useState("11:00 AM");
+  const [apptStatus, setApptStatus] = useState("SCHEDULED");
+  const [apptFilter, setApptFilter] = useState<"ALL" | "SCHEDULED" | "COMPLETED">("ALL");
   const [isSavingAppt, setIsSavingAppt] = useState(false);
   const [partyTransactions, setPartyTransactions] = useState<any[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
@@ -610,24 +613,49 @@ export default function PartiesPage() {
     if (!selectedParty || !apptTitle.trim() || !apptDate) return;
     setIsSavingAppt(true);
     try {
-      await apiClient.post(`/masters/parties/${selectedParty.id}/appointments`, {
-        title: apptTitle.trim(),
-        description: apptDescription.trim(),
-        descriptions: apptDescription.trim(),
-        date: apptDate,
-        time: apptTime.trim(),
-        status: "SCHEDULED",
-      });
+      if (editingApptId) {
+        await apiClient.patch(`/appointments/${editingApptId}`, {
+          title: apptTitle.trim(),
+          description: apptDescription.trim(),
+          descriptions: apptDescription.trim(),
+          date: apptDate,
+          time: apptTime.trim() || "11:00 AM",
+          status: apptStatus || "SCHEDULED",
+        });
+      } else {
+        await apiClient.post(`/masters/parties/${selectedParty.id}/appointments`, {
+          title: apptTitle.trim(),
+          description: apptDescription.trim(),
+          descriptions: apptDescription.trim(),
+          date: apptDate,
+          time: apptTime.trim() || "11:00 AM",
+          status: "SCHEDULED",
+        });
+      }
+      setEditingApptId(null);
       setApptTitle("");
       setApptDescription("");
       setApptDate("");
       setApptTime("11:00 AM");
+      setApptStatus("SCHEDULED");
       setIsAddAppointmentModalOpen(false);
       fetchPartyNotesAndAppointments(selectedParty.id);
     } catch (err: any) {
-      alert(err.message || "Failed to schedule appointment");
+      alert(err.message || "Failed to save appointment");
     } finally {
       setIsSavingAppt(false);
+    }
+  };
+
+  const handleToggleAppointmentStatus = async (appt: any) => {
+    const nextStatus = appt.status === "COMPLETED" ? "SCHEDULED" : "COMPLETED";
+    try {
+      await apiClient.patch(`/appointments/${appt.id}`, { status: nextStatus });
+      if (selectedParty) {
+        fetchPartyNotesAndAppointments(selectedParty.id);
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to update appointment status");
     }
   };
 
@@ -1729,6 +1757,11 @@ export default function PartiesPage() {
                         onClick={() => {
                           const tomorrow = new Date();
                           tomorrow.setDate(tomorrow.getDate() + 1);
+                          setEditingApptId(null);
+                          setApptTitle("");
+                          setApptDescription("");
+                          setApptTime("11:00 AM");
+                          setApptStatus("SCHEDULED");
                           setApptDate(tomorrow.toISOString().split("T")[0]);
                           setIsAddAppointmentModalOpen(true);
                         }}
@@ -1737,6 +1770,25 @@ export default function PartiesPage() {
                         + Schedule Appointment
                       </button>
                     </div>
+
+                    {partyAppointments.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        {(["ALL", "SCHEDULED", "COMPLETED"] as const).map((tab) => (
+                          <button
+                            key={tab}
+                            type="button"
+                            onClick={() => setApptFilter(tab)}
+                            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                              apptFilter === tab
+                                ? "bg-purple-600 text-white"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            }`}
+                          >
+                            {tab === "ALL" ? "All" : tab === "SCHEDULED" ? "Upcoming" : "Completed"}
+                          </button>
+                        ))}
+                      </div>
+                    )}
 
                     {isLoadingNotesAppts ? (
                       <div className="py-12 text-center text-xs text-slate-400">Loading appointments...</div>
@@ -1756,42 +1808,90 @@ export default function PartiesPage() {
                           onClick={() => {
                             const tomorrow = new Date();
                             tomorrow.setDate(tomorrow.getDate() + 1);
+                            setEditingApptId(null);
+                            setApptTitle("");
+                            setApptDescription("");
+                            setApptTime("11:00 AM");
+                            setApptStatus("SCHEDULED");
                             setApptDate(tomorrow.toISOString().split("T")[0]);
                             setIsAddAppointmentModalOpen(true);
                           }}
-                          className="mt-2 inline-flex items-center gap-1 h-9 px-3 bg-purple-600 text-white text-[13px] font-medium rounded-xl shadow-sm"
+                          className="mt-2 inline-flex items-center gap-1 h-9 px-3 bg-purple-600 text-white text-[13px] font-medium rounded-xl shadow-sm cursor-pointer"
                         >
                           + Schedule First Appointment
                         </button>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {partyAppointments.map((a: any) => (
+                        {partyAppointments
+                          .filter((a: any) => apptFilter === "ALL" || (a.status || "SCHEDULED") === apptFilter)
+                          .map((a: any) => {
+                            const statusUpper = String(a.status || "SCHEDULED").toUpperCase();
+                            const isDone = statusUpper === "COMPLETED";
+                            const hasTime = Boolean(a.time && String(a.time).trim());
+                            const createdText = a.createdAt ? formatDate(a.createdAt, "") : "";
+                            return (
                           <div
                             key={a.id}
-                            className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm hover:border-purple-200 transition-all space-y-3 relative group"
+                            className={`bg-white p-4 rounded-xl border shadow-sm transition-all space-y-3 relative ${
+                              isDone ? "border-emerald-200/80 bg-emerald-50/10" : "border-slate-200/80 hover:border-purple-200"
+                            }`}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div>
-                                <h4 className="font-bold text-sm text-slate-900">{a.title}</h4>
-                                <div className="flex items-center gap-2 mt-1">
+                                <h4 className={`font-bold text-sm ${isDone ? "text-slate-500 line-through" : "text-slate-900"}`}>
+                                  {a.title}
+                                </h4>
+                                <div className="flex flex-wrap items-center gap-2 mt-1.5">
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
                                     <Calendar className="w-3 h-3 text-purple-600" />
                                     <span>{formatDate(a.date)}</span>
                                   </span>
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700">
-                                    <span>{a.time}</span>
-                                  </span>
+                                  {hasTime && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">
+                                      <span>{a.time}</span>
+                                    </span>
+                                  )}
                                 </div>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteAppointment(a.id)}
-                                title="Cancel Appointment"
-                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 text-xs transition-opacity p-1.5 rounded hover:bg-rose-50 cursor-pointer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleAppointmentStatus(a)}
+                                  title={isDone ? "Reopen Appointment" : "Mark Completed"}
+                                  className={`px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+                                    isDone
+                                      ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                      : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                  }`}
+                                >
+                                  {isDone ? "Reopen" : "✓ Done"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingApptId(a.id);
+                                    setApptTitle(a.title || "");
+                                    setApptDescription(a.description || a.descriptions || "");
+                                    setApptDate(a.date ? String(a.date).slice(0, 10) : "");
+                                    setApptTime(a.time || "11:00 AM");
+                                    setApptStatus(statusUpper);
+                                    setIsAddAppointmentModalOpen(true);
+                                  }}
+                                  title="Edit / Reschedule"
+                                  className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteAppointment(a.id)}
+                                  title="Cancel Appointment"
+                                  className="text-slate-400 hover:text-rose-600 text-xs transition-colors p-1.5 rounded-lg hover:bg-rose-50 cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
 
                             {a.description && (
@@ -1800,16 +1900,43 @@ export default function PartiesPage() {
                               </p>
                             )}
 
-                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                              <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                {a.status || "SCHEDULED"}
-                              </span>
-                              <span className="text-[11px] text-slate-400 tabular-nums">
-                                Created: {formatDate(a.createdAt)}
-                              </span>
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${
+                                    statusUpper === "COMPLETED"
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                      : statusUpper === "CANCELLED" || statusUpper === "MISSED"
+                                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                                        : "bg-blue-50 text-blue-700 border-blue-200"
+                                  }`}
+                                >
+                                  {statusUpper}
+                                </span>
+                                {selectedParty?.phone && !isDone && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const phone = String(selectedParty.phone).replace(/[^0-9]/g, "");
+                                      const waPhone = phone.startsWith("91") ? phone : `91${phone}`;
+                                      const msg = `Hello ${selectedParty.name}, reminder for our scheduled follow-up "${a.title}" on ${formatDate(a.date)}${hasTime ? ` at ${a.time}` : ""}.`;
+                                      window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`, "_blank");
+                                    }}
+                                    className="text-[11px] font-semibold text-emerald-700 hover:underline cursor-pointer"
+                                  >
+                                    WhatsApp Reminder
+                                  </button>
+                                )}
+                              </div>
+                              {createdText && (
+                                <span className="text-[11px] text-slate-400 tabular-nums">
+                                  Created: {createdText}
+                                </span>
+                              )}
                             </div>
                           </div>
-                        ))}
+                            );
+                          })}
                       </div>
                     )}
                   </div>
@@ -3281,11 +3408,18 @@ export default function PartiesPage() {
         </form>
       </Modal>
 
-      {/* Modal: Schedule Appointment */}
+      {/* Modal: Schedule / Edit Appointment */}
       <Modal
         isOpen={isAddAppointmentModalOpen}
-        onClose={() => setIsAddAppointmentModalOpen(false)}
-        title={`Schedule Appointment with ${selectedParty?.name || "Party"}`}
+        onClose={() => {
+          setIsAddAppointmentModalOpen(false);
+          setEditingApptId(null);
+        }}
+        title={
+          editingApptId
+            ? `Reschedule / Edit Appointment`
+            : `Schedule Appointment with ${selectedParty?.name || "Party"}`
+        }
         maxWidth="md"
       >
         <form onSubmit={handleCreateAppointment} className="space-y-4">
@@ -3358,7 +3492,11 @@ export default function PartiesPage() {
               disabled={isSavingAppt || !apptTitle.trim() || !apptDate}
               className="h-9 px-3.5 bg-purple-600 hover:bg-purple-700 text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
             >
-              {isSavingAppt ? "Scheduling..." : "Schedule Appointment"}
+              {isSavingAppt
+                ? "Saving..."
+                : editingApptId
+                  ? "Update Appointment"
+                  : "Schedule Appointment"}
             </button>
           </div>
         </form>
