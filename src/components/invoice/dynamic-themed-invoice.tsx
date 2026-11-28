@@ -591,13 +591,13 @@ export function DynamicThemedInvoice({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span
-                    className="font-semibold text-[13px] tracking-wide"
+                    className="font-semibold text-[13px] leading-none tracking-wide"
                     style={{ color: activeColor !== "#111111" ? activeColor : skin.ink }}
                   >
                     {docTitle}
                   </span>
-                  <span className="rounded-[2px] border border-slate-500 bg-white/90 px-2 py-0.5 text-[9px] font-bold text-slate-700 uppercase">
-                    ORIGINAL FOR RECIPIENT
+                  <span className="inline-block rounded-[2px] border border-slate-500 bg-white/95 px-2 py-1 text-[9px] leading-none font-bold text-slate-700 uppercase align-middle">
+                    {docSubtitle.replace(/[()]/g, "")}
                   </span>
                 </div>
                 <div className="text-[11px] font-bold text-amber-950/80 tracking-wide">
@@ -1101,8 +1101,10 @@ export function DynamicThemedInvoice({
             </div>
 
             <div className="text-right bg-white p-3 rounded-lg border border-amber-200 shadow-xs">
-              <span className="block text-lg font-semibold text-amber-800">{docTitle}</span>
-              <span className="text-[9px] font-bold text-slate-500 uppercase">ORIGINAL FOR RECIPIENT</span>
+              <span className="block text-lg leading-tight font-semibold text-amber-800">{docTitle}</span>
+              <span className="inline-block text-[9px] leading-none font-bold text-slate-500 uppercase mt-0.5">
+                {docSubtitle.replace(/[()]/g, "")}
+              </span>
               <div className="mt-2 text-xs font-mono space-y-0.5">
                 <div>Invoice No: <strong className="text-amber-900">#{invoice.invoiceNumber}</strong></div>
                 <div>Date: <strong>{formatDate(invoice.invoiceDate)}</strong></div>

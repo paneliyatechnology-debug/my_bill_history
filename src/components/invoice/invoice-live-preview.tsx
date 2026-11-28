@@ -400,10 +400,10 @@ function StylishInvoice(props: {
         </div>
       )}
       <div className="flex items-center gap-2">
-        <span className="text-[11px] font-bold tracking-wide" style={{ color }}>
+        <span className="text-[11px] leading-none font-bold tracking-wide" style={{ color }}>
           TAX INVOICE
         </span>
-        <span className="rounded border border-slate-400 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-slate-500">
+        <span className="inline-block rounded border border-slate-400 px-2 py-1 text-[9px] leading-none font-semibold tracking-wide text-slate-500 align-middle">
           ORIGINAL FOR RECIPIENT
         </span>
       </div>
@@ -533,7 +533,7 @@ function LuxuryInvoice(props: {
         </div>
         <div className="text-right">
           <div className="text-[16px] font-semibold tracking-wide">TAX INVOICE</div>
-          <div className="mt-1 inline-block border border-slate-300 px-1.5 py-0.5 text-[9px] tracking-wide text-slate-500">
+          <div className="mt-1 inline-block border border-slate-300 px-2 py-1 text-[9px] leading-none tracking-wide text-slate-500">
             ORIGINAL FOR RECIPIENT
           </div>
         </div>
