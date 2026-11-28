@@ -1071,13 +1071,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         "notifications",
       ]);
 
-      // 2. If granular entitlements are not loaded yet, allow core modules only (fail-closed for gated modules)
+      // 2. If granular entitlements are not loaded yet, allow core modules only;
+      // if plan entitlements exist without granularEntitlements map (e.g. older backend/DB plan row),
+      // derive access from plan features + standard active billing modules.
+      if (!entitlements) {
+        return CORE_UNRESTRICTED.has(normalized);
+      }
+
       if (
-        !entitlements ||
         !entitlements.granularEntitlements ||
         Object.keys(entitlements.granularEntitlements).length === 0
       ) {
-        return CORE_UNRESTRICTED.has(normalized);
+        if (CORE_UNRESTRICTED.has(normalized)) {
+          return true;
+        }
+        if (entitlements.isExpired || entitlements.isActive === false) {
+          return false;
+        }
+        const f = (entitlements.features || {}) as Record<string, boolean | undefined>;
+        if (normalized === "manufacturing" || normalized === "manufacturingbom" || normalized === "productionorders") {
+          return Boolean(f.manufacturing);
+        }
+        if (normalized === "pos" || normalized === "posbilling" || normalized === "posorders" || normalized === "pos_orders") {
+          return Boolean(f.posCounter ?? true);
+        }
+        if (normalized === "gstrreconciliation" || normalized === "gst_returns") {
+          return Boolean(f.gstrReconciliation ?? true);
+        }
+        if (normalized === "einvoiceewaybill" || normalized === "einvoice" || normalized === "einvoices") {
+          return Boolean(f.eInvoiceEWay ?? true);
+        }
+        if (normalized === "whatsappreminders" || normalized === "ai_collections") {
+          return Boolean(f.whatsappReminders ?? true);
+        }
+        return true;
       }
 
       const g = entitlements.granularEntitlements;
