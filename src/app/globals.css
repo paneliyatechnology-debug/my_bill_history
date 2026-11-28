@@ -988,10 +988,10 @@ textarea {
 
 /* Print Utilities for Clean A4 GST Invoices and Thermal Receipts */
 @media print {
-  /* Set standard A4 page with appropriate print margins */
+  /* Set standard A4 page with compact print margins so single-page invoices never spill onto page 2 */
   @page {
     size: A4 portrait;
-    margin: 8mm 10mm;
+    margin: 6mm 8mm;
   }
 
   /* Reset document root to eliminate viewport scrolling & background tint */
@@ -1104,6 +1104,7 @@ textarea {
 
   /* Standard Printable Invoice container */
   #printable-invoice,
+  #printable-official-einvoice,
   .printable-invoice,
   [data-printable-invoice="true"] {
     display: block !important;
@@ -1111,6 +1112,8 @@ textarea {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
@@ -1118,6 +1121,7 @@ textarea {
     border-radius: 0 !important;
     box-shadow: none !important;
     page-break-inside: auto;
+    zoom: 0.92;
     /* Reset mobile transform scaling for proper A4 print */
     transform: none !important;
     transform-origin: unset !important;

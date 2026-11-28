@@ -331,6 +331,33 @@ export function DynamicThemedInvoice({
                           ? "Order No"
                           : "Invoice No";
 
+  // Ensure browser Print -> Save as PDF uses the document number & party name instead of the static app title
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const prevTitle = document.title;
+    const rawNumber = String(invoice?.invoiceNumber || "").trim();
+    const safeNumber = rawNumber.replace(/[\/\\?%*:|"<>]/g, "_");
+    const safeParty = String(partyName || "")
+      .replace(/[\/\\?%*:|"<>]/g, "_")
+      .trim();
+    const nextTitle = safeNumber
+      ? safeParty && safeParty !== "Cash Customer _ Walk-in"
+        ? `${safeNumber} - ${safeParty}`
+        : safeNumber
+      : `${docTitle} - MyOwn BillBook`;
+
+    const applyTitle = () => {
+      document.title = nextTitle;
+    };
+    applyTitle();
+    window.addEventListener("beforeprint", applyTitle);
+
+    return () => {
+      window.removeEventListener("beforeprint", applyTitle);
+      document.title = prevTitle;
+    };
+  }, [invoice?.invoiceNumber, partyName, docTitle]);
+
   const resolvedDef = resolveThemeDefinition(
     settings.uniqueThemeKey || settings.festiveTheme || settings.themeId,
     settings.festiveVariant
@@ -544,7 +571,7 @@ export function DynamicThemedInvoice({
     return (
       <div
         id={printableId}
-        className={`relative w-full ${dim.className} mx-auto p-4 sm:p-6 text-[11px] bg-white rounded-sm shadow-md border border-slate-300 overflow-hidden flex flex-col justify-between transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none print:min-h-screen`}
+        className={`relative w-full ${dim.className} mx-auto p-4 sm:p-6 text-[11px] bg-white rounded-sm shadow-md border border-slate-300 overflow-hidden flex flex-col justify-between transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:min-h-0 print:h-auto print:rounded-none`}
         style={{ fontFamily: settings.fontFamily || "Inter, sans-serif" }}
       >
         {/* Contained Festive Background Artwork - soft watermark without jarring white boxes */}
@@ -1051,7 +1078,7 @@ export function DynamicThemedInvoice({
     return (
       <div
         id={printableId}
-        className="relative w-full max-w-[850px] mx-auto p-6 sm:p-8 text-[11px] bg-white rounded-lg shadow-sm border-2 border-amber-500/80 min-h-[920px] transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none"
+        className="relative w-full max-w-[850px] mx-auto p-6 sm:p-8 text-[11px] bg-white rounded-lg shadow-sm border-2 border-amber-500/80 min-h-[920px] transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:min-h-0 print:h-auto print:rounded-none"
         style={{ fontFamily: settings.fontFamily || "Georgia, serif" }}
       >
         <div className="border-2 border-amber-600/40 p-4 sm:p-6 rounded-md bg-amber-50/10">
@@ -1220,7 +1247,7 @@ export function DynamicThemedInvoice({
     return (
       <div
         id={printableId}
-        className={`relative w-full ${dim.className} mx-auto p-4 sm:p-6 text-[11px] bg-white border-2 border-black font-sans shadow-md flex flex-col justify-between transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none`}
+        className={`relative w-full ${dim.className} mx-auto p-4 sm:p-6 text-[11px] bg-white border-2 border-black font-sans shadow-md flex flex-col justify-between transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:min-h-0 print:h-auto print:rounded-none`}
         style={{ fontFamily: settings.fontFamily || "Arial, Helvetica, sans-serif" }}
       >
         <div className="flex flex-col justify-between flex-1 h-full">
@@ -1548,7 +1575,7 @@ export function DynamicThemedInvoice({
   return (
     <div
       id={printableId}
-      className={`relative w-full max-w-[850px] mx-auto p-6 sm:p-8 text-[11px] bg-white rounded-lg shadow-sm min-h-[920px] transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none ${layout === "modern"
+      className={`relative w-full max-w-[850px] mx-auto p-6 sm:p-8 text-[11px] bg-white rounded-lg shadow-sm min-h-[920px] transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:min-h-0 print:h-auto print:rounded-none ${layout === "modern"
         ? "border-l-[10px] border-y border-r border-slate-200"
         : layout === "simple"
           ? "border border-slate-200 shadow-none"
