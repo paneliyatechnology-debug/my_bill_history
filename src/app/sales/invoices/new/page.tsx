@@ -622,9 +622,24 @@ export default function NewInvoicePage() {
     );
   };
 
+  const isItemOutOfStock = (item: any) => {
+    if (!item) return false;
+    const isService = String(item.type || "PRODUCT").toUpperCase() === "SERVICE";
+    if (isService) return false;
+    const availStock = Number(item.currentStock ?? item.stockQuantity ?? 0);
+    return availStock <= 0;
+  };
+
   const handleItemSelect = (idx: number, itId: string) => {
     const item = items.find((i) => i.id === itId);
     if (!item) return;
+
+    if (isItemOutOfStock(item)) {
+      const msg = `"${item.name}" is out of stock (Stock: 0) and cannot be selected.`;
+      setError(msg);
+      setToastMessage(msg);
+      return;
+    }
 
     const partyDisc = partyId
       ? getPartyItemDiscount(partyId, item.id, selectedParty?.name, item.name)
@@ -635,11 +650,12 @@ export default function NewInvoicePage() {
     const effectiveUnitPrice = partyPrice !== null ? partyPrice : item.retailPrice;
     const effectiveDiscount = partyDisc !== null ? partyDisc : (Number((item as any).discountPercent) || 0);
 
+    const isService = String((item as any).type || "PRODUCT").toUpperCase() === "SERVICE";
     const updated = [...rows];
     updated[idx] = {
       ...updated[idx],
       itemId: item.id,
-      hsnCode: item.hsnCode || "1001",
+      hsnCode: item.hsnCode || (isService ? "998314" : "1001"),
       unitPrice: effectiveUnitPrice,
       discountPercent: effectiveDiscount,
       taxRate: item.taxRate,
@@ -663,7 +679,14 @@ export default function NewInvoicePage() {
   };
 
   const handleAddRow = (specificItemId?: string) => {
-    const firstItem = specificItemId ? items.find((it) => it.id === specificItemId) : items[0];
+    const firstInStock = items.find((it) => !isItemOutOfStock(it));
+    const firstItem = specificItemId ? items.find((it) => it.id === specificItemId) : firstInStock;
+    if (firstItem && isItemOutOfStock(firstItem)) {
+      const msg = `"${firstItem.name}" is out of stock (Stock: 0) and cannot be added.`;
+      setError(msg);
+      setToastMessage(msg);
+      return;
+    }
     const partyPrice =
       partyId && firstItem?.id
         ? getPartyItemPrice(partyId, firstItem.id, selectedParty?.name, firstItem.name)
@@ -686,12 +709,13 @@ export default function NewInvoicePage() {
   };
 
   const handleAddBlankRow = () => {
+    const firstInStock = items.find((it) => !isItemOutOfStock(it));
     setRows((prev) => [
       ...prev,
       {
         rowId: `row-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-        itemId: items[0]?.id || "",
-        hsnCode: items[0]?.hsnCode || "1001",
+        itemId: firstInStock?.id || "",
+        hsnCode: firstInStock?.hsnCode || "1001",
         quantity: 1,
         unit: "PCS",
         unitPrice: 0,
@@ -1366,14 +1390,26 @@ export default function NewInvoicePage() {
       return;
     }
 
-    // 3. Ensure each row has an itemId and valid quantity
+    // 3. Ensure each row has an itemId, valid quantity, and available stock
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
       if (!r.itemId) {
-        if (items.length > 0) {
-          r.itemId = items[0].id;
-        } else {
-          const msg = `Item at row #${i + 1} is empty. Please select a valid item.`;
+        const msg = `Item at row #${i + 1} is empty. Please select an in-stock item.`;
+        setError(msg);
+        setToastMessage(msg);
+        return;
+      }
+      const matchedItem = items.find((it) => it.id === r.itemId);
+      if (matchedItem && isItemOutOfStock(matchedItem)) {
+        const msg = `"${matchedItem.name}" at row #${i + 1} has 0 stock. Please remove or replace it before creating the invoice.`;
+        setError(msg);
+        setToastMessage(msg);
+        return;
+      }
+      if (matchedItem && String((matchedItem as any).type || "PRODUCT").toUpperCase() !== "SERVICE") {
+        const availStock = Number((matchedItem as any).currentStock ?? matchedItem.stockQuantity ?? 0);
+        if (Number(r.quantity) > availStock) {
+          const msg = `Insufficient stock for "${matchedItem.name}" at row #${i + 1} (Available: ${availStock}, Requested: ${r.quantity}).`;
           setError(msg);
           setToastMessage(msg);
           return;
@@ -2213,11 +2249,18 @@ export default function NewInvoicePage() {
                                   size="sm"
                                   value={row.itemId}
                                   onChange={(val: any) => handleItemSelect(idx, val)}
-                                  options={items.map((it) => ({
-                                    value: it.id,
-                                    label: it.name,
-                                    sublabel: `Stock: ${Number((it as any).currentStock ?? it.stockQuantity ?? 0)}`,
-                                  }))}
+                                  options={items.map((it) => {
+                                    const availStock = Number((it as any).currentStock ?? it.stockQuantity ?? 0);
+                                    const isService = String((it as any).type || "PRODUCT").toUpperCase() === "SERVICE";
+                                    const outOfStock = !isService && availStock <= 0;
+                                    return {
+                                      value: it.id,
+                                      label: it.name,
+                                      sublabel: isService ? "Service" : `Stock: ${availStock}`,
+                                      disabled: outOfStock,
+                                      badge: outOfStock ? "Out of Stock" : undefined,
+                                    };
+                                  })}
                                   placeholder="Select Item..."
                                   triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
                                 />

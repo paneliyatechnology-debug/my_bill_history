@@ -292,7 +292,7 @@ export function ItemStepModal({
           nameGujarati: initialData.nameGujarati || "",
           sku: initialData.sku || "",
           barcode: initialData.barcode || "",
-          hsnCode: initialData.hsnCode || "1006",
+          hsnCode: initialData.hsnCode || (initialData.type === "SERVICE" ? "998314" : "1006"),
           primaryUomId: initialData.primaryUomId || defaultUom,
           secondaryUomId: initialData.secondaryUomId || "",
           conversionFactor: initialData.conversionFactor || 1,
@@ -770,7 +770,13 @@ export function ItemStepModal({
                               name="itemType"
                               value="PRODUCT"
                               checked={form.type === "PRODUCT"}
-                              onChange={() => setForm({ ...form, type: "PRODUCT" })}
+                              onChange={() =>
+                                setForm({
+                                  ...form,
+                                  type: "PRODUCT",
+                                  hsnCode: !form.hsnCode || form.hsnCode === "998314" ? "1006" : form.hsnCode,
+                                })
+                              }
                               className="accent-purple-600 w-3.5 h-3.5"
                             />
                             <span>{lang === "gu" ? "ઉત્પાદન (Product)" : "Product"}</span>
@@ -791,6 +797,7 @@ export function ItemStepModal({
                                   ...form,
                                   type: "SERVICE",
                                   openingStock: "0",
+                                  hsnCode: !form.hsnCode || form.hsnCode === "1006" ? "998314" : form.hsnCode,
                                 })
                               }
                               className="accent-purple-600 w-3.5 h-3.5"
