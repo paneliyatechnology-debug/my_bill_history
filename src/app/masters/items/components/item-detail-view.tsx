@@ -276,19 +276,22 @@ export function ItemDetailView({
     !isOutOfStock &&
     Boolean(item.minStockLevel && item.minStockLevel > 0 && currentStockNum <= item.minStockLevel);
 
-  // Handle Save Party Price
+  // Handle Save Party Discount (%)
   const handleSavePartyPriceRule = () => {
     if (!editingPartyPriceId) return;
     const matchedParty = parties.find((p) => p.id === editingPartyPriceId);
     if (!matchedParty) return;
 
-    const priceNum = parseFloat(newPartyPriceVal) || 0;
+    const discPct = parseFloat(newPartyPriceVal);
     const updated = partyPrices.filter((r) => r.partyId !== editingPartyPriceId);
-    if (priceNum > 0) {
+    if (!isNaN(discPct) && discPct >= 0 && discPct <= 100) {
+      const baseSales = Number(item.retailPrice) || 0;
+      const effectivePrice = baseSales > 0 ? Number((baseSales * (1 - discPct / 100)).toFixed(2)) : undefined;
       updated.push({
         partyId: matchedParty.id,
         partyName: matchedParty.name,
-        price: priceNum,
+        discountPercent: discPct,
+        ...(effectivePrice !== undefined ? { price: effectivePrice } : {}),
       });
     }
 
@@ -995,23 +998,37 @@ export function ItemDetailView({
                       </td>
                     </tr>
 
-                    {/* Custom Party Specific Prices */}
+                    {/* Custom Party Specific Discounts */}
                     {partyPrices
                       .filter(
                         (r) =>
                           !partyPriceSearch.trim() ||
                           r.partyName.toLowerCase().includes(partyPriceSearch.toLowerCase()),
                       )
-                      .map((rule) => (
+                      .map((rule) => {
+                        const baseSales = Number(item.retailPrice) || 0;
+                        const pct =
+                          rule.discountPercent !== undefined
+                            ? Number(rule.discountPercent)
+                            : baseSales > 0 && rule.price !== undefined
+                              ? Number((((baseSales - Number(rule.price)) / baseSales) * 100).toFixed(2))
+                              : 0;
+                        const effectiveAmt =
+                          baseSales > 0
+                            ? baseSales * (1 - pct / 100)
+                            : Number(rule.price || 0);
+                        return (
                         <tr key={rule.partyId} className="hover:bg-slate-50/60">
                           <td className="px-5 py-3 whitespace-nowrap font-medium text-slate-900">
                             {rule.partyName}
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap font-semibold text-slate-900">
-                            {formatInr(rule.price)}
+                            <span className="text-purple-700 mr-2">{pct}%</span>
+                            <span className="text-slate-500 font-normal">({formatInr(effectiveAmt)})</span>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>
@@ -1044,7 +1061,15 @@ export function ItemDetailView({
                   onChange={(val: any) => {
                     setEditingPartyPriceId(val);
                     const existingRule = partyPrices.find((r) => r.partyId === val);
-                    setNewPartyPriceVal(existingRule ? String(existingRule.price) : "");
+                    const baseSales = Number(item.retailPrice) || 0;
+                    const existingPct = existingRule
+                      ? existingRule.discountPercent !== undefined
+                        ? String(existingRule.discountPercent)
+                        : baseSales > 0 && existingRule.price !== undefined
+                          ? String(Number((((baseSales - Number(existingRule.price)) / baseSales) * 100).toFixed(2)))
+                          : ""
+                      : "";
+                    setNewPartyPriceVal(existingPct);
                   }}
                   options={[
                     { value: "", label: "-- Choose Party --" },
@@ -1060,14 +1085,16 @@ export function ItemDetailView({
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-500 mb-1">
-                  Custom Sales Price (₹)
+                  Party Discount (%)
                 </label>
                 <input
                   type="number"
-                  step="any"
+                  step="0.1"
+                  min="0"
+                  max="100"
                   value={newPartyPriceVal}
                   onChange={(e) => setNewPartyPriceVal(e.target.value)}
-                  placeholder={`Default is ₹ ${item.retailPrice}`}
+                  placeholder="ex: 10"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-[13px] text-slate-800 focus:outline-none focus:border-indigo-500 h-10"
                 />
               </div>

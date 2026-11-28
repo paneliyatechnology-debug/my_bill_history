@@ -30,6 +30,11 @@ export async function sendAppEmail(input: {
   details?: Array<{ label: string; value: string }>;
   text: string;
   replyTo?: string;
+  attachments?: Array<{
+    filename: string;
+    contentBase64: string;
+    contentType?: string;
+  }>;
 }): Promise<MailSendResult> {
   return apiClient.post<MailSendResult>("/mail/send", input);
 }

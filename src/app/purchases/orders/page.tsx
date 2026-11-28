@@ -164,98 +164,43 @@ export default function PurchaseOrdersListPage() {
     }
   }, [searchParams, orders]);
 
-  // Load from localStorage (or populate sample identical to myBillBook screenshot)
+  const poStorageKey = currentCompany?.id
+    ? `billing_purchase_orders_${currentCompany.id}`
+    : null;
+
+  // Load organization-scoped purchase orders from localStorage
   useEffect(() => {
+    if (!poStorageKey || !currentCompany?.id) {
+      setOrders([]);
+      return;
+    }
     try {
-      const stored = localStorage.getItem("billing_purchase_orders");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setOrders(parsed);
+      const scoped = localStorage.getItem(poStorageKey);
+      if (scoped) {
+        const parsed = JSON.parse(scoped);
+        if (Array.isArray(parsed)) {
+          setOrders(parsed.filter((o: any) => !o.companyId || o.companyId === currentCompany.id));
           return;
         }
       }
 
-      // Default sample matching myBillBook interface
-      const initialOrders: PurchaseOrderRecord[] = [
-        {
-          id: "po-2",
-          orderNumber: "2",
-          orderDate: "2026-10-22",
-          validTill: "",
-          party: {
-            id: "party-cash",
-            name: "Cash Sale",
-            phone: "9510442798",
-            gstin: "24AAAAA0000A1Z5",
-          },
-          items: [
-            {
-              id: "item-bopp",
-              name: "BOPP TAPE",
-              hsn: "391900",
-              quantity: 2,
-              unit: "PCS",
-              unitPrice: 1680,
-              discount: 0,
-              taxRate: 18,
-              taxAmount: 604.8,
-              taxableAmount: 3360,
-              totalAmount: 3964.8,
-            },
-          ],
-          taxableAmount: 3360,
-          taxAmount: 604.8,
-          cgstAmount: 302.4,
-          sgstAmount: 302.4,
-          grandTotal: 3964.8,
-          balanceAmount: 3964.8,
-          status: "OPEN",
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: "po-1",
-          orderNumber: "1",
-          orderDate: "2026-10-22",
-          validTill: "30 Days",
-          party: {
-            id: "party-adesh",
-            name: "ADESH PATEL",
-            phone: "7041436477",
-            gstin: "24AAAAA0000A1Z5",
-          },
-          items: [
-            {
-              id: "item-raw",
-              name: "3 INCH BOPP TAPE (BROWN)",
-              hsn: "391910",
-              quantity: 5,
-              unit: "BOX",
-              unitPrice: 1457.63,
-              discount: 0,
-              taxRate: 18,
-              taxAmount: 1311.85,
-              taxableAmount: 7288.15,
-              totalAmount: 8600,
-            },
-          ],
-          taxableAmount: 7288.15,
-          taxAmount: 1311.85,
-          cgstAmount: 655.92,
-          sgstAmount: 655.93,
-          grandTotal: 8600,
-          balanceAmount: 8600,
-          status: "OPEN",
-          createdAt: new Date().toISOString(),
-        },
-      ];
+      // Migrate only orders explicitly belonging to this organization from legacy key
+      const legacyRaw = localStorage.getItem("billing_purchase_orders");
+      if (legacyRaw) {
+        const legacyParsed = JSON.parse(legacyRaw);
+        if (Array.isArray(legacyParsed)) {
+          const ownOrders = legacyParsed.filter((o: any) => o.companyId === currentCompany.id);
+          localStorage.setItem(poStorageKey, JSON.stringify(ownOrders));
+          setOrders(ownOrders);
+          return;
+        }
+      }
 
-      setOrders(initialOrders);
-      localStorage.setItem("billing_purchase_orders", JSON.stringify(initialOrders));
+      setOrders([]);
     } catch {
       setOrders([]);
     }
-  }, []);
+  }, [poStorageKey, currentCompany?.id]);
 
   // Filter & Sort Logic
   const filteredOrders = useMemo(() => {
@@ -314,7 +259,9 @@ export default function PurchaseOrdersListPage() {
     if (!confirm("Are you sure you want to delete this purchase order?")) return;
     const updated = orders.filter((o) => o.id !== id);
     setOrders(updated);
-    localStorage.setItem("billing_purchase_orders", JSON.stringify(updated));
+    if (poStorageKey) {
+      localStorage.setItem(poStorageKey, JSON.stringify(updated));
+    }
     setActiveMenuId(null);
     if (selectedOrderForView?.id === id) {
       setSelectedOrderForView(null);
@@ -332,7 +279,9 @@ export default function PurchaseOrdersListPage() {
     };
     const updated = [duplicated, ...orders];
     setOrders(updated);
-    localStorage.setItem("billing_purchase_orders", JSON.stringify(updated));
+    if (poStorageKey) {
+      localStorage.setItem(poStorageKey, JSON.stringify(updated));
+    }
     setActiveMenuId(null);
   };
 

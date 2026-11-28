@@ -286,13 +286,12 @@ export default function InvoiceDetailPage() {
 
 
 
-  const handleDownloadPdf = async () => {
-    if (!invoice) return;
+  const buildInvoicePdf = async (options?: { fastForEmail?: boolean }) => {
+    if (!invoice) return null;
     const element = document.getElementById("printable-invoice");
-    if (!element) return;
+    if (!element) return null;
 
-    setIsGeneratingPdf(true);
-    setActionError(null);
+    const fastForEmail = Boolean(options?.fastForEmail);
     let originalTransform = "";
     let originalWidth = "";
     let wrapperEl: HTMLElement | null = null;
@@ -312,20 +311,20 @@ export default function InvoiceDetailPage() {
       element.style.width = "";
       element.style.transformOrigin = "";
 
-      const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
 
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: fastForEmail ? 1.5 : 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
         windowWidth: 1200,
       });
 
-      // Don't restore scaling here - the finally block handles it
-
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", fastForEmail ? 0.9 : 0.95);
       const pdfFormatMap: Record<string, any> = {
         A4: "a4",
         A5: "a5",
@@ -336,21 +335,17 @@ export default function InvoiceDetailPage() {
         orientation: "portrait",
         unit: "mm",
         format: pdfFormatMap[selectedPaperSize] || "a4",
+        compress: true,
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
       const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
 
-      // Standard A4 margin: 6mm left/right, 6mm top/bottom
       const margin = 6;
       const printableWidth = pdfWidth - margin * 2; // 198mm
       const printableHeight = pageHeight - margin * 2; // 285mm
-
-      // Scaled height if rendered at full printable width
       const unscaledHeight = (canvas.height * printableWidth) / canvas.width;
 
-      // If the content fits within ~1.25x of a single A4 page, scale it slightly to fit
-      // precisely onto EXACTLY ONE single A4 page with NO trailing second page!
       if (unscaledHeight <= printableHeight * 1.25) {
         const scaleFactor = Math.min(1, printableHeight / unscaledHeight);
         const finalWidth = printableWidth * scaleFactor;
@@ -358,34 +353,25 @@ export default function InvoiceDetailPage() {
         const posX = margin + (printableWidth - finalWidth) / 2;
         const posY = margin + (printableHeight - finalHeight) / 2;
 
-        pdf.addImage(imgData, "PNG", posX, posY, finalWidth, finalHeight, undefined, "FAST");
+        pdf.addImage(imgData, "JPEG", posX, posY, finalWidth, finalHeight, undefined, "FAST");
       } else {
-        // Multi-page document for genuine long lists (e.g. > 15 items)
         let heightLeft = unscaledHeight;
         let position = margin;
 
-        pdf.addImage(imgData, "PNG", margin, position, printableWidth, unscaledHeight, undefined, "FAST");
+        pdf.addImage(imgData, "JPEG", margin, position, printableWidth, unscaledHeight, undefined, "FAST");
         heightLeft -= printableHeight;
 
-        // Only add another page if remaining content is MORE than 25mm,
-        // avoiding ghost trailing pages with just a few pixels of padding
         while (heightLeft > 25) {
           pdf.addPage();
           position = margin - (unscaledHeight - heightLeft);
-          pdf.addImage(imgData, "PNG", margin, position, printableWidth, unscaledHeight, undefined, "FAST");
+          pdf.addImage(imgData, "JPEG", margin, position, printableWidth, unscaledHeight, undefined, "FAST");
           heightLeft -= printableHeight;
         }
       }
 
       const safeNumber = invoice.invoiceNumber.replace(/[\/\\?%*:|"<>]/g, "_");
-      pdf.save(`${safeNumber}.pdf`);
-      setActionSuccess(
-        lang === "gu"
-          ? `PDF '${safeNumber}.pdf' સફળતાપૂર્વક ડાઉનલોડ થઈ ગયું છે.`
-          : `PDF '${safeNumber}.pdf' downloaded successfully!`,
-      );
-    } catch (err: any) {
-      // Restore scaling on error
+      return { pdf, safeNumber };
+    } finally {
       if (element) {
         element.style.transform = originalTransform;
         element.style.width = originalWidth;
@@ -394,22 +380,47 @@ export default function InvoiceDetailPage() {
         wrapperEl.style.height = originalWrapperHeight;
         wrapperEl.style.overflow = originalWrapperOverflow;
       }
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!invoice) return;
+    setIsGeneratingPdf(true);
+    setActionError(null);
+    try {
+      const built = await buildInvoicePdf();
+      if (!built) return;
+      built.pdf.save(`${built.safeNumber}.pdf`);
+      const msg =
+        lang === "gu"
+          ? `PDF '${built.safeNumber}.pdf' સફળતાપૂર્વક ડાઉનલોડ થઈ ગયું છે.`
+          : `PDF '${built.safeNumber}.pdf' downloaded successfully!`;
+      setActionSuccess(msg);
+      const Swal = (await import("sweetalert2")).default;
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: msg,
+        showConfirmButton: false,
+        timer: 2600,
+        timerProgressBar: true,
+      });
+    } catch (err: any) {
       console.error("PDF generation failed:", err);
-      setActionError(
+      const errMsg =
         lang === "gu"
           ? "PDF બનાવવામાં સમસ્યા આવી. કૃપા કરીને પ્રિન્ટ ઓપ્શન વાપરો."
-          : `Failed to generate PDF: ${err.message || "Unknown error"}`,
-      );
+          : `Failed to generate PDF: ${err.message || "Unknown error"}`;
+      setActionError(errMsg);
+      const Swal = (await import("sweetalert2")).default;
+      Swal.fire({
+        icon: "error",
+        title: lang === "gu" ? "ભૂલ!" : "Download Failed",
+        text: errMsg,
+        confirmButtonColor: "#1677E8",
+      });
     } finally {
-      // Always restore mobile scaling
-      if (element) {
-        element.style.transform = originalTransform;
-        element.style.width = originalWidth;
-      }
-      if (wrapperEl) {
-        wrapperEl.style.height = originalWrapperHeight;
-        wrapperEl.style.overflow = originalWrapperOverflow;
-      }
       setIsGeneratingPdf(false);
     }
   };
@@ -1177,25 +1188,44 @@ export default function InvoiceDetailPage() {
 
       {emailShareOpen && invoice && (
         <form
-          className="print:hidden p-3.5 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center shadow-2xs"
+          className="print:hidden p-3.5 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200"
           onSubmit={async (e) => {
             e.preventDefault();
             setEmailShareBusy(true);
             setActionError(null);
+            const Swal = (await import("sweetalert2")).default;
+            Swal.fire({
+              title: lang === "gu" ? "PDF ઈમેલ મોકલાઈ રહ્યો છે..." : "Sending Invoice PDF...",
+              html: `<p style="font-size:13px;color:#475569;margin-top:4px;">${
+                lang === "gu"
+                  ? `<b>${emailShareTo.trim()}</b> પર PDF તૈયાર કરીને મોકલાઈ રહ્યું છે.`
+                  : `Preparing PDF &amp; sending to <b>${emailShareTo.trim()}</b>`
+              }</p>`,
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              showConfirmButton: false,
+              didOpen: () => {
+                Swal.showLoading();
+              },
+            });
             try {
               const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
-              const invoiceUrl = typeof window !== "undefined" ? window.location.href : "";
               const formattedGrandTotal = `₹ ${Number(invoice.grandTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
               const formattedBalance = `₹ ${bal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+              const built = await buildInvoicePdf({ fastForEmail: true });
+              if (!built) {
+                throw new Error("Could not generate invoice PDF.");
+              }
+              const dataUri = built.pdf.output("datauristring");
+              const contentBase64 = dataUri.includes(",") ? dataUri.split(",")[1] : dataUri;
 
               const result = await sendAppEmail({
                 to: emailShareTo.trim(),
                 category: "invoice",
                 subject: `Invoice ${invoice.invoiceNumber} from ${companyName}`,
                 heading: `Invoice ${invoice.invoiceNumber}`,
-                intro: `${companyName} has shared this tax invoice with you.`,
-                actionUrl: invoiceUrl,
-                actionLabel: "View & Download Invoice →",
+                intro: `${companyName} has shared the PDF tax invoice with you.`,
                 companyName,
                 details: [
                   { label: "Invoice Number", value: invoice.invoiceNumber },
@@ -1204,13 +1234,47 @@ export default function InvoiceDetailPage() {
                   { label: "Grand Total", value: formattedGrandTotal },
                   { label: "Balance", value: formattedBalance },
                 ],
-                note: "Thank you for your business! Please quote the invoice number in your payment reference.",
-                text: `Open the invoice in myownbillbook to view, print or download the PDF: ${invoiceUrl}`,
+                note: "Please find the invoice PDF attached to this email. Thank you for your business!",
+                text: `Please find attached Invoice ${invoice.invoiceNumber} (${formattedGrandTotal}) from ${companyName}.`,
+                attachments: [
+                  {
+                    filename: `Invoice-${built.safeNumber}.pdf`,
+                    contentBase64,
+                    contentType: "application/pdf",
+                  },
+                ],
               });
-              setActionSuccess(mailResultMessage(result, lang === "gu" ? "gu" : "en"));
-              if (result.delivered) setEmailShareOpen(false);
+              const msg = mailResultMessage(result, lang === "gu" ? "gu" : "en");
+              setActionSuccess(msg);
+              if (result.delivered) {
+                setEmailShareOpen(false);
+                await Swal.fire({
+                  icon: "success",
+                  title: lang === "gu" ? "ઈમેલ મોકલાઈ ગયો!" : "Email Sent!",
+                  text: lang === "gu"
+                    ? `Invoice-${built.safeNumber}.pdf સફળતાપૂર્વક ${emailShareTo.trim()} પર મોકલાઈ ગયું છે.`
+                    : `Invoice-${built.safeNumber}.pdf has been sent to ${emailShareTo.trim()}.`,
+                  confirmButtonColor: "#1677E8",
+                  timer: 3000,
+                  timerProgressBar: true,
+                });
+              } else {
+                await Swal.fire({
+                  icon: "info",
+                  title: lang === "gu" ? "ઈમેલ પ્રિવ્યૂ" : "SMTP Not Configured",
+                  text: msg,
+                  confirmButtonColor: "#1677E8",
+                });
+              }
             } catch (err: any) {
-              setActionError(err?.message || "Could not email this invoice.");
+              const errMsg = err?.message || "Could not email this invoice.";
+              setActionError(errMsg);
+              await Swal.fire({
+                icon: "error",
+                title: lang === "gu" ? "ઈમેલ મોકલવામાં ભૂલ" : "Email Failed",
+                text: errMsg,
+                confirmButtonColor: "#1677E8",
+              });
             } finally {
               setEmailShareBusy(false);
             }

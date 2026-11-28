@@ -24,7 +24,7 @@ import {
   DEFAULT_INVOICE_CUSTOMIZATION,
   getActiveThemePreset,
 } from "@/lib/invoice-theme";
-import { getPartyItemPrice } from "../../../../lib/party-item-pricing";
+import { getPartyItemDiscount, getPartyItemPrice } from "../../../../lib/party-item-pricing";
 import { INDIAN_STATES, resolvePartyStateCode, getStateDisplayName } from "@/shared-types";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import {
@@ -593,11 +593,19 @@ export default function NewInvoicePage() {
       if (st) setPlaceOfSupply(st);
     }
 
-    // Automatically recalculate item prices in existing rows only if not manually overridden
+    // Automatically recalculate item prices & party discounts in existing rows only if not manually overridden
     setRows((prevRows) =>
       prevRows.map((r) => {
         if (!r.itemId || r.isManualRate) return r;
         const it = items.find((i) => i.id === r.itemId);
+        const partyDisc = getPartyItemDiscount(id, r.itemId, selected?.name, it?.name);
+        if (partyDisc !== null) {
+          return {
+            ...r,
+            unitPrice: it ? it.retailPrice : r.unitPrice,
+            discountPercent: partyDisc,
+          };
+        }
         const partyPrice = getPartyItemPrice(id, r.itemId, selected?.name, it?.name);
         if (partyPrice !== null) {
           return { ...r, unitPrice: partyPrice };
@@ -613,10 +621,14 @@ export default function NewInvoicePage() {
     const item = items.find((i) => i.id === itId);
     if (!item) return;
 
-    const partyPrice = partyId
+    const partyDisc = partyId
+      ? getPartyItemDiscount(partyId, item.id, selectedParty?.name, item.name)
+      : null;
+    const partyPrice = partyId && partyDisc === null
       ? getPartyItemPrice(partyId, item.id, selectedParty?.name, item.name)
       : null;
     const effectiveUnitPrice = partyPrice !== null ? partyPrice : item.retailPrice;
+    const effectiveDiscount = partyDisc !== null ? partyDisc : (Number((item as any).discountPercent) || 0);
 
     const updated = [...rows];
     updated[idx] = {
@@ -624,6 +636,7 @@ export default function NewInvoicePage() {
       itemId: item.id,
       hsnCode: item.hsnCode || "1001",
       unitPrice: effectiveUnitPrice,
+      discountPercent: effectiveDiscount,
       taxRate: item.taxRate,
       isManualRate: false,
     };
@@ -2091,7 +2104,7 @@ export default function NewInvoicePage() {
               title="Items & Services"
               itemsCount={rows.length}
               totalQty={totalQty}
-              itemsTotal={itemsSubtotal}
+              itemsTotal={formatInr(totalTaxable)}
               // onScanItem={() => setShowAiPanel(true)}
               onImportItems={() => setIsAddItemsModalOpen(true)}
               onAddItem={() => setIsAddItemsModalOpen(true)}
@@ -2138,9 +2151,10 @@ export default function NewInvoicePage() {
                       const gross = qty * rate;
                       const grossAfterDisc = gross - (gross * disc) / 100;
                       const effectiveTaxRate = row.taxRate || 0;
-                      const lineTotal = isTaxInclusive
-                        ? grossAfterDisc
-                        : grossAfterDisc + (grossAfterDisc * effectiveTaxRate) / 100;
+                      const lineTotal =
+                        isTaxInclusive && effectiveTaxRate > 0
+                          ? grossAfterDisc / (1 + effectiveTaxRate / 100)
+                          : grossAfterDisc;
 
                       return (
                         <tr key={row.rowId || `row-${idx}`} className="hover:bg-slate-50/70 transition-colors">

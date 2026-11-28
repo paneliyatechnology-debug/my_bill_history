@@ -1,7 +1,8 @@
 export interface PartyWisePriceRule {
   partyId: string;
   partyName: string;
-  price: number;
+  price?: number;
+  discountPercent?: number;
   isTaxInclusive?: boolean;
 }
 
@@ -200,7 +201,11 @@ export function getPartyItemPriceRule(
     return false;
   });
 
-  if (found && !isNaN(Number(found.price))) {
+  if (
+    found &&
+    ((found.discountPercent !== undefined && !isNaN(Number(found.discountPercent))) ||
+      (found.price !== undefined && !isNaN(Number(found.price))))
+  ) {
     return found;
   }
 
@@ -222,5 +227,27 @@ export function getPartyItemPrice(
     fallbackPartyName,
     fallbackItemName
   );
-  return rule !== null ? Number(rule.price) : null;
+  if (!rule || rule.price === undefined || isNaN(Number(rule.price))) return null;
+  return Number(rule.price);
+}
+
+/**
+ * Returns the party-wise discount percentage for a given party and item, or null if none is set.
+ */
+export function getPartyItemDiscount(
+  partyIdOrName?: string | null,
+  itemIdOrName?: string | null,
+  fallbackPartyName?: string | null,
+  fallbackItemName?: string | null
+): number | null {
+  const rule = getPartyItemPriceRule(
+    partyIdOrName,
+    itemIdOrName,
+    fallbackPartyName,
+    fallbackItemName
+  );
+  if (!rule || rule.discountPercent === undefined || isNaN(Number(rule.discountPercent))) {
+    return null;
+  }
+  return Number(rule.discountPercent);
 }

@@ -243,10 +243,17 @@ export default function CreatePurchaseOrderPage() {
   useEffect(() => {
     if (!editId) return;
     try {
-      const stored = localStorage.getItem("billing_purchase_orders");
+      const poKey = currentCompany?.id
+        ? `billing_purchase_orders_${currentCompany.id}`
+        : "billing_purchase_orders";
+      const stored = localStorage.getItem(poKey) || localStorage.getItem("billing_purchase_orders");
       if (stored) {
         const list = JSON.parse(stored);
-        const match = list.find((o: any) => o.id === editId || o.orderNumber === editId);
+        const match = list.find(
+          (o: any) =>
+            (o.id === editId || o.orderNumber === editId) &&
+            (!o.companyId || !currentCompany?.id || o.companyId === currentCompany.id),
+        );
         if (match) {
           if (match.orderNumber) setOrderNumber(match.orderNumber);
           if (match.placeOfSupply) setPlaceOfSupply(match.placeOfSupply);
@@ -516,7 +523,10 @@ export default function CreatePurchaseOrderPage() {
     };
 
     try {
-      const stored = localStorage.getItem("billing_purchase_orders");
+      const poKey = currentCompany?.id
+        ? `billing_purchase_orders_${currentCompany.id}`
+        : "billing_purchase_orders";
+      const stored = localStorage.getItem(poKey);
       const list = stored ? JSON.parse(stored) : [];
       let updatedList = [];
       if (editId) {
@@ -524,7 +534,7 @@ export default function CreatePurchaseOrderPage() {
       } else {
         updatedList = [newOrder, ...list];
       }
-      localStorage.setItem("billing_purchase_orders", JSON.stringify(updatedList));
+      localStorage.setItem(poKey, JSON.stringify(updatedList));
 
       setShowConfetti(true);
       showToast(lang === "gu" ? "ખરીદી ઓર્ડર સફળતાપૂર્વક સાચવવામાં આવ્યો!" : "Purchase Order saved successfully!");

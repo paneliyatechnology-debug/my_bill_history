@@ -44,6 +44,9 @@ importers:
       react-dom:
         specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
+      sweetalert2:
+        specifier: ^11.26.26
+        version: 11.26.26
       tailwind-merge:
         specifier: ^2.5.3
         version: 2.6.1
@@ -4134,6 +4137,9 @@ packages:
   svg-pathdata@6.0.3:
     resolution: {integrity: sha512-qsjeeq5YjBZ5eMdFuUa4ZosMLxgr5RZ+F+Y1OrDhuOCEInRMA3x74XdBtggJcj9kOeInz0WE+LgCPDkZFlBYJw==}
     engines: {node: '>=12.0.0'}
+
+  sweetalert2@11.26.26:
+    resolution: {integrity: sha512-ihhDJ/0wA+jpuakxnD5CTBzhos96NVSnt7iHoIS6IaqHFwkQNQ2Q4BJwXeHARfsCvhVH4o1GMm80LZRWN9ST6g==}
 
   symbol-observable@4.0.0:
     resolution: {integrity: sha512-b19dMThMV4HVFynSAM1++gBHAbk2Tc/osgLIBZMKsyqh34jb2e8Os7T6ZW/Bt3pJFdBTd2JwAnAAEQV7rSNvcQ==}
@@ -8520,6 +8526,8 @@ snapshots:
 
   svg-pathdata@6.0.3:
     optional: true
+
+  sweetalert2@11.26.26: {}
 
   symbol-observable@4.0.0: {}
 

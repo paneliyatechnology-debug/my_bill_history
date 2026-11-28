@@ -346,7 +346,7 @@ export function DynamicThemedInvoice({
   const bankIfsc = (company as any)?.bankIfsc || company?.ifscCode || "";
   const bankName = company?.bankName || "";
   const bankBranch = (company as any)?.bankBranch || company?.branchName || "";
-  const upiVpa = company?.upiVpa || "";
+  const upiVpa = company?.upiVpa || (company as any)?.upiId || "";
 
   // Generate Barcode
   useEffect(() => {
@@ -368,18 +368,42 @@ export function DynamicThemedInvoice({
   useEffect(() => {
     if (upiQrRef.current) {
       try {
-        const vpa = upiVpa || (company?.phone ? `${company.phone}@upi` : "");
+        const cleanVpa = upiVpa.trim();
+        const cleanAcc = bankAccountVal.replace(/\s+/g, "");
+        const cleanIfsc = bankIfsc.trim().toUpperCase();
+        const vpa =
+          cleanVpa ||
+          (cleanAcc && cleanIfsc ? `${cleanAcc}@${cleanIfsc}.ifsc.npci` : "");
         if (vpa) {
-          const bal = invoice.balanceAmount !== undefined ? invoice.balanceAmount : invoice.grandTotal;
-          const upiUrl = `upi://pay?pa=${vpa}&pn=${encodeURIComponent(companyName)}&am=${bal}&cu=INR&tn=Invoice%20${encodeURIComponent(invoice.invoiceNumber)}`;
+          const rawBal =
+            invoice.balanceAmount !== undefined
+              ? Number(invoice.balanceAmount)
+              : Number(invoice.grandTotal);
+          const amtParam =
+            Number.isFinite(rawBal) && rawBal > 0 ? `&am=${rawBal.toFixed(2)}` : "";
+          const noteParam = encodeURIComponent(
+            `Invoice ${invoice.invoiceNumber || ""}`.trim(),
+          );
+          const upiUrl = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(companyName)}${amtParam}&cu=INR&tn=${noteParam}`;
           QRCode.toCanvas(upiQrRef.current, upiUrl, {
-            width: 72,
-            margin: 1,
+            width: 88,
+            margin: 2,
+            errorCorrectionLevel: "M",
           });
         }
       } catch { }
     }
-  }, [upiVpa, companyName, invoice.balanceAmount, invoice.grandTotal, invoice.invoiceNumber, company?.phone]);
+  }, [
+    upiVpa,
+    bankAccountVal,
+    bankIfsc,
+    companyName,
+    invoice.balanceAmount,
+    invoice.grandTotal,
+    invoice.invoiceNumber,
+    settings.selectedPaymentQr,
+    layout,
+  ]);
 
   // Generate E-Invoice Signed QR Code
   useEffect(() => {
