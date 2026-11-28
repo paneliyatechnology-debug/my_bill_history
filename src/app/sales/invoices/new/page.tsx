@@ -257,6 +257,11 @@ export default function NewInvoicePage() {
   const [paymentMode, setPaymentMode] = useState("CASH");
   const [amountReceived, setAmountReceived] = useState<number | "">("");
   const [isFullyPaid, setIsFullyPaid] = useState(false);
+  const [paymentReferenceNo, setPaymentReferenceNo] = useState("");
+  const [chequeNumber, setChequeNumber] = useState("");
+  const [chequeDate, setChequeDate] = useState("");
+  const [paymentBankName, setPaymentBankName] = useState("");
+  const [upiId, setUpiId] = useState("");
 
   // Split Payment Modal State
   const [isSplitPaymentOpen, setIsSplitPaymentOpen] = useState(false);
@@ -1422,7 +1427,9 @@ export default function NewInvoicePage() {
         invoiceNumber,
         invoiceDate: formatIsoDate(invoiceDate) || new Date().toISOString(),
         dueDate: formatIsoDate(dueDate),
-        paymentMode: resolvedPaymentMode,
+        paymentMode: isDraft ? "UNPAID_CREDIT" : resolvedPaymentMode,
+        isDraft: isDraft ? true : undefined,
+        status: isDraft ? "DRAFT" : undefined,
         placeOfSupply: placeOfSupply || (selectedParty ? resolvePartyStateCode(selectedParty, companyState) : companyState) || "24",
         warehouseId: warehouseId || undefined,
         notes: notes.trim() || undefined,
@@ -1441,7 +1448,7 @@ export default function NewInvoicePage() {
           taxRate: r.taxRate,
           isTaxInclusive,
         })),
-        receivedAmount: isFullyPaid ? roundedGrandTotal : 0,
+        receivedAmount: isDraft ? 0 : isFullyPaid ? roundedGrandTotal : 0,
         poNumber: quickSettings.enablePoDetails ? poNumber || undefined : undefined,
         poDate: quickSettings.enablePoDetails && poDate ? new Date(poDate).toISOString() : undefined,
         vehicleNumber: (quickSettings.enableVehicleDetails && vehicleNumber) || undefined,
@@ -1452,6 +1459,11 @@ export default function NewInvoicePage() {
           ...(vehicleNo || vehicleNumber ? { vehicleNo: vehicleNo || vehicleNumber } : {}),
           ...(transportMode ? { transportMode } : {}),
           ...(salespersonName.trim() ? { salespersonName: salespersonName.trim() } : {}),
+          ...(paymentReferenceNo.trim() ? { paymentReferenceNo: paymentReferenceNo.trim() } : {}),
+          ...(chequeNumber.trim() ? { chequeNumber: chequeNumber.trim() } : {}),
+          ...(chequeDate ? { chequeDate } : {}),
+          ...(paymentBankName.trim() ? { bankName: paymentBankName.trim() } : {}),
+          ...(upiId.trim() ? { upiId: upiId.trim() } : {}),
           ...(tcsSection
             ? {
                 tcsSection,
@@ -1473,13 +1485,19 @@ export default function NewInvoicePage() {
       );
 
       // If partial payment was recorded, post it against the created invoice
-      if (!isFullyPaid && effectiveReceived > 0 && res?.id) {
+      if (!isDraft && !isFullyPaid && effectiveReceived > 0 && res?.id) {
         try {
           await apiClient.post(`/sales/invoices/${res.id}/payments`, {
             amount: effectiveReceived,
             paymentMode,
+            referenceNo: chequeNumber.trim() || paymentReferenceNo.trim() || undefined,
             paymentDate: new Date(invoiceDate).toISOString(),
-            notes: "Initial payment recorded at invoice creation",
+            notes: [
+              "Initial payment recorded at invoice creation",
+              paymentBankName.trim() ? `Bank: ${paymentBankName.trim()}` : "",
+              chequeDate ? `Cheque Date: ${chequeDate}` : "",
+              upiId.trim() ? `UPI: ${upiId.trim()}` : "",
+            ].filter(Boolean).join(" • "),
           });
         } catch (payErr) {
           console.warn("Partial payment recording error:", payErr);
@@ -2368,6 +2386,16 @@ export default function NewInvoicePage() {
                   }}
                   paymentMode={paymentMode}
                   onPaymentModeChange={setPaymentMode}
+                  paymentReferenceNo={paymentReferenceNo}
+                  onPaymentReferenceNoChange={setPaymentReferenceNo}
+                  chequeNumber={chequeNumber}
+                  onChequeNumberChange={setChequeNumber}
+                  chequeDate={chequeDate}
+                  onChequeDateChange={setChequeDate}
+                  bankName={paymentBankName}
+                  onBankNameChange={setPaymentBankName}
+                  upiId={upiId}
+                  onUpiIdChange={setUpiId}
                   balanceDue={balanceAmount}
                   onPaidInFull={() => {
                     setIsFullyPaid(true);

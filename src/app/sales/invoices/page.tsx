@@ -120,7 +120,8 @@ function calculateDueIn(
   }
 }
 
-function getInvoiceStatus(inv: any): "PAID" | "PARTIALLY_PAID" | "UNPAID" | "CANCELLED" {
+function getInvoiceStatus(inv: any): "DRAFT" | "PAID" | "PARTIALLY_PAID" | "UNPAID" | "CANCELLED" {
+  if (inv.status === "DRAFT") return "DRAFT";
   if (inv.status === "CANCELLED") return "CANCELLED";
   if (inv.isFullyReturned) return "PAID";
   const total = Number(inv.grandTotal || 0);
@@ -147,7 +148,7 @@ export default function SalesInvoicesDashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Filter States
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "PAID" | "UNPAID" | "CANCELLED">("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "PAID" | "UNPAID" | "DRAFT" | "CANCELLED">("ALL");
   const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>("LAST_365_DAYS");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
@@ -268,12 +269,11 @@ export default function SalesInvoicesDashboardPage() {
   const filteredInvoices = useMemo(() => {
     let result = invoices;
 
-    // 1. Status Filter
-    if (statusFilter !== "ALL") {
-      result = result.filter((inv) => {
-        const computed = getInvoiceStatus(inv);
-        return computed === statusFilter;
-      });
+    // 1. Status Filter (Exclude DRAFT from ALL so Drafts stay in Draft tab only)
+    if (statusFilter === "ALL") {
+      result = result.filter((inv) => getInvoiceStatus(inv) !== "DRAFT");
+    } else {
+      result = result.filter((inv) => getInvoiceStatus(inv) === statusFilter);
     }
 
     // 2. Date Filter
@@ -349,7 +349,11 @@ export default function SalesInvoicesDashboardPage() {
       );
     }
 
-    return result;
+    return [...result].sort((a: any, b: any) => {
+      const aTime = new Date(a.createdAt || a.invoiceDate || 0).getTime();
+      const bTime = new Date(b.createdAt || b.invoiceDate || 0).getTime();
+      return bTime - aTime;
+    });
   }, [invoices, statusFilter, dateRangePreset, customStartDate, customEndDate, searchQuery]);
 
   // Reset pagination when filters change
@@ -389,7 +393,10 @@ export default function SalesInvoicesDashboardPage() {
           : gTotal - paid,
       );
 
-      if (inv.status === "CANCELLED") {
+      if (inv.status === "DRAFT") {
+        // Drafts do not count toward finalized sales/paid/unpaid totals
+        return;
+      } else if (inv.status === "CANCELLED") {
         cancelledCount += 1;
       } else {
         totalSales += netTotal;
@@ -883,7 +890,7 @@ export default function SalesInvoicesDashboardPage() {
 
             {/* Status Quick Filter Buttons */}
             <div className="hidden lg:flex items-center gap-1 bg-[#F8FAFC] p-1 border border-[#E2E8E5] rounded-xl">
-              {(["ALL", "PAID", "UNPAID", "CANCELLED"] as const).map((st) => (
+              {(["ALL", "PAID", "UNPAID", "DRAFT", "CANCELLED"] as const).map((st) => (
                 <button
                   key={st}
                   type="button"
@@ -897,6 +904,7 @@ export default function SalesInvoicesDashboardPage() {
                   {st === "ALL" && (lang === "gu" ? "બધા" : "All")}
                   {st === "PAID" && (lang === "gu" ? "ચૂકવાયેલ" : "Paid")}
                   {st === "UNPAID" && (lang === "gu" ? "બાકી" : "Unpaid")}
+                  {st === "DRAFT" && (lang === "gu" ? "ડ્રાફ્ટ" : "Draft")}
                   {st === "CANCELLED" && (lang === "gu" ? "રદ" : "Void")}
                 </button>
               ))}
@@ -1193,6 +1201,12 @@ export default function SalesInvoicesDashboardPage() {
 
                       {/* Status Badge */}
                       <td className="py-3 px-3 text-center whitespace-nowrap">
+                        {status === "DRAFT" && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 typo-badge rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            {lang === "gu" ? "ડ્રાફ્ટ" : "Draft"}
+                          </span>
+                        )}
                         {status === "PAID" && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 typo-badge rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />

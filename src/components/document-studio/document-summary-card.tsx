@@ -137,12 +137,26 @@ export function DocumentPaymentCard({
   onAmountReceivedChange,
   paymentMode,
   onPaymentModeChange,
+  paymentReferenceNo = "",
+  onPaymentReferenceNoChange,
+  chequeNumber = "",
+  onChequeNumberChange,
+  chequeDate = "",
+  onChequeDateChange,
+  bankName = "",
+  onBankNameChange,
+  upiId = "",
+  onUpiIdChange,
   balanceDue,
   balanceLabel,
   onPaidInFull,
   paidInFullLabel = "Paid In Full",
   lang = "en",
 }: DocumentPaymentCardProps) {
+  const modeUpper = (paymentMode || "CASH").toUpperCase();
+  const isCheque = modeUpper === "CHEQUE";
+  const isUpi = modeUpper === "UPI" || modeUpper === "UPI_QR";
+  const isBank = modeUpper === "BANK TRANSFER" || modeUpper === "BANK_TRANSFER";
   const formatCur = (val: string | number | undefined) => {
     if (val === undefined || val === null || val === "") return "₹ 0.00";
     const num = typeof val === "number" ? val : parseFloat(val);
@@ -221,15 +235,110 @@ export function DocumentPaymentCard({
             value={paymentMode}
             onChange={(val: any) => onPaymentModeChange(val)}
             options={[
-              { value: "Cash", label: "Cash" },
-              { value: "UPI", label: "UPI" },
-              { value: "Bank Transfer", label: "Bank Transfer / NEFT" },
-              { value: "Cheque", label: "Cheque" },
-              { value: "Credit", label: "Credit / Due" },
+              { value: "CASH", label: "Cash" },
+              { value: "UPI_QR", label: "UPI" },
+              { value: "BANK_TRANSFER", label: "Bank Transfer / NEFT" },
+              { value: "CHEQUE", label: "Cheque" },
+              { value: "UNPAID_CREDIT", label: "Credit / Due" },
             ]}
             triggerClassName="rounded-xl border-slate-200 bg-white"
           />
         </div>
+
+        {/* Dynamic Payment Mode Details */}
+        {isCheque && onChequeNumberChange && (
+          <div className="p-3 bg-slate-50/80 border border-slate-200/80 rounded-xl space-y-2.5">
+            <div className="grid grid-cols-2 gap-2.5">
+              <div>
+                <label className="typo-label text-slate-600 block mb-1">Cheque No.</label>
+                <input
+                  type="text"
+                  value={chequeNumber}
+                  onChange={(e) => onChequeNumberChange(e.target.value)}
+                  placeholder="e.g. 004512"
+                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-[#1677E8]"
+                />
+              </div>
+              {onChequeDateChange && (
+                <div>
+                  <label className="typo-label text-slate-600 block mb-1">Cheque Date</label>
+                  <input
+                    type="date"
+                    value={chequeDate}
+                    onChange={(e) => onChequeDateChange(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-[#1677E8]"
+                  />
+                </div>
+              )}
+            </div>
+            {onBankNameChange && (
+              <div>
+                <label className="typo-label text-slate-600 block mb-1">Bank Name</label>
+                <input
+                  type="text"
+                  value={bankName}
+                  onChange={(e) => onBankNameChange(e.target.value)}
+                  placeholder="e.g. HDFC Bank, Ahmedabad"
+                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-[#1677E8]"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {isUpi && onPaymentReferenceNoChange && (
+          <div className="p-3 bg-slate-50/80 border border-slate-200/80 rounded-xl space-y-2.5">
+            <div>
+              <label className="typo-label text-slate-600 block mb-1">UPI Transaction / UTR Ref No.</label>
+              <input
+                type="text"
+                value={paymentReferenceNo}
+                onChange={(e) => onPaymentReferenceNoChange(e.target.value)}
+                placeholder="e.g. 432198765432"
+                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-[#1677E8]"
+              />
+            </div>
+            {onUpiIdChange && (
+              <div>
+                <label className="typo-label text-slate-600 block mb-1">UPI ID / App (Optional)</label>
+                <input
+                  type="text"
+                  value={upiId}
+                  onChange={(e) => onUpiIdChange(e.target.value)}
+                  placeholder="e.g. shop@okicici / GPay"
+                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-[#1677E8]"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {isBank && onPaymentReferenceNoChange && (
+          <div className="p-3 bg-slate-50/80 border border-slate-200/80 rounded-xl space-y-2.5">
+            <div>
+              <label className="typo-label text-slate-600 block mb-1">UTR / NEFT / RTGS Ref No.</label>
+              <input
+                type="text"
+                value={paymentReferenceNo}
+                onChange={(e) => onPaymentReferenceNoChange(e.target.value)}
+                placeholder="e.g. HDFCN2611280012"
+                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-[#1677E8]"
+              />
+            </div>
+            {onBankNameChange && (
+              <div>
+                <label className="typo-label text-slate-600 block mb-1">Bank Name / Account (Optional)</label>
+                <input
+                  type="text"
+                  value={bankName}
+                  onChange={(e) => onBankNameChange(e.target.value)}
+                  placeholder="e.g. SBI Current A/c"
+                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-[#1677E8]"
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Balance Due Pill matching Reference Image */}
         <div className="pt-1">

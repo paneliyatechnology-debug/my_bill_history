@@ -130,6 +130,16 @@ export interface DocumentPaymentCardProps {
   onAmountReceivedChange: (val: number | "") => void;
   paymentMode: string;
   onPaymentModeChange: (val: string) => void;
+  paymentReferenceNo?: string;
+  onPaymentReferenceNoChange?: (val: string) => void;
+  chequeNumber?: string;
+  onChequeNumberChange?: (val: string) => void;
+  chequeDate?: string;
+  onChequeDateChange?: (val: string) => void;
+  bankName?: string;
+  onBankNameChange?: (val: string) => void;
+  upiId?: string;
+  onUpiIdChange?: (val: string) => void;
   balanceDue: number | string;
   balanceLabel?: string;
   onPaidInFull?: () => void;
