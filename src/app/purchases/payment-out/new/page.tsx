@@ -9,6 +9,7 @@ import { Keyboard, Settings, X, FileText, Search, Calendar } from "lucide-react"
 import { CustomSelect } from "@/components/ui/dropdown-system";
 import { formatDate } from "@/lib/date-utils";
 import { CustomDatePicker } from "@/components/ui/custom-datepicker";
+import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 
 interface PartyOption {
   id: string;
@@ -152,6 +153,11 @@ function CreatePaymentOutForm() {
   const [amountPaid, setAmountPaid] = useState("");
   const [paymentOutDiscount, setPaymentOutDiscount] = useState("");
   const [referenceNo, setReferenceNo] = useState("");
+  const [chequeNumber, setChequeNumber] = useState("");
+  const [chequeDate, setChequeDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [chequeBankName, setChequeBankName] = useState("");
+  const [bankTransferType, setBankTransferType] = useState("NEFT");
+  const [upiVpa, setUpiVpa] = useState("");
   const [notes, setNotes] = useState("");
 
   // Invoices & Allocations
@@ -169,6 +175,7 @@ function CreatePaymentOutForm() {
 
   // Settings modal state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [settingsPrefix, setSettingsPrefix] = useState("PAY-");
   const [settingsSequence, setSettingsSequence] = useState("1");
   const [enablePrefix, setEnablePrefix] = useState(true);
@@ -615,6 +622,37 @@ function CreatePaymentOutForm() {
         cashDiscount: parseFloat(b.discount) || 0,
       }));
 
+    if (paymentMode === "CHEQUE" && !chequeNumber.trim()) {
+      setErrorMessage("Please enter the Cheque Number.");
+      return;
+    }
+
+    let computedReference = referenceNo.trim() || undefined;
+    if (paymentMode === "CHEQUE") {
+      computedReference = [
+        `Cheque #${chequeNumber.trim()}`,
+        chequeDate ? `Dated ${chequeDate}` : "",
+        chequeBankName.trim() ? chequeBankName.trim() : "",
+      ]
+        .filter(Boolean)
+        .join(" • ");
+    } else if (paymentMode === "BANK_TRANSFER") {
+      computedReference = [
+        bankTransferType,
+        referenceNo.trim() ? `Ref: ${referenceNo.trim()}` : "",
+      ]
+        .filter(Boolean)
+        .join(" • ");
+    } else if (paymentMode === "UPI") {
+      computedReference =
+        [
+          referenceNo.trim() ? `UPI Ref: ${referenceNo.trim()}` : "",
+          upiVpa.trim() ? `VPA: ${upiVpa.trim()}` : "",
+        ]
+          .filter(Boolean)
+          .join(" • ") || undefined;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await apiClient.post<any>("/purchases/payment-out", {
@@ -625,7 +663,7 @@ function CreatePaymentOutForm() {
         paidFromAccountId: paidFromAccountId || undefined,
         paymentMode,
         paymentNumber: paymentNumber.trim() || undefined,
-        referenceNo: referenceNo.trim() || undefined,
+        referenceNo: computedReference,
         narration: notes.trim() || undefined,
         allocations: allocationsPayload.length > 0 ? allocationsPayload : undefined,
       });
@@ -675,7 +713,8 @@ function CreatePaymentOutForm() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+              onClick={() => setIsShortcutsOpen(true)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 cursor-pointer"
               title="Keyboard shortcuts"
             >
               <Keyboard className="w-4 h-4" />
@@ -882,6 +921,106 @@ function CreatePaymentOutForm() {
                   />
                 </div>
               </div>
+
+              {paymentMode === "CHEQUE" && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-lg border border-blue-100 bg-blue-50/40 p-3 animate-in fade-in duration-150">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Cheque Number <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={chequeNumber}
+                      onChange={(e) => setChequeNumber(e.target.value)}
+                      placeholder="e.g. 123456"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-9"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Cheque Date
+                    </label>
+                    <CustomDatePicker
+                      value={chequeDate}
+                      onChange={(val) => setChequeDate(val)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Bank Name
+                    </label>
+                    <input
+                      type="text"
+                      value={chequeBankName}
+                      onChange={(e) => setChequeBankName(e.target.value)}
+                      placeholder="e.g. HDFC / SBI"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-9"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {paymentMode === "BANK_TRANSFER" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-lg border border-indigo-100 bg-indigo-50/40 p-3 animate-in fade-in duration-150">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Transfer Mode
+                    </label>
+                    <CustomSelect
+                      value={bankTransferType}
+                      onChange={(val: any) => setBankTransferType(val)}
+                      options={[
+                        { value: "NEFT", label: "NEFT" },
+                        { value: "RTGS", label: "RTGS" },
+                        { value: "IMPS", label: "IMPS" },
+                        { value: "OTHER", label: "Other Bank Transfer" },
+                      ]}
+                      triggerClassName="rounded-lg border-slate-200 bg-white h-9"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      UTR / Transaction Ref No.
+                    </label>
+                    <input
+                      type="text"
+                      value={referenceNo}
+                      onChange={(e) => setReferenceNo(e.target.value)}
+                      placeholder="e.g. UTR1234567890"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-9"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {paymentMode === "UPI" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-lg border border-emerald-100 bg-emerald-50/40 p-3 animate-in fade-in duration-150">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      UPI Transaction / Ref ID
+                    </label>
+                    <input
+                      type="text"
+                      value={referenceNo}
+                      onChange={(e) => setReferenceNo(e.target.value)}
+                      placeholder="e.g. 432198765432"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-9"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Payee UPI ID (VPA)
+                    </label>
+                    <input
+                      type="text"
+                      value={upiVpa}
+                      onChange={(e) => setUpiVpa(e.target.value)}
+                      placeholder="e.g. vendor@okicici"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-9"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-500 mb-1">
@@ -1171,6 +1310,7 @@ function CreatePaymentOutForm() {
           </div>
         </div>
       )}
+      <ShortcutsModal isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />
     </div>
   );
 }
