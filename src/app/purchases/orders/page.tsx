@@ -119,6 +119,7 @@ export default function PurchaseOrdersListPage() {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
 
   // Detail / View Mode (When a row is clicked)
   const [selectedOrderForView, setSelectedOrderForView] = useState<PurchaseOrderRecord | null>(null);
@@ -1044,9 +1045,25 @@ export default function PurchaseOrdersListPage() {
                       >
                         <button
                           type="button"
-                          onClick={() =>
-                            setActiveMenuId(activeMenuId === ord.id ? null : ord.id)
-                          }
+                          onClick={(e) => {
+                            if (activeMenuId === ord.id) {
+                              setActiveMenuId(null);
+                              setMenuPosition(null);
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const spaceBelow = window.innerHeight - rect.bottom;
+                              const menuHeight = 200;
+                              const top =
+                                spaceBelow < menuHeight
+                                  ? Math.max(8, rect.top - menuHeight)
+                                  : rect.bottom + 4;
+                              setMenuPosition({
+                                top,
+                                right: Math.max(8, window.innerWidth - rect.right),
+                              });
+                              setActiveMenuId(ord.id);
+                            }
+                          }}
                           className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1057,10 +1074,11 @@ export default function PurchaseOrdersListPage() {
                         </button>
 
                         {/* Kebab Action Popover Menu */}
-                        {activeMenuId === ord.id && (
+                        {activeMenuId === ord.id && menuPosition && (
                           <div
                             ref={menuRef}
-                            className="absolute right-4 top-10 w-44 bg-white border border-slate-200 rounded-lg shadow-xl py-1.5 z-50 text-left"
+                            style={{ top: `${menuPosition.top}px`, right: `${menuPosition.right}px` }}
+                            className="fixed w-44 bg-white border border-slate-200 rounded-lg shadow-xl py-1.5 z-50 text-left"
                           >
                             <button
                               type="button"

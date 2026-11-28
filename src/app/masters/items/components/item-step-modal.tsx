@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { HsnSelector } from "../../../../components/ui/hsn-selector";
 import { ItemBarcodeModal } from "./item-barcode-modal";
 import { apiClient, extractList } from "../../../../lib/api-client";
@@ -593,18 +594,18 @@ export function ItemStepModal({
 
   const currentTabIndex = tabs.findIndex((t) => t.id === activeTab);
 
-  return (
+  const modalContent = (
     <>
       <div
-        className="fixed inset-0 z-40 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       >
         <div
-          className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200"
+          className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92dvh] animate-in zoom-in-95 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-white gap-3">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 font-bold shadow-xs">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -660,12 +661,12 @@ export function ItemStepModal({
           {/* Body: Left Sidebar + Form Area */}
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 bg-slate-50/50">
             {/* Left Step Sidebar matching Screencast Video */}
-            <div className="w-full md:w-56 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-3 sm:p-4 shrink-0 flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible">
+            <div className="w-full md:w-48 lg:w-56 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-2.5 sm:p-3.5 lg:p-4 shrink-0 flex md:flex-col gap-1.5 md:gap-1 overflow-x-auto md:overflow-x-visible">
               {/* Tab 1: Basic Details */}
               <button
                 type="button"
                 onClick={() => setActiveTab("basic")}
-                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                className={`w-auto shrink-0 md:w-full text-left px-3 md:px-3.5 py-2 md:py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 transition-all cursor-pointer whitespace-nowrap md:whitespace-normal ${
                   activeTab === "basic"
                     ? "bg-purple-50 text-purple-700 border border-purple-200 shadow-xs"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -702,7 +703,7 @@ export function ItemStepModal({
                     key={t.id}
                     type="button"
                     onClick={() => setActiveTab(t.id)}
-                    className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                    className={`w-auto shrink-0 md:w-full text-left px-3 md:px-3.5 py-2 md:py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 transition-all cursor-pointer whitespace-nowrap md:whitespace-normal ${
                       isActive
                         ? "bg-purple-50 text-purple-700 border border-purple-200 shadow-xs"
                         : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -1917,7 +1918,7 @@ export function ItemStepModal({
               </div>
 
               {/* Modal Footer matching Screencast Video (Cancel on left, Navigation & Save on right) */}
-              <div className="flex items-center justify-between px-6 py-4 bg-slate-50/80 border-t border-slate-200 shrink-0">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/80 border-t border-slate-200 shrink-0">
                 <button
                   type="button"
                   onClick={onClose}
@@ -1994,4 +1995,7 @@ export function ItemStepModal({
       />
     </>
   );
+
+  if (typeof document === "undefined") return null;
+  return createPortal(modalContent, document.body);
 }
