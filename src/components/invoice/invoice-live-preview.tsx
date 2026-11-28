@@ -399,12 +399,12 @@ function StylishInvoice(props: {
           {props.companyName.slice(0, 1)}
         </div>
       )}
-      <div className="flex items-center gap-2">
-        <span className="text-[11px] leading-none font-bold tracking-wide" style={{ color }}>
+      <div className="flex items-baseline gap-2">
+        <span className="text-[11px] font-bold tracking-wide" style={{ color }}>
           TAX INVOICE
         </span>
-        <span className="inline-block rounded border border-slate-400 px-2 py-1 text-[9px] leading-none font-semibold tracking-wide text-slate-500 align-middle">
-          ORIGINAL FOR RECIPIENT
+        <span className="text-[9.5px] font-semibold tracking-wider text-slate-500 uppercase">
+          · ORIGINAL FOR RECIPIENT
         </span>
       </div>
       <div
@@ -533,7 +533,7 @@ function LuxuryInvoice(props: {
         </div>
         <div className="text-right">
           <div className="text-[16px] font-semibold tracking-wide">TAX INVOICE</div>
-          <div className="mt-1 inline-block border border-slate-300 px-2 py-1 text-[9px] leading-none tracking-wide text-slate-500">
+          <div className="mt-1 text-[9.5px] font-semibold tracking-wider text-slate-500 uppercase">
             ORIGINAL FOR RECIPIENT
           </div>
         </div>

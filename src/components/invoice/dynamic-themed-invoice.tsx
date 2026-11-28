@@ -340,16 +340,23 @@ export function DynamicThemedInvoice({
     const safeParty = String(partyName || "")
       .replace(/[\/\\?%*:|"<>]/g, "_")
       .trim();
-    const nextTitle = safeNumber
+    const baseTitle = safeNumber
       ? safeParty && safeParty !== "Cash Customer _ Walk-in"
         ? `${safeNumber} - ${safeParty}`
         : safeNumber
       : `${docTitle} - MyOwn BillBook`;
 
-    const applyTitle = () => {
-      document.title = nextTitle;
+    const buildUniqueTitle = () => {
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const stamp = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      return `${baseTitle} - ${stamp}`;
     };
-    applyTitle();
+
+    const applyTitle = () => {
+      document.title = buildUniqueTitle();
+    };
+    document.title = baseTitle;
     window.addEventListener("beforeprint", applyTitle);
 
     return () => {
@@ -589,15 +596,15 @@ export function DynamicThemedInvoice({
           <div className="flex-1 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-baseline gap-2">
                   <span
-                    className="font-semibold text-[13px] leading-none tracking-wide"
+                    className="font-semibold text-[13px] tracking-wide"
                     style={{ color: activeColor !== "#111111" ? activeColor : skin.ink }}
                   >
                     {docTitle}
                   </span>
-                  <span className="inline-block rounded-[2px] border border-slate-500 bg-white/95 px-2 py-1 text-[9px] leading-none font-bold text-slate-700 uppercase align-middle">
-                    {docSubtitle.replace(/[()]/g, "")}
+                  <span className="text-[9.5px] font-semibold tracking-wider text-slate-600 uppercase">
+                    · {docSubtitle.replace(/[()]/g, "")}
                   </span>
                 </div>
                 <div className="text-[11px] font-bold text-amber-950/80 tracking-wide">
@@ -837,66 +844,99 @@ export function DynamicThemedInvoice({
                 </table>
               </div>
 
-              {/* Statutory GST Tax Summary - 100% Transparent */}
-              {settings.showTax && hsnList.length > 0 && (
-                <div className="border-t border-black bg-transparent p-2 text-[10px]">
-                  <div className="font-bold text-slate-900 uppercase tracking-wider mb-1">
-                    Statutory GST Tax Summary {isInterState ? "(Inter-State IGST)" : "(Intra-State CGST + SGST)"}
+              {/* Statutory GST Tax Summary - Structured Boxed Grid + Totals */}
+              {settings.showTax && hsnList.length > 0 && (() => {
+                const sumTaxable = hsnList.reduce((acc, r) => acc + Number(r.taxable || 0), 0);
+                const sumCgst = hsnList.reduce((acc, r) => acc + Number(r.cgst || 0), 0);
+                const sumSgst = hsnList.reduce((acc, r) => acc + Number(r.sgst || 0), 0);
+                const sumIgst = hsnList.reduce((acc, r) => acc + Number(r.igst || 0), 0);
+                const sumTotal = hsnList.reduce((acc, r) => acc + Number(r.total || 0), 0);
+                const fmtInr = (n: number) =>
+                  n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                return (
+                  <div className="border-t border-black bg-transparent p-2.5 text-[10.5px]">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="font-bold text-slate-950 uppercase tracking-wider text-[10px]">
+                        Statutory GST Tax Summary
+                      </span>
+                      <span className="text-[9.5px] font-bold uppercase tracking-wide text-slate-800">
+                        {isInterState ? "Inter-State · IGST" : "Intra-State · CGST + SGST"}
+                      </span>
+                    </div>
+                    <table className="w-full text-right border-collapse border border-black bg-white/80 tabular-nums">
+                      <thead>
+                        <tr className="bg-slate-200/80 border-b border-black text-slate-950 text-[10px] font-bold uppercase">
+                          <th className="text-left py-1.5 px-2 border-r border-black">HSN/SAC</th>
+                          <th className="py-1.5 px-2 border-r border-black">Taxable (₹)</th>
+                          {!isInterState ? (
+                            <>
+                              <th className="py-1.5 px-2 border-r border-black">CGST %</th>
+                              <th className="py-1.5 px-2 border-r border-black">CGST (₹)</th>
+                              <th className="py-1.5 px-2 border-r border-black">SGST %</th>
+                              <th className="py-1.5 px-2 border-r border-black">SGST (₹)</th>
+                            </>
+                          ) : (
+                            <>
+                              <th className="py-1.5 px-2 border-r border-black">IGST %</th>
+                              <th className="py-1.5 px-2 border-r border-black">IGST (₹)</th>
+                            </>
+                          )}
+                          <th className="py-1.5 px-2">Total Tax (₹)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-slate-950 text-[10.5px] font-semibold">
+                        {hsnList.map((row) => {
+                          const rowTaxable = Number(row.taxable || 0);
+                          const rowRate = Number(row.rate || 0);
+                          const rowCgst = Number(row.cgst || 0);
+                          const rowSgst = Number(row.sgst || 0);
+                          const rowIgst = Number(row.igst || 0);
+                          const rowTotal = Number(row.total || 0);
+                          return (
+                            <tr key={row.hsn} className="border-b border-slate-700/60">
+                              <td className="text-left py-1.5 px-2 border-r border-black font-bold text-slate-950">{row.hsn}</td>
+                              <td className="py-1.5 px-2 border-r border-black">₹{fmtInr(rowTaxable)}</td>
+                              {!isInterState ? (
+                                <>
+                                  <td className="py-1.5 px-2 border-r border-black text-slate-800">{(rowRate / 2).toFixed(1)}%</td>
+                                  <td className="py-1.5 px-2 border-r border-black">₹{fmtInr(rowCgst)}</td>
+                                  <td className="py-1.5 px-2 border-r border-black text-slate-800">{(rowRate / 2).toFixed(1)}%</td>
+                                  <td className="py-1.5 px-2 border-r border-black">₹{fmtInr(rowSgst)}</td>
+                                </>
+                              ) : (
+                                <>
+                                  <td className="py-1.5 px-2 border-r border-black text-slate-800">{rowRate.toFixed(1)}%</td>
+                                  <td className="py-1.5 px-2 border-r border-black">₹{fmtInr(rowIgst)}</td>
+                                </>
+                              )}
+                              <td className="py-1.5 px-2 font-bold text-slate-950">₹{fmtInr(rowTotal)}</td>
+                            </tr>
+                          );
+                        })}
+                        <tr className="bg-slate-200/80 border-t border-black font-bold text-slate-950 text-[10.5px]">
+                          <td className="text-left py-1.5 px-2 border-r border-black uppercase">Total</td>
+                          <td className="py-1.5 px-2 border-r border-black">₹{fmtInr(sumTaxable)}</td>
+                          {!isInterState ? (
+                            <>
+                              <td className="py-1.5 px-2 border-r border-black text-slate-700">—</td>
+                              <td className="py-1.5 px-2 border-r border-black">₹{fmtInr(sumCgst)}</td>
+                              <td className="py-1.5 px-2 border-r border-black text-slate-700">—</td>
+                              <td className="py-1.5 px-2 border-r border-black">₹{fmtInr(sumSgst)}</td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="py-1.5 px-2 border-r border-black text-slate-700">—</td>
+                              <td className="py-1.5 px-2 border-r border-black">₹{fmtInr(sumIgst)}</td>
+                            </>
+                          )}
+                          <td className="py-1.5 px-2">₹{fmtInr(sumTotal)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                  <table className="w-full text-right border-collapse">
-                    <thead>
-                      <tr className="border-b border-black/30 text-slate-700 text-[9.5px] font-bold">
-                        <th className="text-left py-0.5">HSN/SAC</th>
-                        <th className="py-0.5">Taxable (₹)</th>
-                        {!isInterState ? (
-                          <>
-                            <th className="py-0.5">CGST %</th>
-                            <th className="py-0.5">CGST (₹)</th>
-                            <th className="py-0.5">SGST %</th>
-                            <th className="py-0.5">SGST (₹)</th>
-                          </>
-                        ) : (
-                          <>
-                            <th className="py-0.5">IGST %</th>
-                            <th className="py-0.5">IGST (₹)</th>
-                          </>
-                        )}
-                        <th className="py-0.5">Total Tax (₹)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="font-mono text-slate-900 font-semibold">
-                      {hsnList.map((row) => {
-                        const rowTaxable = Number(row.taxable || 0);
-                        const rowRate = Number(row.rate || 0);
-                        const rowCgst = Number(row.cgst || 0);
-                        const rowSgst = Number(row.sgst || 0);
-                        const rowIgst = Number(row.igst || 0);
-                        const rowTotal = Number(row.total || 0);
-                        return (
-                          <tr key={row.hsn} className="border-b border-black/20">
-                            <td className="text-left py-0.5">{row.hsn}</td>
-                            <td className="py-0.5">{rowTaxable.toFixed(2)}</td>
-                            {!isInterState ? (
-                              <>
-                                <td className="py-0.5">{(rowRate / 2).toFixed(1)}%</td>
-                                <td className="py-0.5">{rowCgst.toFixed(2)}</td>
-                                <td className="py-0.5">{(rowRate / 2).toFixed(1)}%</td>
-                                <td className="py-0.5">{rowSgst.toFixed(2)}</td>
-                              </>
-                            ) : (
-                              <>
-                                <td className="py-0.5">{rowRate.toFixed(1)}%</td>
-                                <td className="py-0.5">{rowIgst.toFixed(2)}</td>
-                              </>
-                            )}
-                            <td className="py-0.5 font-bold">{rowTotal.toFixed(2)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Totals & Notes Section - 100% Transparent */}
               <div className="grid grid-cols-12 border-t border-black p-3 text-[11px] bg-transparent">
