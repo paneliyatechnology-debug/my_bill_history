@@ -501,10 +501,10 @@ function DashboardContent() {
       <UpcomingDuesAlertCard />
       <AuditAlertsCard />
 
-      {/* 4. MAIN CONTENT ROW: RECENT TRANSACTIONS (8-col) | QUICK ACTIONS (4-col) */}
+      {/* 4. MAIN CONTENT ROW: RECENT TRANSACTIONS (9-col) | QUICK ACTIONS (3-col) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left: Detailed Recent Transactions Stream */}
-        <div className="lg:col-span-8 flex flex-col min-w-0">
+        <div className="lg:col-span-9 flex flex-col min-w-0">
           <DashboardTransactionsTable
             transactions={transactions}
             isLoading={isLoading}
@@ -516,7 +516,7 @@ function DashboardContent() {
         </div>
 
         {/* Right: Quick Actions Grid */}
-        <div className="lg:col-span-4 flex flex-col min-w-0">
+        <div className="lg:col-span-3 flex flex-col min-w-0">
           <DashboardQuickActions lang={lang} />
         </div>
       </div>

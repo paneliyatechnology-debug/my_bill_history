@@ -264,9 +264,10 @@ export default function CategoriesPage() {
             : []),
           {
             header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
-            className: "text-center",
+            align: "right",
+            className: "text-right whitespace-nowrap",
             cell: (c) => (
-              <div className="inline-flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+              <div className="inline-flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleOpenEditModal(c)}
                   className="px-2.5 py-1 text-[13px] font-medium text-[#0F172A] bg-[#EFF6FF] hover:bg-[#0F172A] hover:text-white border border-[#0F172A]/30 rounded transition-colors inline-flex items-center gap-1"

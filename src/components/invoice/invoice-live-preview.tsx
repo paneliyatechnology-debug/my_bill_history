@@ -1522,15 +1522,10 @@ function FestivalInvoice(props: {
               <span className="font-semibold text-[13px] tracking-wide text-slate-900">
                 TAX INVOICE
               </span>
-              <span className="rounded-[2px] border border-slate-500 bg-white/90 px-2 py-0.5 text-[9px] font-bold text-slate-700 uppercase">
-                ORIGINAL FOR RECIPIENT
+              <span className="text-[9.5px] font-semibold tracking-wider text-slate-600 uppercase">
+                · ORIGINAL FOR RECIPIENT
               </span>
             </div>
-            {skin.subGreeting && (
-              <div className="text-[11px] font-bold text-amber-950/80 tracking-wide">
-                {skin.subGreeting}
-              </div>
-            )}
           </div>
 
           {/* Outer Boxed Table Container matching myBillBook - 100% transparent */}

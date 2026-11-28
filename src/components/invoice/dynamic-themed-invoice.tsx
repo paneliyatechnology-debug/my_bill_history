@@ -667,9 +667,6 @@ export function DynamicThemedInvoice({
                     · {docSubtitle.replace(/[()]/g, "")}
                   </span>
                 </div>
-                <div className="text-[11px] font-bold text-amber-950/80 tracking-wide">
-                  {skin.subGreeting}
-                </div>
               </div>
             </div>
 

@@ -135,15 +135,15 @@ export function DashboardTransactionsTable({
 
         {/* Table */}
         <div className="overflow-x-auto min-h-[260px] scrollbar-thin scrollbar-thumb-slate-200">
-          <table className="w-full min-w-[580px] text-left border-collapse">
+          <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 bg-[#FAFBFD] typo-table-th text-slate-500 uppercase tracking-wider">
-                <th className="px-4 sm:px-5 py-3 whitespace-nowrap">{lang === "gu" ? "તારીખ" : "Date"}</th>
-                <th className="px-3 sm:px-4 py-3 whitespace-nowrap">{lang === "gu" ? "પ્રકાર" : "Type"}</th>
-                <th className="px-3 sm:px-4 py-3 whitespace-nowrap">{lang === "gu" ? "વાઉચર #" : "Voucher No."}</th>
-                <th className="px-4 sm:px-5 py-3 whitespace-nowrap">{lang === "gu" ? "પાર્ટી" : "Party"}</th>
-                <th className="px-4 sm:px-5 py-3 text-right whitespace-nowrap">{lang === "gu" ? "રકમ" : "Amount"}</th>
-                <th className="px-4 sm:px-5 py-3 text-center whitespace-nowrap">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
+                <th className="px-3 py-3 whitespace-nowrap">{lang === "gu" ? "તારીખ" : "Date"}</th>
+                <th className="px-2.5 py-3 whitespace-nowrap">{lang === "gu" ? "પ્રકાર" : "Type"}</th>
+                <th className="px-2.5 py-3 whitespace-nowrap">{lang === "gu" ? "વાઉચર #" : "Voucher No."}</th>
+                <th className="px-2.5 py-3 whitespace-nowrap">{lang === "gu" ? "પાર્ટી" : "Party"}</th>
+                <th className="px-2.5 py-3 text-right whitespace-nowrap">{lang === "gu" ? "રકમ" : "Amount"}</th>
+                <th className="px-3 py-3 text-right whitespace-nowrap">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">
@@ -176,35 +176,35 @@ export function DashboardTransactionsTable({
                       className="hover:bg-[#F8FBFF] transition-colors cursor-pointer group"
                     >
                       {/* Date */}
-                      <td className="px-4 sm:px-5 py-3 sm:py-3.5 typo-table-td text-slate-600 whitespace-nowrap">
+                      <td className="px-3 py-3 typo-table-td text-slate-600 whitespace-nowrap">
                         {row.date}
                       </td>
 
                       {/* Type */}
-                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 whitespace-nowrap typo-table-td text-slate-700">
+                      <td className="px-2.5 py-3 whitespace-nowrap typo-table-td text-slate-700">
                         {typeLabel}
                       </td>
 
                       {/* Voucher No. */}
-                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 typo-invoice-no text-slate-700 whitespace-nowrap group-hover:text-[#2563EB] transition-colors">
+                      <td className="px-2.5 py-3 typo-invoice-no text-slate-700 max-w-[140px] truncate whitespace-nowrap group-hover:text-[#2563EB] transition-colors" title={row.txnNo}>
                         {row.txnNo}
                       </td>
 
                       {/* Party */}
                       <td
-                        className="px-4 sm:px-5 py-3 sm:py-3.5 typo-table-td font-medium text-slate-900 max-w-[130px] sm:max-w-[200px] truncate whitespace-nowrap"
+                        className="px-2.5 py-3 typo-table-td font-medium text-slate-900 max-w-[115px] sm:max-w-[155px] truncate whitespace-nowrap"
                         title={row.partyName}
                       >
                         {row.partyName}
                       </td>
 
                       {/* Amount */}
-                      <td className="px-4 sm:px-5 py-3 sm:py-3.5 text-right typo-table-amount text-[#182230] whitespace-nowrap tabular-nums">
+                      <td className="px-2.5 py-3 text-right typo-table-amount text-[#182230] whitespace-nowrap tabular-nums">
                         {formatInr(row.amount)}
                       </td>
 
                       {/* Status — clean text with dot, no pastel badges */}
-                      <td className="px-4 sm:px-5 py-3 sm:py-3.5 text-center whitespace-nowrap">
+                      <td className="px-3 py-3 text-right whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
                           {/* <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusInfo.dotColor}`} /> */}
                           <span className={statusInfo.textColor}>{statusInfo.label}</span>

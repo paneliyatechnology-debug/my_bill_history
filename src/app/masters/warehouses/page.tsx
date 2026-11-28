@@ -227,10 +227,11 @@ export default function WarehousesPage() {
           },
           {
             header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
-            className: "text-center",
+            align: "right",
+            className: "text-right whitespace-nowrap",
             cell: (w) => (
               <div 
-                className="inline-flex items-center justify-center gap-1.5"
+                className="inline-flex items-center justify-end gap-1.5"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button

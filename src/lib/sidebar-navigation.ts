@@ -161,6 +161,9 @@ export function resolveActiveNavigation(rawPath: string): {
   } else if (isPathPrefixMatch(path, "/sales/quotations")) {
     activeSectionId = "sales";
     activeSubItemHref = "/sales/quotations";
+  } else if (isPathPrefixMatch(path, "/sales/orders")) {
+    activeSectionId = "sales";
+    activeSubItemHref = "/sales/orders";
   } else if (isPathPrefixMatch(path, "/sales/payment-in")) {
     activeSectionId = "sales";
     activeSubItemHref = "/sales/payment-in";
