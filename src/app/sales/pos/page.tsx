@@ -215,13 +215,14 @@ export default function PosTerminalPage() {
   });
   const [isSavingNewItem, setIsSavingNewItem] = useState(false);
 
-  // Quick Inline Edit Modal (Price, Qty, Discount)
+  // Quick Inline Edit Modal (Price, MRP, Qty, Discount)
   const [quickEditModal, setQuickEditModal] = useState<{
     isOpen: boolean;
-    type: "PRICE" | "QTY" | "DISCOUNT";
+    type: "PRICE" | "MRP" | "QTY" | "DISCOUNT";
     itemId: string;
     value: string;
-  }>({ isOpen: false, type: "PRICE", itemId: "", value: "" });
+    mrpValue?: string;
+  }>({ isOpen: false, type: "PRICE", itemId: "", value: "", mrpValue: "" });
 
   // How to use POS Help modal
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -762,7 +763,7 @@ export default function PosTerminalPage() {
   };
 
   const handleTriggerEdit = (
-    type: "PRICE" | "QTY" | "DISCOUNT",
+    type: "PRICE" | "MRP" | "QTY" | "DISCOUNT",
     targetItem?: CartItem,
     targetIdx?: number
   ) => {
@@ -780,6 +781,8 @@ export default function PosTerminalPage() {
     const initialVal =
       type === "PRICE"
         ? String(selectedItem.unitPrice)
+        : type === "MRP"
+        ? String(selectedItem.mrp ?? selectedItem.unitPrice)
         : type === "QTY"
         ? String(selectedItem.quantity)
         : String(selectedItem.discountPercent || 0);
@@ -789,18 +792,26 @@ export default function PosTerminalPage() {
       type,
       itemId: selectedItem.id,
       value: initialVal,
+      mrpValue: String(selectedItem.mrp ?? selectedItem.unitPrice),
     });
   };
 
   const handleApplyQuickEdit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const val = parseFloat(quickEditModal.value) || 0;
+    const mrpVal = parseFloat(quickEditModal.mrpValue ?? "") || 0;
 
     updateCurrentScreen((prev) => {
       const updated = prev.items.map((it) => {
         if (it.id === quickEditModal.itemId) {
           if (quickEditModal.type === "PRICE") {
-            return { ...it, unitPrice: Math.max(0, val) };
+            return {
+              ...it,
+              unitPrice: Math.max(0, val),
+              mrp: quickEditModal.mrpValue !== undefined && quickEditModal.mrpValue !== "" ? Math.max(0, mrpVal) : it.mrp,
+            };
+          } else if (quickEditModal.type === "MRP") {
+            return { ...it, mrp: Math.max(0, val) };
           } else if (quickEditModal.type === "QTY") {
             return { ...it, quantity: Math.max(1, val) };
           } else if (quickEditModal.type === "DISCOUNT") {
@@ -885,6 +896,7 @@ export default function PosTerminalPage() {
         itemId: c.item.id,
         quantity: c.quantity,
         unitPrice: c.unitPrice,
+        mrp: c.mrp,
         taxRate: c.taxRate,
         discountPercent: c.discountPercent,
         description: c.description || undefined,
@@ -1825,19 +1837,66 @@ export default function PosTerminalPage() {
                         {cartLine.item.barcode || cartLine.item.sku || "-"}
                       </div>
                       {!settings.hideMrp && (
-                        <div className="w-24 py-2.5 px-3 text-right tabular-nums text-slate-500 border-r border-[#E5E7EB]">
-                          ₹{Number(cartLine.mrp || 0).toFixed(2)}
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-24 py-1.5 px-2 border-r border-[#E5E7EB]"
+                        >
+                          <div className="flex items-center bg-white/80 border border-slate-200 hover:border-[#5C56DF]/60 focus-within:border-[#5C56DF] focus-within:bg-white rounded px-1.5 h-7">
+                            <span className="text-[11px] text-slate-400 mr-0.5">₹</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              aria-label={`MRP for ${cartLine.item.name}`}
+                              value={cartLine.mrp ?? ""}
+                              onFocus={() =>
+                                updateCurrentScreen((prev) => ({
+                                  ...prev,
+                                  selectedRowIndex: idx,
+                                }))
+                              }
+                              onChange={(e) => {
+                                const nextMrp = Math.max(0, parseFloat(e.target.value) || 0);
+                                updateCurrentScreen((prev) => {
+                                  const copy = [...prev.items];
+                                  copy[idx] = { ...copy[idx], mrp: nextMrp };
+                                  return { ...prev, items: copy };
+                                });
+                              }}
+                              className="w-full text-right text-xs tabular-nums text-slate-700 bg-transparent outline-none"
+                            />
+                          </div>
                         </div>
                       )}
                       <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleTriggerEdit("PRICE", cartLine, idx);
-                        }}
-                        title="Click to edit Price [P]"
-                        className="w-24 py-2.5 px-3 text-right tabular-nums font-bold text-[#1F2937] border-r border-[#E5E7EB] hover:bg-indigo-50/80 hover:text-[#5C56DF] transition-colors cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-24 py-1.5 px-2 border-r border-[#E5E7EB]"
                       >
-                        ₹{Number(cartLine.unitPrice).toFixed(2)}
+                        <div className="flex items-center bg-white/80 border border-slate-200 hover:border-[#5C56DF]/60 focus-within:border-[#5C56DF] focus-within:bg-white rounded px-1.5 h-7">
+                          <span className="text-[11px] text-slate-400 mr-0.5">₹</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            aria-label={`Selling Price for ${cartLine.item.name}`}
+                            value={cartLine.unitPrice}
+                            onFocus={() =>
+                              updateCurrentScreen((prev) => ({
+                                ...prev,
+                                selectedRowIndex: idx,
+                              }))
+                            }
+                            onChange={(e) => {
+                              const nextPrice = Math.max(0, parseFloat(e.target.value) || 0);
+                              updateCurrentScreen((prev) => {
+                                const copy = [...prev.items];
+                                copy[idx] = { ...copy[idx], unitPrice: nextPrice };
+                                return { ...prev, items: copy };
+                              });
+                            }}
+                            className="w-full text-right text-xs tabular-nums font-bold text-[#1F2937] bg-transparent outline-none"
+                          />
+                        </div>
                       </div>
                       <div
                         onClick={(e) => {
@@ -2956,14 +3015,16 @@ export default function PosTerminalPage() {
         </div>
       )}
 
-      {/* QUICK INLINE EDIT MODAL (PRICE, QTY, DISCOUNT) */}
+      {/* QUICK INLINE EDIT MODAL (PRICE, MRP, QTY, DISCOUNT) */}
       {quickEditModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-in fade-in">
           <div className="w-full max-w-xs bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
               <h3 className="text-xs font-semibold text-[#1F2937]">
                 {quickEditModal.type === "PRICE"
-                  ? "Change Item Price (P)"
+                  ? "Change Price & MRP (P)"
+                  : quickEditModal.type === "MRP"
+                  ? "Change Item MRP"
                   : quickEditModal.type === "QTY"
                   ? "Change Quantity (Q)"
                   : "Change Discount % (D)"}
@@ -2979,17 +3040,46 @@ export default function PosTerminalPage() {
             </div>
 
             <form onSubmit={handleApplyQuickEdit} className="p-4 space-y-3 text-xs">
-              <input
-                type="number"
-                step={quickEditModal.type === "QTY" ? "1" : "0.01"}
-                min="0"
-                value={quickEditModal.value}
-                onChange={(e) =>
-                  setQuickEditModal((prev) => ({ ...prev, value: e.target.value }))
-                }
-                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-[13px] tabular-nums font-normal outline-none focus:bg-white focus:border-[#5C56DF] h-10"
-                autoFocus
-              />
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  {quickEditModal.type === "PRICE"
+                    ? "Selling Price — SP (₹)"
+                    : quickEditModal.type === "MRP"
+                    ? "MRP (₹)"
+                    : quickEditModal.type === "QTY"
+                    ? "Quantity"
+                    : "Discount (%)"}
+                </label>
+                <input
+                  type="number"
+                  step={quickEditModal.type === "QTY" ? "1" : "0.01"}
+                  min="0"
+                  value={quickEditModal.value}
+                  onChange={(e) =>
+                    setQuickEditModal((prev) => ({ ...prev, value: e.target.value }))
+                  }
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-[13px] tabular-nums font-normal outline-none focus:bg-white focus:border-[#5C56DF] h-10"
+                  autoFocus
+                />
+              </div>
+
+              {quickEditModal.type === "PRICE" && (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                    MRP (₹)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={quickEditModal.mrpValue ?? ""}
+                    onChange={(e) =>
+                      setQuickEditModal((prev) => ({ ...prev, mrpValue: e.target.value }))
+                    }
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-[13px] tabular-nums font-normal outline-none focus:bg-white focus:border-[#5C56DF] h-10"
+                  />
+                </div>
+              )}
 
               <div className="flex gap-2">
                 <button
