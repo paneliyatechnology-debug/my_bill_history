@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import JsBarcode from "jsbarcode";
 import QRCode from "qrcode";
+import { apiClient } from "@/lib/api-client";
 import { InvoiceStudioState } from "@/components/invoice/invoice-settings-studio";
 import {
   FestiveBackgroundSvg,
@@ -219,6 +220,65 @@ export function DynamicThemedInvoice({
     company?.tradeName ||
     company?.legalName ||
     "JK Enterprise";
+  const rawSignatureUrl = settings.signatureUrl || company?.signatureUrl || "";
+  const [fetchedSignatureUrl, setFetchedSignatureUrl] = useState("");
+
+  useEffect(() => {
+    if (
+      rawSignatureUrl &&
+      (rawSignatureUrl.startsWith("data:") ||
+        rawSignatureUrl.startsWith("blob:") ||
+        rawSignatureUrl.startsWith("http"))
+    ) {
+      setFetchedSignatureUrl(rawSignatureUrl);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("billing_auth_token") : null;
+        if (!token) return;
+        const tenantRaw = typeof window !== "undefined" ? localStorage.getItem("billing_tenant_context") : null;
+        const tenant = tenantRaw ? JSON.parse(tenantRaw) : {};
+        const headers: Record<string, string> = {};
+        headers.Authorization = `Bearer ${token}`;
+        if (tenant.organizationId) headers["x-organization-id"] = tenant.organizationId;
+        if (tenant.companyId) headers["x-company-id"] = tenant.companyId;
+        if (tenant.branchId) headers["x-branch-id"] = tenant.branchId;
+
+        const endpoint =
+          rawSignatureUrl && rawSignatureUrl.startsWith("/api/v1")
+            ? `${apiClient.getBaseUrl()}${rawSignatureUrl.replace(/^\/api\/v1/, "")}`
+            : `${apiClient.getBaseUrl()}/tenants/company/signature`;
+
+        const res = await fetch(endpoint, { headers });
+        if (!res.ok || cancelled) return;
+        const blob = await res.blob();
+        if (!blob || blob.size === 0) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (!cancelled && typeof reader.result === "string") {
+            setFetchedSignatureUrl(reader.result);
+          }
+        };
+        reader.readAsDataURL(blob);
+      } catch {
+        // Ignore if signature image is not available
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rawSignatureUrl, company?.id]);
+
+  const resolvedSignatureUrl =
+    rawSignatureUrl.startsWith("data:") ||
+    rawSignatureUrl.startsWith("blob:") ||
+    rawSignatureUrl.startsWith("http")
+      ? rawSignatureUrl
+      : fetchedSignatureUrl;
   const companyAddress = [
     company?.addressLine1,
     company?.addressLine2,
@@ -1083,15 +1143,13 @@ export function DynamicThemedInvoice({
                       For {companyName}
                     </div>
                     <div className="h-10 flex items-center justify-end">
-                      {settings.signatureUrl ? (
+                      {resolvedSignatureUrl ? (
                         <img
-                          src={settings.signatureUrl}
+                          src={resolvedSignatureUrl}
                           alt="Signature"
                           className="max-h-9 object-contain"
                         />
-                      ) : (
-                        <span className="text-[9px] text-slate-500 italic">Authorized Signatory</span>
-                      )}
+                      ) : null}
                     </div>
                     <div className="text-[9px] text-slate-700 font-bold border-t border-black/40 pt-0.5 inline-block min-w-[120px]">
                       Authorized Signatory
@@ -1595,8 +1653,8 @@ export function DynamicThemedInvoice({
                 <div className="pt-6 text-right border-t border-slate-200 mt-3">
                   <div className="text-[10px] text-slate-700 font-bold">For {companyName}</div>
                   <div className="h-8 flex items-center justify-end">
-                    {settings.signatureUrl ? (
-                      <img src={settings.signatureUrl} alt="Signature" className="max-h-7 object-contain" />
+                    {resolvedSignatureUrl ? (
+                      <img src={resolvedSignatureUrl} alt="Signature" className="max-h-7 object-contain" />
                     ) : null}
                   </div>
                   <div className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold border-t border-slate-300 pt-0.5 inline-block min-w-[120px]">
@@ -1818,8 +1876,8 @@ export function DynamicThemedInvoice({
           <div className="pt-4 text-right">
             <span className="text-[10px] text-slate-600 font-bold block">For {companyName}</span>
             <div className="h-9 flex items-center justify-end">
-              {settings.signatureUrl ? (
-                <img src={settings.signatureUrl} alt="Signature" className="max-h-8 object-contain" />
+              {resolvedSignatureUrl ? (
+                <img src={resolvedSignatureUrl} alt="Signature" className="max-h-8 object-contain" />
               ) : null}
             </div>
             <span className="text-[9px] text-slate-400 border-t border-slate-300 pt-0.5 inline-block min-w-[110px]">
